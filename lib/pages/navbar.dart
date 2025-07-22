@@ -25,15 +25,16 @@ class _MainNavigationState extends State<MainNavigation> {
   
   // List of pages - now properly structured
   late final List<Widget> _pages;
-  
+  late final LogManager _logManager; 
   @override
   void initState() {
     super.initState();
+    _logManager = LogManager();
     _pages = [
       HomePage(username: widget.username),
       SchedulePage(username: widget.username),
       TasksPage(username: widget.username, userId: widget.userId),
-      LogsPage(logManager:'1'),    ];.
+      LogsPage(logManager: _logManager)  ];
   }
   
   @override
