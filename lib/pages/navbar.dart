@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import './home.dart';
 import './schedule.dart';
 import './task.dart'; // You'll need to create this
+import './logs.dart'; // You'll need to create this
 // import './calendar_page.dart'; // You'll need to create this
 // import './profile_page.dart'; // You'll need to create this
 
@@ -32,8 +33,7 @@ class _MainNavigationState extends State<MainNavigation> {
       HomePage(username: widget.username),
       SchedulePage(username: widget.username),
       TasksPage(username: widget.username, userId: widget.userId),
-      // ProfilePage(username: widget.username, userId: widget.userId),
-    ];
+      LogsPage(logManager:'1'),    ];.
   }
   
   @override
