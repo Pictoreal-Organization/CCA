@@ -1,4 +1,4 @@
-package com.example.helloworld
+package com.pictoreal.cca
 
 import io.flutter.embedding.android.FlutterActivity
 
