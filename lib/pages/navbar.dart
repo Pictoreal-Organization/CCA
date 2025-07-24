@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import './home.dart';
 import './schedule.dart';
 import './task.dart'; // You'll need to create this
-// import './logs.dart'; // You'll need to create this
+import './logs.dart'; // You'll need to create this
 // import './calendar_page.dart'; // You'll need to create this
 // import './profile_page.dart'; // You'll need to create this
 
