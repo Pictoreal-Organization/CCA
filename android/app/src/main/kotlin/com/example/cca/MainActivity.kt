@@ -1,4 +1,4 @@
-package com.pictoreal.cca
+package com.example.cca
 
 import io.flutter.embedding.android.FlutterActivity
 
