@@ -612,6 +612,7 @@ class _SchedulePageState extends State<SchedulePage> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
+          isExpanded: true,
           value: value,
           onChanged: onChanged,
           decoration: InputDecoration(
