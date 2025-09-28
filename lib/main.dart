@@ -54,7 +54,6 @@ import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './screens/signIn.screen.dart';
-import './screens/dashboard.screen.dart';
 import './screens/member_dashboard.screen.dart';
 import './screens/head_dashboard.screen.dart';
 
