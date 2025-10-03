@@ -10,7 +10,7 @@ class MeetingService {
     final token = prefs.getString("accessToken");
 
     final response = await http.get(
-      Uri.parse('$baseUrl/ongoing'),
+      Uri.parse('$baseUrl/status/ongoing'), // <- updated endpoint
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token"
@@ -29,7 +29,7 @@ class MeetingService {
     final token = prefs.getString("accessToken");
 
     final response = await http.get(
-      Uri.parse('$baseUrl/upcoming'),
+      Uri.parse('$baseUrl/status/scheduled'), // <- updated endpoint
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token"
@@ -39,7 +39,46 @@ class MeetingService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to load ongoing meetings');
+      throw Exception('Failed to load upcoming meetings');
     }
   }
+
+  Future<List<dynamic>> getCompletedMeetings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken");
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/status/completed'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token"
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load completed meetings');
+    }
+  }
+
+  Future<List<dynamic>> getMeetingsForAttendance() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken");
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/attendance/pending'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token"
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load meetings for attendance');
+    }
+  }
+
 }

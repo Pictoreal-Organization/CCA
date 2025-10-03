@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../services/meeting_service.dart';
 import '../services/tasks_service.dart';
+import '../widgets/meetings_list.widget.dart';
 
 class MemberDashboard extends StatefulWidget {
   const MemberDashboard({super.key});
@@ -102,61 +103,8 @@ class _MemberDashboard extends State<MemberDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-
-                  Text(
-                    "Ongoing Meetings",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  ongoingMeetings.isEmpty
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text("No ongoing meetings"),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: ongoingMeetings.length,
-                      itemBuilder: (context, index) {
-                        final meet = ongoingMeetings[index];
-                        return Card(
-                          margin: EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            title: Text(meet['title']),
-                            subtitle: Text(
-                              "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\nDuration: ${meet['duration']} mins\nLocatinon: ${meet['location']}"
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    Text(
-                    "Upcoming Meetings",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  upcomingMeetings.isEmpty
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Text("No upcoming meetings"),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: upcomingMeetings.length,
-                      itemBuilder: (context, index) {
-                        final meet = upcomingMeetings[index];
-                        return Card(
-                          margin: EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            title: Text(meet['title']),
-                            subtitle: Text(
-                              "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\nDuration: ${meet['duration']} mins\nLocatinon: ${meet['location']}"
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
+                  MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings),
+                  MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings),
                     Text(
                       "My Tasks",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
