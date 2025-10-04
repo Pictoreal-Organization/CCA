@@ -81,4 +81,49 @@ class MeetingService {
     }
   }
 
+  Future<Map<String, dynamic>> createMeeting({
+  required String title,
+  required String description,
+  required DateTime dateTime,
+  required String location,
+  String? agenda,
+  int? duration,
+  String? priority,
+  String? onlineLink,
+  String? teamId,
+  }) async {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("accessToken");
+
+      final body = {
+        "title": title,
+        "description": description,
+        "agenda": agenda,
+        "dateTime": dateTime.toIso8601String(),
+        "duration": duration ?? 60,
+        "priority": priority ?? "Medium",
+        "location": location,
+        "onlineLink": onlineLink,
+        "team": teamId,
+      };
+
+      print(" Sending meeting data: ${jsonEncode(body)}");
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/create"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode(body),
+      );
+
+      print(" Response ${response.statusCode}: ${response.body}");
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to create meeting: ${response.body}');
+      }
+    }
 }
