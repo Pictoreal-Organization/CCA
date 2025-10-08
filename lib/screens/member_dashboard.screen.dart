@@ -88,14 +88,6 @@ class _MemberDashboard extends State<MemberDashboard> {
           ),
         ],
       ),
-      // body: Center(
-      //   child: Column(
-      //     mainAxisAlignment: MainAxisAlignment.center,
-      //     children: [
-      //       const Text('You are on Member Dashboard'),
-      //     ],
-      //   ),
-      // )
       body: isLoading
           ? Center(child: CircularProgressIndicator(),)
           : SingleChildScrollView(
@@ -103,8 +95,8 @@ class _MemberDashboard extends State<MemberDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings,role : 'member'),
-                  MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings, role: 'member'),
+                  MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings,role : 'Member'),
+                  MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings, role: 'Member'),
                     Text(
                       "My Tasks",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

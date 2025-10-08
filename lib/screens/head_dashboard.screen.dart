@@ -58,57 +58,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
         context, MaterialPageRoute(builder: (_) => SignInScreen()));
   }
 
-  Widget buildMeetingList(String title, List meetings,
-      {bool showAttendanceButton = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        meetings.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Text("No meetings available"),
-              )
-            : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: meetings.length,
-                itemBuilder: (context, index) {
-                  final meet = meetings[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    child: ListTile(
-                      title: Text(meet['title']),
-                      subtitle: Text(
-                        "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\n"
-                        "Duration: ${meet['duration']} mins\n"
-                        "Location: ${meet['location']}",
-                      ),
-                      trailing: showAttendanceButton
-                          ? ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        AttendanceScreen(meeting: meet),
-                                  ),
-                                );
-                              },
-                              child: const Text("Mark Attendance"),
-                            )
-                          : null,
-                    ),
-                  );
-                },
-              ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
   void openCreateMeeting() {
     Navigator.push(
       context,
@@ -149,19 +98,12 @@ class _HeadDashboardState extends State<HeadDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings,role: 'head'),
-                    MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings,role: 'head'),
-                    MeetingsList(
-                        title: "Meetings Pending for Attendance",
-                        meetings: attendancePendingMeetings,role: 'head'),
-                        
+                    MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings, role: 'head'),
+                    MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings, role: 'head'),
+                    MeetingsList(title: "Meetings Pending for Attendance", meetings: attendancePendingMeetings, role: 'head'),
                   ],
                 ),
               ),
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: openCreateMeeting,
-        //   child: const Icon(Icons.add),
-        // ),
         floatingActionButton: Stack(
           children: [
             // ➕ Create Task Button
