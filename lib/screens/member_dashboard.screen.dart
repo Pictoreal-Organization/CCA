@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../services/meeting_service.dart';
-import '../services/tasks_service.dart';
+import '../services/task_service.dart';
 import '../widgets/meetings_list.widget.dart';
 
 class MemberDashboard extends StatefulWidget {
@@ -18,7 +18,7 @@ class _MemberDashboard extends State<MemberDashboard> {
   List ongoingMeetings = [];
   List upcomingMeetings = [];
 
-  final TasksService taskService = TasksService();
+  final TaskService taskService = TaskService();
   List memberTasks = [];
 
   bool isLoading = true;

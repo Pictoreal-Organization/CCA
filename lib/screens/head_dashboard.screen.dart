@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../services/meeting_service.dart';
 import 'create_meeting.screen.dart';
+import 'create_task.screen.dart';
 import 'signIn.screen.dart';
 import 'attendance.screen.dart';
 import '../widgets/meetings_list.widget.dart';
@@ -17,6 +18,7 @@ class HeadDashboard extends StatefulWidget {
 class _HeadDashboardState extends State<HeadDashboard> {
   final authService = AuthService();
   final MeetingService meetingService = MeetingService();
+  // final TasksService taskService = TasksService();
 
   List ongoingMeetings = [];
   List upcomingMeetings = [];
@@ -108,12 +110,23 @@ class _HeadDashboardState extends State<HeadDashboard> {
   }
 
   void openCreateMeeting() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => CreateMeetingScreen(onMeetingCreated: fetchMeetings),
-    ),
-  );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreateMeetingScreen(onMeetingCreated: fetchMeetings),
+      ),
+    );
+  }
+  void openCreateTask() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreateTaskScreen(onTaskCreated: () {
+          // Optional: Refresh meetings or tasks after creation
+          fetchMeetings();
+        }),
+      ),
+    );
   }
 
   @override
@@ -145,9 +158,35 @@ class _HeadDashboardState extends State<HeadDashboard> {
                   ],
                 ),
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: openCreateMeeting,
-          child: const Icon(Icons.add),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: openCreateMeeting,
+        //   child: const Icon(Icons.add),
+        // ),
+        floatingActionButton: Stack(
+          children: [
+            // ➕ Create Task Button
+            Positioned(
+              bottom: 80,
+              right: 16,
+              child: FloatingActionButton.extended(
+                heroTag: "taskBtn",
+                onPressed: openCreateTask,
+                icon: const Icon(Icons.assignment),
+                label: const Text("Task"),
+              ),
+            ),
+            // ➕ Create Meeting Button
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: FloatingActionButton.extended(
+                heroTag: "meetingBtn",
+                onPressed: openCreateMeeting,
+                icon: const Icon(Icons.add),
+                label: const Text("Meeting"),
+              ),
+            ),
+          ],
         ),
       ),
     );
