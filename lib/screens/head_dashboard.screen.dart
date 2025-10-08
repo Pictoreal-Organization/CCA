@@ -136,11 +136,12 @@ class _HeadDashboardState extends State<HeadDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings),
-                    MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings),
+                    MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings,role: 'head'),
+                    MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings,role: 'head'),
                     MeetingsList(
                         title: "Meetings Pending for Attendance",
-                        meetings: attendancePendingMeetings),
+                        meetings: attendancePendingMeetings,role: 'head'),
+                        
                   ],
                 ),
               ),
