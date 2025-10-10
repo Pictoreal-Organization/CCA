@@ -4,13 +4,14 @@ import '../screens/attendance.screen.dart';
 class MeetingsList extends StatelessWidget {
   final String title;
   final List meetings;
+  final String role;
 
-  const MeetingsList({super.key, required this.title, required this.meetings});
+  const MeetingsList({super.key, required this.title, required this.meetings,required this.role});
 
   @override
   Widget build(BuildContext context) {
     final showAttendanceButton =
-        title == "Ongoing Meetings" || title == "Meetings Pending for Attendance";
+        role == 'head' && (title == "Ongoing Meetings" || title == "Meetings Pending for Attendance");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,8 +39,10 @@ class MeetingsList extends StatelessWidget {
                       subtitle: Text(
                         "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\n"
                         "Duration: ${meet['duration']} mins\n"
-                        "Location: ${meet['location']}",
+                        "Type: ${meet['location'] != null ? 'Offline' : 'Online'}\n"
+                        "Location: ${meet['location'] ?? meet['onlineLink'] ?? 'N/A'}",
                       ),
+
                       trailing: showAttendanceButton
                           ? ElevatedButton(
                               onPressed: () {

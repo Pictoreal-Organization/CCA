@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../services/meeting_service.dart';
-import '../services/tasks_service.dart';
+import '../services/task_service.dart';
 import '../widgets/meetings_list.widget.dart';
 
 class MemberDashboard extends StatefulWidget {
@@ -18,7 +18,7 @@ class _MemberDashboard extends State<MemberDashboard> {
   List ongoingMeetings = [];
   List upcomingMeetings = [];
 
-  final TasksService taskService = TasksService();
+  final TaskService taskService = TaskService();
   List memberTasks = [];
 
   bool isLoading = true;
@@ -88,14 +88,6 @@ class _MemberDashboard extends State<MemberDashboard> {
           ),
         ],
       ),
-      // body: Center(
-      //   child: Column(
-      //     mainAxisAlignment: MainAxisAlignment.center,
-      //     children: [
-      //       const Text('You are on Member Dashboard'),
-      //     ],
-      //   ),
-      // )
       body: isLoading
           ? Center(child: CircularProgressIndicator(),)
           : SingleChildScrollView(
@@ -103,8 +95,8 @@ class _MemberDashboard extends State<MemberDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings),
-                  MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings),
+                  MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings,role : 'Member'),
+                  MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings, role: 'Member'),
                     Text(
                       "My Tasks",
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

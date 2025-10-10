@@ -15,13 +15,17 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
 
   String title = '';
   String description = '';
-  String location = '';
+  String? location;
+  String? onlineLink;
   String? agenda;
   int? duration;
   String? priority = 'Medium';
   DateTime? dateTime;
 
   bool isSubmitting = false;
+
+  // Meeting type selection: 'offline' or 'online'
+  String meetingType = 'offline';
 
   void submit() async {
     if (!_formKey.currentState!.validate() || dateTime == null) return;
@@ -34,19 +38,21 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       await meetingService.createMeeting(
         title: title,
         description: description,
-        location: location,
+        location: meetingType == 'offline' ? location! : '',
+        onlineLink: meetingType == 'online' ? onlineLink! : '',
         dateTime: dateTime!,
         agenda: agenda,
         duration: duration,
         priority: priority,
       );
 
-      widget.onMeetingCreated(); // refresh dashboard
-      Navigator.pop(context); // go back
+      widget.onMeetingCreated();
+      Navigator.pop(context);
     } catch (e) {
       setState(() => isSubmitting = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to create meeting: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create meeting: $e')),
+      );
     }
   }
 
@@ -70,11 +76,43 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                 validator: (val) => val!.isEmpty ? 'Enter description' : null,
                 onSaved: (val) => description = val!,
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Location'),
-                validator: (val) => val!.isEmpty ? 'Enter location' : null,
-                onSaved: (val) => location = val!,
+
+              // Meeting type selection
+              const SizedBox(height: 16),
+              Text('Meeting Type', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Radio<String>(
+                    value: 'offline',
+                    groupValue: meetingType,
+                    onChanged: (val) => setState(() => meetingType = val!),
+                  ),
+                  const Text('Offline'),
+                  Radio<String>(
+                    value: 'online',
+                    groupValue: meetingType,
+                    onChanged: (val) => setState(() => meetingType = val!),
+                  ),
+                  const Text('Online'),
+                ],
               ),
+
+              // Conditional input field
+              if (meetingType == 'offline')
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Location'),
+                  validator: (val) =>
+                      val!.isEmpty ? 'Enter location for offline meeting' : null,
+                  onSaved: (val) => location = val!,
+                ),
+              if (meetingType == 'online')
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Online Meeting Link'),
+                  validator: (val) =>
+                      val!.isEmpty ? 'Enter meeting link for online meeting' : null,
+                  onSaved: (val) => onlineLink = val!,
+                ),
+
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Agenda (optional)'),
                 onSaved: (val) => agenda = val,
