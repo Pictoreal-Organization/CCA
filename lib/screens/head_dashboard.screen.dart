@@ -6,6 +6,7 @@ import 'create_meeting.screen.dart';
 import 'create_task.screen.dart';
 import 'signIn.screen.dart';
 import 'attendance.screen.dart';
+import 'profile.screen.dart';
 import '../widgets/meetings_list.widget.dart';
 
 class HeadDashboard extends StatefulWidget {
@@ -82,15 +83,36 @@ class _HeadDashboardState extends State<HeadDashboard> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        // appBar: AppBar(
+        //   title: const Text("Head Dashboard"),
+        //   actions: [
+        //     IconButton(
+        //       icon: const Icon(Icons.logout),
+        //       onPressed: logout,
+        //     ),
+        //   ],
+        // ),
         appBar: AppBar(
-          title: const Text("Head Dashboard"),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: logout,
-            ),
-          ],
-        ),
+  title: const Text("Head Dashboard"),
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.person),
+      tooltip: "Profile",
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        );
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.logout),
+      tooltip: "Logout",
+      onPressed: logout,
+    ),
+  ],
+),
+
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
