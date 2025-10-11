@@ -93,25 +93,25 @@ class _HeadDashboardState extends State<HeadDashboard> {
         //   ],
         // ),
         appBar: AppBar(
-  title: const Text("Head Dashboard"),
-  actions: [
-    IconButton(
-      icon: const Icon(Icons.person),
-      tooltip: "Profile",
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        );
-      },
-    ),
-    IconButton(
-      icon: const Icon(Icons.logout),
-      tooltip: "Logout",
-      onPressed: logout,
-    ),
-  ],
-),
+          title: const Text("Head Dashboard"),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.person),
+              tooltip: "Profile",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: "Logout",
+              onPressed: logout,
+            ),
+          ],
+        ),
 
         body: isLoading
             ? const Center(child: CircularProgressIndicator())

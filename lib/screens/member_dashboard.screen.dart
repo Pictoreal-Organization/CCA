@@ -1,6 +1,7 @@
 import 'package:cca/screens/signIn.screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'profile.screen.dart';
 import '../services/auth_service.dart';
 import '../services/meeting_service.dart';
 import '../services/task_service.dart';
@@ -79,14 +80,34 @@ class _MemberDashboard extends State<MemberDashboard> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(child: Scaffold(
+      // appBar: AppBar(
+      //   title: Text("Member Dashboard"),
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(Icons.logout),
+      //       onPressed: logout,
+      //     ),
+      //   ],
+      // ),
       appBar: AppBar(
-        title: Text("Member Dashboard"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: logout,
-          ),
-        ],
+          title: const Text("Head Dashboard"),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.person),
+              tooltip: "Profile",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: "Logout",
+              onPressed: logout,
+            ),
+          ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator(),)
