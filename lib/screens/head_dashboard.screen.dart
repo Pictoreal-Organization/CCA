@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/meeting_service.dart';
-import '../services/task_service.dart'; // Import TaskService
+import '../services/task_service.dart';
 import 'create_meeting.screen.dart';
 import 'create_task.screen.dart';
 import 'signIn.screen.dart';
@@ -18,21 +18,20 @@ class HeadDashboard extends StatefulWidget {
 class _HeadDashboardState extends State<HeadDashboard> {
   final authService = AuthService();
   final MeetingService meetingService = MeetingService();
-  final TaskService taskService = TaskService(); // Add TaskService instance
+  final TaskService taskService = TaskService();
 
   List ongoingMeetings = [];
   List upcomingMeetings = [];
   List attendancePendingMeetings = [];
-  List allTasks = []; // State for storing all tasks
+  List allTasks = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchAllData(); // Fetch both meetings and tasks
+    fetchAllData();
   }
 
-  // Fetches all data required for the dashboard
   Future<void> fetchAllData() async {
     if (!mounted) return;
     setState(() => isLoading = true);
@@ -42,9 +41,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
         meetingService.getOngoingMeetings(),
         meetingService.getUpcomingMeetings(),
         meetingService.getMeetingsForAttendance(),
-        taskService.getAllTasks(), // Fetch all tasks
+        taskService.getAllTasks(),
       ]);
-
       if (!mounted) return;
       setState(() {
         ongoingMeetings = data[0] as List;
@@ -61,6 +59,85 @@ class _HeadDashboardState extends State<HeadDashboard> {
       if (mounted) setState(() => isLoading = false);
     }
   }
+
+  // --- HEAD ACTION METHODS ---
+
+  // Shows a dialog for the Head to enter required changes for a subtask
+  void _showSuggestChangesDialog(dynamic task, dynamic subtask) async {
+    final controller = TextEditingController();
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Suggest Changes'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Required changes*',
+            hintText: 'e.g., "Please add responsive support for tablets."',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text('Submit Feedback'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await taskService.updateSubtask(
+          taskId: task['_id'],
+          subtaskId: subtask['_id'],
+          data: {
+            'status': 'Pending', // Revert status to Pending
+            'description': controller.text, // Overwrite description with feedback
+          },
+        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Feedback sent to member.')));
+        fetchAllData();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error sending feedback: $e')));
+      }
+    }
+  }
+
+  // Marks the entire parent task as completed
+  void _completeMainTask(dynamic task) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Complete Main Task?'),
+        content: const Text('All subtasks have been approved. Do you want to mark the entire task as completed?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Complete Task')),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await taskService.updateTask(task['_id'], {'status': 'Completed'});
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task marked as completed!')));
+        fetchAllData();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error completing task: $e')));
+      }
+    }
+  }
+  
+  // --- NAVIGATION AND OTHER METHODS ---
 
   void logout() async {
     await authService.logout();
@@ -83,13 +160,12 @@ class _HeadDashboardState extends State<HeadDashboard> {
       MaterialPageRoute(
         builder: (_) => CreateTaskScreen(
           onTaskCreated: fetchAllData,
-          taskToEdit: taskToEdit, // Pass task data for editing
+          taskToEdit: taskToEdit,
         ),
       ),
     );
   }
 
-  // Logic for deleting a task with a confirmation dialog
   void _deleteTask(String taskId) async {
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -112,7 +188,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Task deleted successfully')),
         );
-        fetchAllData(); // Refresh the list
+        fetchAllData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to delete task: $e')),
@@ -144,7 +220,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
           : RefreshIndicator(
               onRefresh: fetchAllData,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Add bottom padding for FAB
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 160), // Add bottom padding for FABs
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -166,8 +242,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
                             itemBuilder: (context, index) {
                               final task = allTasks[index];
                               final subtasks = (task['subtasks'] as List?) ?? [];
+                              final allSubtasksCompleted = subtasks.isNotEmpty && subtasks.every((s) => s['status'] == 'Completed');
                               
-                              // ✅ USE EXPANSIONTILE FOR DETAILS
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 6),
                                 child: ExpansionTile(
@@ -176,40 +252,41 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.blueAccent),
-                                        tooltip: "Edit Task",
-                                        onPressed: () => openCreateTask(taskToEdit: task),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                        tooltip: "Delete Task",
-                                        onPressed: () => _deleteTask(task['_id']),
-                                      ),
+                                      IconButton(icon: const Icon(Icons.edit, color: Colors.blueAccent), onPressed: () => openCreateTask(taskToEdit: task)),
+                                      IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteTask(task['_id'])),
                                     ],
                                   ),
                                   children: [
                                     const Divider(height: 1),
-                                    // Loop through subtasks and display their details
                                     ...subtasks.map((sub) {
-                                      final assignedUsers = (sub['assignedTo'] as List)
-                                          .map((user) => user['username'])
-                                          .join(', ');
-
+                                      final assignedUsers = (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
                                       return ListTile(
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                         title: Text(sub['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        subtitle: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(sub['description'] ?? 'No description.'),
-                                            const SizedBox(height: 4),
-                                            Text("Assigned to: $assignedUsers", style: const TextStyle(fontStyle: FontStyle.italic)),
-                                          ],
-                                        ),
-                                        trailing: Text(sub['status']),
+                                        subtitle: Text(sub['description'] ?? 'No description.'),
+                                        trailing: sub['status'] == 'Completed'
+                                            ? ActionChip(
+                                                avatar: const Icon(Icons.undo, size: 16),
+                                                label: const Text('Changes?'),
+                                                tooltip: 'Suggest Changes',
+                                                onPressed: () => _showSuggestChangesDialog(task, sub),
+                                                backgroundColor: Colors.orange.shade100,
+                                              )
+                                            : Chip(label: Text(sub['status'])),
                                       );
                                     }).toList(),
+                                    if (task['status'] != 'Completed')
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: ElevatedButton.icon(
+                                          icon: const Icon(Icons.check_circle_outline),
+                                          label: const Text('Mark Main Task as Completed'),
+                                          style: ElevatedButton.styleFrom(
+                                            minimumSize: const Size(double.infinity, 40),
+                                            backgroundColor: allSubtasksCompleted ? Colors.green : Colors.grey.shade400,
+                                          ),
+                                          onPressed: allSubtasksCompleted ? () => _completeMainTask(task) : null,
+                                        ),
+                                      ),
                                   ],
                                 ),
                               );
