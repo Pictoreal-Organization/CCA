@@ -50,41 +50,71 @@
 // }
 
 
+
+
+
+// import 'package:flutter/material.dart';
+// import 'package:jwt_decoder/jwt_decoder.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import './screens/signIn.screen.dart';
+// import './screens/member_dashboard.screen.dart';
+// import './screens/head_dashboard.screen.dart';
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   SharedPreferences prefs = await SharedPreferences.getInstance();
+//   String? token = prefs.getString("accessToken");
+//   String? role = prefs.getString("role");
+//   runApp(MyApp(token: token, role: role));
+// }
+
+// class MyApp extends StatelessWidget {
+//   final String? token;
+//   final String? role;
+//   const MyApp({Key? key, this.token, this.role}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     Widget homeScreen;
+
+//     if (token != null && JwtDecoder.isExpired(token!) == false) {
+//       if (role == "Head") homeScreen = HeadDashboard();
+//       else homeScreen = MemberDashboard();
+//     } else {
+//       homeScreen = SignInScreen();
+//     }
+
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(primaryColor: Colors.white, visualDensity: VisualDensity.adaptivePlatformDensity),
+//       home:  homeScreen,
+//     );
+//   }
+// }
+
+
+
+
 import 'package:flutter/material.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import './screens/signIn.screen.dart';
-import './screens/member_dashboard.screen.dart';
-import './screens/head_dashboard.screen.dart';
+import 'screens/splash.screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("accessToken");
-  String? role = prefs.getString("role");
-  runApp(MyApp(token: token, role: role));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final String? token;
-  final String? role;
-  const MyApp({Key? key, this.token, this.role}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Widget homeScreen;
-
-    if (token != null && JwtDecoder.isExpired(token!) == false) {
-      if (role == "Head") homeScreen = HeadDashboard();
-      else homeScreen = MemberDashboard();
-    } else {
-      homeScreen = SignInScreen();
-    }
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primaryColor: Colors.white, visualDensity: VisualDensity.adaptivePlatformDensity),
-      home:  homeScreen,
+      theme: ThemeData(
+        primaryColor: Colors.white,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const SplashScreen(),
     );
   }
 }
