@@ -36,7 +36,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
     if (!mounted) return;
     setState(() => isLoading = true);
     try {
-      // Fetch all data in parallel for faster loading
       final data = await Future.wait([
         meetingService.getOngoingMeetings(),
         meetingService.getUpcomingMeetings(),
@@ -62,7 +61,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
 
   // --- HEAD ACTION METHODS ---
 
-  // Shows a dialog for the Head to enter required changes for a subtask
   void _showSuggestChangesDialog(dynamic task, dynamic subtask) async {
     final controller = TextEditingController();
     bool? confirmed = await showDialog<bool>(
@@ -100,8 +98,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
           taskId: task['_id'],
           subtaskId: subtask['_id'],
           data: {
-            'status': 'Pending', // Revert status to Pending
-            'description': controller.text, // Overwrite description with feedback
+            'status': 'Pending',
+            'description': controller.text,
           },
         );
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Feedback sent to member.')));
@@ -112,7 +110,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
     }
   }
 
-  // Marks the entire parent task as completed
   void _completeMainTask(dynamic task) async {
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -220,7 +217,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
           : RefreshIndicator(
               onRefresh: fetchAllData,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 160), // Add bottom padding for FABs
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 160),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -262,7 +259,18 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                       final assignedUsers = (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
                                       return ListTile(
                                         title: Text(sub['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        subtitle: Text(sub['description'] ?? 'No description.'),
+                                        // ✅ MODIFIED SUBTITLE TO SHOW ASSIGNED USER
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(sub['description'] ?? 'No description.'),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              "Assigned to: $assignedUsers",
+                                              style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black54),
+                                            ),
+                                          ],
+                                        ),
                                         trailing: sub['status'] == 'Completed'
                                             ? ActionChip(
                                                 avatar: const Icon(Icons.undo, size: 16),
