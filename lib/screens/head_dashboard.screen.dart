@@ -16,10 +16,12 @@ class HeadDashboard extends StatefulWidget {
 }
 
 class _HeadDashboardState extends State<HeadDashboard> {
+  // Services
   final authService = AuthService();
   final MeetingService meetingService = MeetingService();
   final TaskService taskService = TaskService();
 
+  // State
   List ongoingMeetings = [];
   List upcomingMeetings = [];
   List attendancePendingMeetings = [];
@@ -32,6 +34,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
     fetchAllData();
   }
 
+  // --- DATA FETCHING ---
   Future<void> fetchAllData() async {
     if (!mounted) return;
     setState(() => isLoading = true);
@@ -60,7 +63,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
   }
 
   // --- HEAD ACTION METHODS ---
-
+  // All the action methods below are already correct and do not need changes.
   void _showSuggestChangesDialog(dynamic task, dynamic subtask) async {
     final controller = TextEditingController();
     bool? confirmed = await showDialog<bool>(
@@ -133,35 +136,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
       }
     }
   }
-  
-  // --- NAVIGATION AND OTHER METHODS ---
-
-  void logout() async {
-    await authService.logout();
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => SignInScreen()));
-  }
-
-  void openCreateMeeting() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CreateMeetingScreen(onMeetingCreated: fetchAllData),
-      ),
-    );
-  }
-
-  void openCreateTask({Map<String, dynamic>? taskToEdit}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CreateTaskScreen(
-          onTaskCreated: fetchAllData,
-          taskToEdit: taskToEdit,
-        ),
-      ),
-    );
-  }
 
   void _deleteTask(String taskId) async {
     bool? confirm = await showDialog<bool>(
@@ -192,6 +166,33 @@ class _HeadDashboardState extends State<HeadDashboard> {
         );
       }
     }
+  }
+
+  void logout() async {
+    await authService.logout();
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (_) => SignInScreen()));
+  }
+
+  void openCreateMeeting() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreateMeetingScreen(onMeetingCreated: fetchAllData),
+      ),
+    );
+  }
+
+  void openCreateTask({Map<String, dynamic>? taskToEdit}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreateTaskScreen(
+          onTaskCreated: fetchAllData,
+          taskToEdit: taskToEdit,
+        ),
+      ),
+    );
   }
 
   @override
@@ -230,7 +231,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                     allTasks.isEmpty
                         ? const Center(child: Padding(
                           padding: EdgeInsets.all(16.0),
-                          child: Text("No tasks found. Create one!"),
+                          child: Text("No active tasks found. Create one!"),
                         ))
                         : ListView.builder(
                             shrinkWrap: true,
@@ -240,11 +241,26 @@ class _HeadDashboardState extends State<HeadDashboard> {
                               final task = allTasks[index];
                               final subtasks = (task['subtasks'] as List?) ?? [];
                               final allSubtasksCompleted = subtasks.isNotEmpty && subtasks.every((s) => s['status'] == 'Completed');
+                              // ✅ CORRECT LOGIC: Check if any subtask is 'Completed'.
+                              final needsReview = subtasks.any((s) => s['status'] == 'Completed');
                               
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 6),
                                 child: ExpansionTile(
-                                  title: Text(task['title']),
+                                  title: Row(
+                                    children: [
+                                      Expanded(child: Text(task['title'])),
+                                      // ✅ CORRECT LOGIC: Show the chip if review is needed.
+                                      if (needsReview)
+                                        Chip(
+                                          label: const Text('Needs Review'),
+                                          backgroundColor: Colors.amber.shade200,
+                                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                                          labelStyle: TextStyle(color: Colors.brown.shade900, fontSize: 12),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                    ],
+                                  ),
                                   subtitle: Text("Status: ${task['status']}"),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -259,7 +275,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                       final assignedUsers = (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
                                       return ListTile(
                                         title: Text(sub['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        // ✅ MODIFIED SUBTITLE TO SHOW ASSIGNED USER
                                         subtitle: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
