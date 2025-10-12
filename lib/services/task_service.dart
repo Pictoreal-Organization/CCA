@@ -209,4 +209,39 @@ class TaskService {
       throw Exception('Failed to update subtask: ${response.body}');
     }
   }
+
+  Future<List<dynamic>> getCompletedTasksByUser(String userId) async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/$userId/completed'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load completed tasks');
+    }
+  }
+
+  Future<List<dynamic>> getAllCompletedTasks() async {
+    final token = await _getToken();
+    // This assumes you have a backend route like '/status/Completed'
+    final response = await http.get(
+      Uri.parse('$baseUrl/status/Completed'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load all completed tasks');
+    }
+  }
 }
