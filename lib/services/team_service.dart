@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class TeamService {
   // Replace with your backend base URL
-  final String baseUrl = "http://10.0.2.2:5001/api/teams";
+  // final String baseUrl = "http://10.0.2.2:5001/api/teams";
+    final String baseUrl = "${dotenv.env['BASE_URL']}/api/teams";
+
 
   // Get all visible teams
   Future<List<Map<String, dynamic>>> getVisibleTeams() async {

@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MeetingService {
-  final String baseUrl = "http://10.0.2.2:5001/api/meetings";
+  // final String baseUrl = "http://10.0.2.2:5001/api/meetings";
+    final String baseUrl = "${dotenv.env['BASE_URL']}/api/meetings";
+
 
   Future<List<dynamic>> getOngoingMeetings() async {
     final prefs = await SharedPreferences.getInstance();

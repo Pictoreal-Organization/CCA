@@ -71,9 +71,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class TaskService {
-  final String baseUrl = "http://10.0.2.2:5001/api/tasks";
+  // final String baseUrl = "http://10.0.2.2:5001/api/tasks";
+    final String baseUrl = "${dotenv.env['BASE_URL']}/api/tasks";
+
 
   // Helper method to get the token securely
   Future<String?> _getToken() async {
