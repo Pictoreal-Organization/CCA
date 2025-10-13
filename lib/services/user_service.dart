@@ -4,9 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserService {
-  // final String baseUrl = "http://10.0.2.2:5001/api/user"; // Adjust as needed
-    final String baseUrl = "${dotenv.env['BASE_URL']}/api/user";
-
+  // final String baseUrl = "http://10.0.2.2:5001/api/user";
+  final String baseUrl = "${dotenv.env['BASE_URL']}/api/user";
 
   Future<List<Map<String, dynamic>>> getAllUsers() async {
     final prefs = await SharedPreferences.getInstance();

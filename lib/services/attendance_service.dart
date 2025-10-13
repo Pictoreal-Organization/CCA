@@ -8,8 +8,6 @@ class AttendanceService {
   // final String baseUrl = "http://10.0.2.2:5001/api/attendance";
   final String baseUrl = "${dotenv.env['BASE_URL']}/api/attendance";
 
-
-  // This method remains the same
   Future<List<dynamic>> getAttendanceForMeeting(String meetingId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("accessToken");
