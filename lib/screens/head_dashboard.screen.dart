@@ -7,6 +7,7 @@ import 'create_task.screen.dart';
 import 'signIn.screen.dart';
 import 'profile.screen.dart';
 import '../widgets/meetings_list.widget.dart';
+import '../core/app_colors.dart';
 
 class HeadDashboard extends StatefulWidget {
   const HeadDashboard({super.key});
@@ -199,11 +200,13 @@ class _HeadDashboardState extends State<HeadDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.deepBlue4,
         title: const Text("Head Dashboard"),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
             tooltip: "Profile",
+            color: AppColors.sunGlow1,
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
           ),
           IconButton(
