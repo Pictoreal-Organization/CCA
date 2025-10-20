@@ -200,13 +200,13 @@ class _HeadDashboardState extends State<HeadDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.deepBlue4,
+        backgroundColor: AppColors.teal3,
         title: const Text("Head Dashboard"),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
             tooltip: "Profile",
-            color: AppColors.sunGlow1,
+            color: AppColors.amber2,
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
           ),
           IconButton(
@@ -332,6 +332,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
               onPressed: () => openCreateTask(),
               icon: const Icon(Icons.assignment),
               label: const Text("Task"),
+              backgroundColor: AppColors.teal2,
+              foregroundColor: AppColors.cream1,
             ),
           ),
           Positioned(
@@ -342,6 +344,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
               onPressed: openCreateMeeting,
               icon: const Icon(Icons.add),
               label: const Text("Meeting"),
+              backgroundColor: AppColors.teal2,
+              foregroundColor: AppColors.cream1,
             ),
           ),
         ],
