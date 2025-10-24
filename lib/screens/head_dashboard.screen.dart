@@ -29,6 +29,9 @@ class _HeadDashboardState extends State<HeadDashboard> {
   List allTasks = [];
   bool isLoading = true;
 
+  int _selectedIndex = 0;
+  bool showMeetings = true;
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +67,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
   }
 
   // --- HEAD ACTION METHODS ---
-  // All the action methods below are already correct and do not need changes.
   void _showSuggestChangesDialog(dynamic task, dynamic subtask) async {
     final controller = TextEditingController();
     bool? confirmed = await showDialog<bool>(
@@ -171,8 +173,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
 
   void logout() async {
     await authService.logout();
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => SignInScreen()));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SignInScreen()));
   }
 
   void openCreateMeeting() {
@@ -196,158 +197,300 @@ class _HeadDashboardState extends State<HeadDashboard> {
     );
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.teal3,
-        title: const Text("Head Dashboard"),
+        backgroundColor: AppColors.amber1,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "Head Dashboard",
+          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.mint3),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: "Profile",
-            color: AppColors.amber2,
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             tooltip: "Logout",
             onPressed: logout,
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchAllData,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 160),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings, role: 'head'),
-                    MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings, role: 'head'),
-                    MeetingsList(title: "Meetings Pending for Attendance", meetings: attendancePendingMeetings, role: 'head'),
-                    const SizedBox(height: 24),
-                    const Text("All Tasks", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    allTasks.isEmpty
-                        ? const Center(child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text("No active tasks found. Create one!"),
-                        ))
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: allTasks.length,
-                            itemBuilder: (context, index) {
-                              final task = allTasks[index];
-                              final subtasks = (task['subtasks'] as List?) ?? [];
-                              final allSubtasksCompleted = subtasks.isNotEmpty && subtasks.every((s) => s['status'] == 'Completed');
-                              // ✅ CORRECT LOGIC: Check if any subtask is 'Completed'.
-                              final needsReview = subtasks.any((s) => s['status'] == 'Completed');
-                              
-                              return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 6),
-                                child: ExpansionTile(
-                                  title: Row(
-                                    children: [
-                                      Expanded(child: Text(task['title'])),
-                                      // ✅ CORRECT LOGIC: Show the chip if review is needed.
-                                      if (needsReview)
-                                        Chip(
-                                          label: const Text('Needs Review'),
-                                          backgroundColor: Colors.amber.shade200,
-                                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                                          labelStyle: TextStyle(color: Colors.brown.shade900, fontSize: 12),
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                    ],
-                                  ),
-                                  subtitle: Text("Status: ${task['status']}"),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(icon: const Icon(Icons.edit, color: Colors.blueAccent), onPressed: () => openCreateTask(taskToEdit: task)),
-                                      IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteTask(task['_id'])),
-                                    ],
-                                  ),
-                                  children: [
-                                    const Divider(height: 1),
-                                    ...subtasks.map((sub) {
-                                      final assignedUsers = (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
-                                      return ListTile(
-                                        title: Text(sub['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        subtitle: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(sub['description'] ?? 'No description.'),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              "Assigned to: $assignedUsers",
-                                              style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black54),
-                                            ),
-                                          ],
-                                        ),
-                                        trailing: sub['status'] == 'Completed'
-                                            ? ActionChip(
-                                                avatar: const Icon(Icons.undo, size: 16),
-                                                label: const Text('Changes?'),
-                                                tooltip: 'Suggest Changes',
-                                                onPressed: () => _showSuggestChangesDialog(task, sub),
-                                                backgroundColor: Colors.orange.shade100,
-                                              )
-                                            : Chip(label: Text(sub['status'])),
-                                      );
-                                    }).toList(),
-                                    if (task['status'] != 'Completed')
-                                      Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: ElevatedButton.icon(
-                                          icon: const Icon(Icons.check_circle_outline),
-                                          label: const Text('Mark Main Task as Completed'),
-                                          style: ElevatedButton.styleFrom(
-                                            minimumSize: const Size(double.infinity, 40),
-                                            backgroundColor: allSubtasksCompleted ? Colors.green : Colors.grey.shade400,
-                                          ),
-                                          onPressed: allSubtasksCompleted ? () => _completeMainTask(task) : null,
-                                        ),
-                                      ),
+
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          // ----------- Home / Dashboard -----------
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: fetchAllData,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // --- Welcome Card ---
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppColors.mint3, AppColors.mint3],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Welcome Back!!",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "Here's what's happening today",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // --- Quick Stats Row ---
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.mint3,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color.fromARGB(255, 111, 78, 78),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
                                   ],
                                 ),
-                              );
-                            },
-                          ),
-                  ],
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.video_call, color: AppColors.mint1),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "${ongoingMeetings.length + upcomingMeetings.length}",
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                    ),
+                                    const Text("Meetings"),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                margin: const EdgeInsets.only(left: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.mint3,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color.fromARGB(255, 111, 78, 78),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.task_alt, color: AppColors.mint1),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "${allTasks.length}",
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                    ),
+                                    const Text("Tasks"),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // --- Toggle Buttons: Meetings / Tasks ---
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => setState(() => showMeetings = true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: showMeetings ? AppColors.mint1 : Colors.white,
+                                foregroundColor: showMeetings ? Colors.white : AppColors.mint1,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text("Meetings"),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () => setState(() => showMeetings = false),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: !showMeetings ? AppColors.mint1 : Colors.white,
+                                foregroundColor: !showMeetings ? Colors.white : AppColors.mint1,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text("Tasks"),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // --- Conditional Section ---
+                        showMeetings
+                            ? Column(
+                                children: [
+                                  MeetingsList(title: "Ongoing Meetings", meetings: ongoingMeetings, role: 'head'),
+                                  MeetingsList(title: "Upcoming Meetings", meetings: upcomingMeetings, role: 'head'),
+                                  MeetingsList(title: "Pending Attendance", meetings: attendancePendingMeetings, role: 'head'),
+                                ],
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text("All Tasks", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  allTasks.isEmpty
+                                      ? const Center(
+                                          child: Padding(
+                                          padding: EdgeInsets.all(16.0),
+                                          child: Text("No active tasks found. Create one!"),
+                                        ))
+                                      : ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: allTasks.length,
+                                          itemBuilder: (context, index) {
+                                            final task = allTasks[index];
+                                            final subtasks = (task['subtasks'] as List?) ?? [];
+                                            final allSubtasksCompleted = subtasks.isNotEmpty &&
+                                                subtasks.every((s) => s['status'] == 'Completed');
+                                            final needsReview = subtasks.any((s) => s['status'] == 'Completed');
+
+                                            return Card(
+                                              margin: const EdgeInsets.symmetric(vertical: 6),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                              elevation: 2,
+                                              child: ExpansionTile(
+                                                iconColor: Colors.blueAccent,
+                                                collapsedIconColor: AppColors.mint2,
+                                                title: Row(
+                                                  children: [
+                                                    Expanded(child: Text(task['title'])),
+                                                    if (needsReview)
+                                                      Chip(
+                                                        label: const Text('Needs Review'),
+                                                        backgroundColor: AppColors.mint1,
+                                                      ),
+                                                  ],
+                                                ),
+                                                subtitle: Text("Status: ${task['status']}"),
+                                                trailing: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    IconButton(
+                                                      icon: const Icon(Icons.edit, color: Colors.blueAccent),
+                                                      onPressed: () => openCreateTask(taskToEdit: task),
+                                                    ),
+                                                    IconButton(
+                                                      icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                                      onPressed: () => _deleteTask(task['_id']),
+                                                    ),
+                                                  ],
+                                                ),
+                                                children: [
+                                                  const Divider(height: 1),
+                                                  ...subtasks.map((sub) {
+                                                    final assignedUsers =
+                                                        (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
+                                                    return ListTile(
+                                                      title: Text(sub['title'],
+                                                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                                                      subtitle: Text("Assigned to: $assignedUsers"),
+                                                      trailing: Chip(label: Text(sub['status'])),
+                                                    );
+                                                  }).toList(),
+                                                  if (task['status'] != 'Completed')
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(16.0),
+                                                      child: ElevatedButton.icon(
+                                                        icon: const Icon(Icons.check_circle_outline),
+                                                        label: const Text('Mark as Completed'),
+                                                        onPressed: allSubtasksCompleted
+                                                            ? () => _completeMainTask(task)
+                                                            : null,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                ],
+                              ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-      floatingActionButton: Stack(
-        children: [
-          Positioned(
-            bottom: 80,
-            right: 16,
-            child: FloatingActionButton.extended(
-              heroTag: "taskBtn",
-              onPressed: () => openCreateTask(),
-              icon: const Icon(Icons.assignment),
-              label: const Text("Task"),
-              backgroundColor: AppColors.teal2,
-              foregroundColor: AppColors.cream1,
-            ),
-          ),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: FloatingActionButton.extended(
-              heroTag: "meetingBtn",
-              onPressed: openCreateMeeting,
+
+          // ----------- Calendar Tab -----------
+          const Center(child: Text("Calendar Coming Soon")),
+
+          // ----------- Tasks Tab (placeholder) -----------
+          const Center(child: Text("Tasks Page")),
+
+          // ----------- Profile Tab -----------
+          const ProfileScreen(),
+        ],
+      ),
+
+      // --- FAB: depends on selected index ---
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton.extended(
+              backgroundColor: showMeetings ? AppColors.amber1 : AppColors.amber1,
+              onPressed: showMeetings ? openCreateMeeting : openCreateTask,
               icon: const Icon(Icons.add),
-              label: const Text("Meeting"),
-              backgroundColor: AppColors.teal2,
-              foregroundColor: AppColors.cream1,
-            ),
-          ),
+              label: Text(showMeetings ? "Meeting" : "Task"),
+            )
+          : null,
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: AppColors.mint1,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Calendar"),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: "Tasks"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );
