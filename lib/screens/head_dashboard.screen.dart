@@ -8,6 +8,7 @@ import 'signIn.screen.dart';
 import 'profile.screen.dart';
 import '../widgets/meetings_list.widget.dart';
 import '../core/app_colors.dart';
+import '../widgets/logout_confirm.dart';
 
 class HeadDashboard extends StatefulWidget {
   const HeadDashboard({super.key});
@@ -208,18 +209,21 @@ class _HeadDashboardState extends State<HeadDashboard> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.amber1,
+        backgroundColor: AppColors.teal1,
         elevation: 0,
         centerTitle: true,
         title: const Text(
           "Head Dashboard",
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.mint3),
+          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cream1),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             tooltip: "Logout",
-            onPressed: logout,
+            onPressed: () {
+    showLogoutDialog(context); 
+  },
+  
           ),
         ],
       ),
@@ -243,7 +247,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [AppColors.mint3, AppColors.mint3],
+                              colors: [AppColors.teal1, AppColors.mint3],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -263,7 +267,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                               SizedBox(height: 6),
                               Text(
                                 "Here's what's happening today",
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: Colors.white),
                               ),
                             ],
                           ),
@@ -279,7 +283,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 padding: const EdgeInsets.all(16),
                                 margin: const EdgeInsets.only(right: 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.mint3,
+                                  color: AppColors.amber1,
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
@@ -291,7 +295,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.video_call, color: AppColors.mint1),
+                                    const Icon(Icons.video_call, color: AppColors.gold4),
                                     const SizedBox(height: 8),
                                     Text(
                                       "${ongoingMeetings.length + upcomingMeetings.length}",
@@ -307,7 +311,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 padding: const EdgeInsets.all(16),
                                 margin: const EdgeInsets.only(left: 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.mint3,
+                                  color: AppColors.amber1,
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
@@ -319,7 +323,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.task_alt, color: AppColors.mint1),
+                                    const Icon(Icons.task_alt, color: AppColors.gold4),
                                     const SizedBox(height: 8),
                                     Text(
                                       "${allTasks.length}",
@@ -342,8 +346,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
                             ElevatedButton(
                               onPressed: () => setState(() => showMeetings = true),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: showMeetings ? AppColors.mint1 : Colors.white,
-                                foregroundColor: showMeetings ? Colors.white : AppColors.mint1,
+                                backgroundColor: showMeetings ? AppColors.teal3 : Colors.white,
+                                foregroundColor: showMeetings ? Colors.white : AppColors.teal3,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               child: const Text("Meetings"),
@@ -352,8 +356,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
                             ElevatedButton(
                               onPressed: () => setState(() => showMeetings = false),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: !showMeetings ? AppColors.mint1 : Colors.white,
-                                foregroundColor: !showMeetings ? Colors.white : AppColors.mint1,
+                                backgroundColor: !showMeetings ? AppColors.teal3 : Colors.white,
+                                foregroundColor: !showMeetings ? Colors.white : AppColors.teal3,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               child: const Text("Tasks"),
@@ -460,12 +464,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
                   ),
                 ),
 
-          // ----------- Calendar Tab -----------
-          const Center(child: Text("Calendar Coming Soon")),
-
-          // ----------- Tasks Tab (placeholder) -----------
-          const Center(child: Text("Tasks Page")),
-
           // ----------- Profile Tab -----------
           const ProfileScreen(),
         ],
@@ -488,8 +486,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Calendar"),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: "Tasks"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
