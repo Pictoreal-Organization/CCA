@@ -172,10 +172,10 @@ class _HeadDashboardState extends State<HeadDashboard> {
     }
   }
 
-  void logout() async {
-    await authService.logout();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SignInScreen()));
-  }
+  // void logout() async {
+  //   await authService.logout();
+  //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SignInScreen()));
+  // }
 
   void openCreateMeeting() {
     Navigator.push(

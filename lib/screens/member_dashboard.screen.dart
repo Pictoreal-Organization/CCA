@@ -6,6 +6,7 @@ import '../services/meeting_service.dart';
 import '../services/task_service.dart';
 import '../widgets/meetings_list.widget.dart';
 import 'signIn.screen.dart';
+import '../widgets/logout_confirm.dart';
 
 class MemberDashboard extends StatefulWidget {
   const MemberDashboard({super.key});
@@ -58,11 +59,11 @@ class _MemberDashboardState extends State<MemberDashboard> {
     }
   }
 
-  void logout() async {
-    await authService.logout();
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => SignInScreen()));
-  }
+  // void logout() async {
+  //   await authService.logout();
+  //   Navigator.pushReplacement(
+  //       context, MaterialPageRoute(builder: (_) => SignInScreen()));
+  // }
 
   // --- LOGIC FOR HANDLING STATUS CHANGE ---
 
@@ -155,7 +156,9 @@ class _MemberDashboardState extends State<MemberDashboard> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: "Logout",
-            onPressed: logout,
+            onPressed: () {
+    showLogoutDialog(context); 
+  },
           ),
         ]
       ),
