@@ -46,7 +46,7 @@ class MeetingsList extends StatelessWidget {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.cream4,
+                      color: AppColors.cream5,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -106,6 +106,8 @@ class MeetingsList extends StatelessWidget {
                               ),
                             ),
                           
+                          Row(
+                            children: [
                           // Date and Time
                           _buildInfoChip(
                             Icons.access_time,
@@ -114,7 +116,7 @@ class MeetingsList extends StatelessWidget {
                             AppColors.teal1,
                           ),
                           
-                          const SizedBox(height: 8),
+                          //const SizedBox(height: 8),
                           
                           // Location
                           _buildInfoChip(
@@ -123,7 +125,9 @@ class MeetingsList extends StatelessWidget {
                                 ? (meet['onlineLink'] ?? 'Online Meeting')
                                 : meet['location'],
                             AppColors.mint5,
-                            AppColors.mint1,
+                            AppColors.teal1,
+                          ),
+                            ]
                           ),
                           
                           // Attendance button if applicable

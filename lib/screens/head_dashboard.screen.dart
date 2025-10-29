@@ -294,7 +294,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color.fromARGB(255, 111, 78, 78),
+                                      color: const Color.fromARGB(255, 155, 148, 148),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -322,7 +322,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color.fromARGB(255, 111, 78, 78),
+                                      color: const Color.fromARGB(255, 155, 148, 148),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -479,10 +479,11 @@ class _HeadDashboardState extends State<HeadDashboard> {
       // --- FAB: depends on selected index ---
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
+              shape: CircleBorder(),
               backgroundColor: showMeetings ? AppColors.amber3 : AppColors.mint3,
               onPressed: showMeetings ? openCreateMeeting : openCreateTask,
-              icon: const Icon(Icons.add),
-              label: Text(showMeetings ? "Meeting" : "Task"),
+              
+              label:const Icon(Icons.add),
             )
           : null,
 
