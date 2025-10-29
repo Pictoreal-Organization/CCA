@@ -213,18 +213,25 @@ class _HeadDashboardState extends State<HeadDashboard> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "Head Dashboard",
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cream1),
+          "Dashboard",
+          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.cream5),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.person,color: AppColors.cream5),
+            tooltip: "profile",
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+          ),
+
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppColors.cream5),
             tooltip: "Logout",
             onPressed: () {
-    showLogoutDialog(context); 
-  },
-  
+              showLogoutDialog(context); 
+            },
+            
           ),
+          
         ],
       ),
 
@@ -247,7 +254,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [AppColors.teal1, AppColors.mint3],
+                              colors: [AppColors.teal1, AppColors.teal2,AppColors.teal3],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -259,8 +266,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
                               Text(
                                 "Welcome Back!!",
                                 style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
+                                  color: AppColors.cream5,
+                                  fontSize: 50,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -283,7 +290,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 padding: const EdgeInsets.all(16),
                                 margin: const EdgeInsets.only(right: 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.amber1,
+                                  color: AppColors.cream4,
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
@@ -295,7 +302,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.video_call, color: AppColors.gold4),
+                                    const Icon(Icons.video_call, color: AppColors.amber3),
                                     const SizedBox(height: 8),
                                     Text(
                                       "${ongoingMeetings.length + upcomingMeetings.length}",
@@ -311,7 +318,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 padding: const EdgeInsets.all(16),
                                 margin: const EdgeInsets.only(left: 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.amber1,
+                                  color: AppColors.cream4,
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
@@ -323,7 +330,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(Icons.task_alt, color: AppColors.gold4),
+                                    const Icon(Icons.task_alt, color: AppColors.teal2),
                                     const SizedBox(height: 8),
                                     Text(
                                       "${allTasks.length}",
@@ -472,23 +479,23 @@ class _HeadDashboardState extends State<HeadDashboard> {
       // --- FAB: depends on selected index ---
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
-              backgroundColor: showMeetings ? AppColors.amber1 : AppColors.amber1,
+              backgroundColor: showMeetings ? AppColors.amber3 : AppColors.mint3,
               onPressed: showMeetings ? openCreateMeeting : openCreateTask,
               icon: const Icon(Icons.add),
               label: Text(showMeetings ? "Meeting" : "Task"),
             )
           : null,
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: AppColors.mint1,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   currentIndex: _selectedIndex,
+      //   onTap: _onItemTapped,
+      //   selectedItemColor: AppColors.mint1,
+      //   unselectedItemColor: Colors.grey,
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+      //     BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+      //   ],
+      // ),
     );
   }
 }
