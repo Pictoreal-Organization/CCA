@@ -86,4 +86,25 @@ class UserService {
       throw Exception('Failed to update profile: ${response.body}');
     }
   }
+
+  Future<Map<String, dynamic>> getLoggedInUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken");
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/me'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['user']; // since backend sends { msg, user }
+    } else {
+      throw Exception('Failed to fetch logged-in user: ${response.body}');
+    }
+  }
+
 }
