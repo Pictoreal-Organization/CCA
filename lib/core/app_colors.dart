@@ -40,4 +40,8 @@ class AppColors {
   static const Color amber5 = Color(0xFFFEECDB);
   static const Color gold5 = Color(0xFFFEF0DD);
   static const Color cream5 = Color(0xFFFFFEFB);
+
+  //For Creating Meeting Screen
+    static const Color yellowIcon = Color(0xFFF6C700);
+    static const Color background = Color(0xFFFFFFFF);
 }
