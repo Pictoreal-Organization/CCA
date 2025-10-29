@@ -116,7 +116,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
             meetingType == 'offline' ? locationController.text : '',
         onlineLink:
             meetingType == 'online' ? onlineLinkController.text : '',
-        dateTime: dateTime!,
+        // dateTime: dateTime!,
+        dateTime: dateTime!.toUtc(),
         agenda: agendaController.text,
         duration: durationController.text.isEmpty
             ? 60
@@ -405,7 +406,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
                 },
                 child: Text(dateTime == null
                     ? 'Pick Date & Time'
-                    : 'Selected: ${dateTime!.toLocal()}'),
+                    : 'Selected: ${dateTime}'),
               ),
 
               const SizedBox(height: 20),
