@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../widgets/searchable_user_dropdown.dart';
+import 'package:cca/core/app_colors.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final VoidCallback onTaskCreated;
@@ -161,8 +162,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(isEditMode ? 'Edit Task' : 'Create Task')),
-      body: Padding(
+      backgroundColor: AppColors.cream5,
+      appBar: AppBar(
+  backgroundColor: AppColors.teal1,
+  title: Text(
+    isEditMode ? 'Edit Task' : 'Create Task',
+    style: const TextStyle(color: AppColors.cream1),
+  ),
+  iconTheme: const IconThemeData(color: AppColors.cream1),
+),      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -170,13 +178,33 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(
+  labelText: 'Title', // or 'Description'
+  labelStyle: const TextStyle(color: AppColors.charcoal3),
+  enabledBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal2),
+  ),
+  focusedBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal1, width: 2),
+  ),
+),
+
                 validator: (val) => val!.isEmpty ? 'Title cannot be empty' : null,
               ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(
+  labelText: 'Description',
+  labelStyle: const TextStyle(color: AppColors.charcoal3),
+  enabledBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal2),
+  ),
+  focusedBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal1, width: 2),
+  ),
+),
+
               ),
               const SizedBox(height: 20),
               const Text('Subtasks', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -186,6 +214,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 Map<String, dynamic> subtask = entry.value;
 
                 return Card(
+                  color: AppColors.mint5,
                   key: ValueKey('subtask_$index'),
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   child: Padding(
@@ -205,14 +234,34 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         const SizedBox(height: 10),
                         TextFormField(
                           initialValue: subtask["title"],
-                          decoration: const InputDecoration(labelText: 'Subtask Title'),
+                          decoration: InputDecoration(
+  labelText: 'Task', 
+  labelStyle: const TextStyle(color: AppColors.charcoal3),
+  enabledBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal2),
+  ),
+  focusedBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal1, width: 2),
+  ),
+),
+
                           validator: (val) => val!.isEmpty ? 'Enter subtask title' : null,
                           onChanged: (val) => subtask["title"] = val,
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           initialValue: subtask["description"],
-                          decoration: const InputDecoration(labelText: 'Subtask Description'),
+                          decoration: InputDecoration(
+  labelText: 'Description',
+  labelStyle: const TextStyle(color: AppColors.charcoal3),
+  enabledBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal2),
+  ),
+  focusedBorder: const OutlineInputBorder(
+    borderSide: BorderSide(color: AppColors.teal1, width: 2),
+  ),
+),
+
                           onChanged: (val) => subtask["description"] = val,
                         ),
                         const SizedBox(height: 10),
@@ -237,12 +286,16 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               }).toList(),
               TextButton.icon(
                 onPressed: addSubtaskField,
-                icon: const Icon(Icons.add),
-                label: const Text('Add Subtask'),
+                icon: const Icon(Icons.add, color: AppColors.teal1),
+                label: const Text('Add Subtask', style: TextStyle(color: AppColors.teal1)),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: const Icon(Icons.calendar_today),
+                style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.teal1,
+                foregroundColor: AppColors.cream1,
+                ),
                 onPressed: () async {
                   DateTime? picked = await showDatePicker(
                     context: context,
@@ -260,10 +313,14 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               ),
               const SizedBox(height: 20),
               isSubmitting
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.teal1))
                   : ElevatedButton(
                       onPressed: submit,
-                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                      style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.amber1,
+                      foregroundColor: AppColors.charcoal1,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                       child: Text(isEditMode ? 'Update Task' : 'Create Task'),
                     ),
             ],
