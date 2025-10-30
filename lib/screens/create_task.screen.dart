@@ -179,15 +179,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               TextFormField(
                 controller: _titleController,
                 decoration: InputDecoration(
-  labelText: 'Title', // or 'Description'
-  labelStyle: const TextStyle(color: AppColors.charcoal3),
-  enabledBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal2),
-  ),
-  focusedBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal1, width: 2),
-  ),
-),
+                labelText: 'Title', // or 'Description'
+                labelStyle: const TextStyle(color: AppColors.charcoal3),
+                enabledBorder: const OutlineInputBorder(
+                borderSide: BorderSide(color: AppColors.teal2),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(color: AppColors.teal1, width: 2),
+                ),
+              ),
 
                 validator: (val) => val!.isEmpty ? 'Title cannot be empty' : null,
               ),
@@ -195,15 +195,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-  labelText: 'Description',
-  labelStyle: const TextStyle(color: AppColors.charcoal3),
-  enabledBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal2),
-  ),
-  focusedBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal1, width: 2),
-  ),
-),
+                labelText: 'Description',
+                labelStyle: const TextStyle(color: AppColors.charcoal3),
+                enabledBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.teal2),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.teal1, width: 2),
+                ),
+              ),
 
               ),
               const SizedBox(height: 20),
@@ -235,15 +235,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         TextFormField(
                           initialValue: subtask["title"],
                           decoration: InputDecoration(
-  labelText: 'Task', 
-  labelStyle: const TextStyle(color: AppColors.charcoal3),
-  enabledBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal2),
-  ),
-  focusedBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal1, width: 2),
-  ),
-),
+                          labelText: 'Task', 
+                          labelStyle: const TextStyle(color: AppColors.charcoal3),
+                          enabledBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.teal2),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.teal1, width: 2),
+                          ),
+                        ),
 
                           validator: (val) => val!.isEmpty ? 'Enter subtask title' : null,
                           onChanged: (val) => subtask["title"] = val,
@@ -252,33 +252,143 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         TextFormField(
                           initialValue: subtask["description"],
                           decoration: InputDecoration(
-  labelText: 'Description',
-  labelStyle: const TextStyle(color: AppColors.charcoal3),
-  enabledBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal2),
-  ),
-  focusedBorder: const OutlineInputBorder(
-    borderSide: BorderSide(color: AppColors.teal1, width: 2),
-  ),
-),
+                          labelText: 'Description',
+                          labelStyle: const TextStyle(color: AppColors.charcoal3),
+                          enabledBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.teal2),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.teal1, width: 2),
+                          ),
+                        ),
 
                           onChanged: (val) => subtask["description"] = val,
                         ),
                         const SizedBox(height: 10),
-                        SearchableUserDropdown(
-                          allUsers: allUsers,
-                          isLoading: isUsersLoading,
-                          selectedUserId: subtask["assignedTo"] != null && subtask["assignedTo"].isNotEmpty
-                              ? subtask["assignedTo"][0]
-                              : null,
-                          onUserSelected: (userId, userName) {
-                            setState(() {
-                              subtask["assignedTo"] = userId != null ? [userId] : [];
-                            });
-                          },
-                          validator: (val) =>
-                              subtask["assignedTo"] == null || subtask["assignedTo"].isEmpty ? 'Select a user' : null,
+                        // SearchableUserDropdown(
+                        //   allUsers: allUsers,
+                        //   isLoading: isUsersLoading,
+                        //   selectedUserId: subtask["assignedTo"] != null && subtask["assignedTo"].isNotEmpty
+                        //       ? subtask["assignedTo"][0]
+                        //       : null,
+                        //   onUserSelected: (userId, userName) {
+                        //     setState(() {
+                        //       subtask["assignedTo"] = userId != null ? [userId] : [];
+                        //     });
+                        //   },
+                        //   validator: (val) =>
+                        //       subtask["assignedTo"] == null || subtask["assignedTo"].isEmpty ? 'Select a user' : null,
+                        // ),
+                        ElevatedButton(
+  style: ElevatedButton.styleFrom(
+    backgroundColor: AppColors.teal2,
+    foregroundColor: AppColors.cream1,    
+  ),
+  onPressed: () async {
+  final selected = await showDialog<List<String>>(
+    context: context,
+    builder: (context) {
+      // temporary selected IDs
+      List<String> tempSelected = List.from(subtask["assignedTo"]);
+      String searchQuery = "";
+
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          final filteredUsers = allUsers
+              .where((user) =>
+                  user['username']
+                      .toString()
+                      .toLowerCase()
+                      .contains(searchQuery.toLowerCase()))
+              .toList();
+
+          return AlertDialog(
+            title: const Text('Assign to members'),
+            content: isUsersLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 🔍 Search bar
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search members...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 10),
                         ),
+                        onChanged: (val) =>
+                            setDialogState(() => searchQuery = val),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // 📜 Filtered list of users
+                      SizedBox(
+                        width: double.maxFinite,
+                        height: 300, // limit dialog height
+                        child: ListView(
+                          children: filteredUsers.map((user) {
+                            final id = user['_id'];
+                            final name = user['username'];
+                            final isChecked = tempSelected.contains(id);
+
+                            return CheckboxListTile(
+                              title: Text(name),
+                              value: isChecked,
+                              onChanged: (checked) {
+                                setDialogState(() {
+                                  if (checked == true) {
+                                    tempSelected.add(id);
+                                  } else {
+                                    tempSelected.remove(id);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, tempSelected),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.teal1),
+                child: const Text('Done'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+
+  if (selected != null) {
+    setState(() {
+      subtask["assignedTo"] = selected;
+    });
+  }
+},
+child: Text(
+  subtask["assignedTo"].isEmpty
+      ? 'Select Members'
+      : 'Assigned: ${allUsers
+          .where((u) => subtask["assignedTo"].contains(u['_id']))
+          .map((u) => u['username'])
+          .join(', ')}',
+),
+
+                        ),
+
+
                       ],
                     ),
                   ),
