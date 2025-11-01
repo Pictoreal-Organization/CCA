@@ -15,20 +15,15 @@ class MeetingsList extends StatelessWidget {
   });
 
   Color _getCardBorderColor() {
-    if (title.contains("Ongoing")) return AppColors.teal2;
-    if (title.contains("Upcoming")) return AppColors.charcoal5;
-    if (title.contains("Pending")) return AppColors.amber1;
-    return AppColors.charcoal5;
+    if (title.contains("Ongoing")) return AppColors.green;
+    if (title.contains("Upcoming")) return AppColors.lightGray;
+    if (title.contains("Pending")) return AppColors.orange;
+    return AppColors.lightGray;
   }
 
   Color _getButtonColor() {
-    if (title.contains("Pending")) return AppColors.amber1;
-    return AppColors.teal2;
-  }
-
-  Color _getButtonTextColor() {
-    if (title.contains("Pending")) return Colors.white;
-    return Colors.white;
+    if (title.contains("Pending")) return AppColors.orange;
+    return AppColors.green;
   }
 
   @override
@@ -40,6 +35,7 @@ class MeetingsList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Title Row
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -48,23 +44,28 @@ class MeetingsList extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.charcoal1,
+                color: AppColors.darkTeal,
               ),
             ),
             Text(
               "${meetings.length} meetings",
               style: const TextStyle(
                 fontSize: 14,
-                color: AppColors.charcoal4,
+                color: AppColors.lightGray,
               ),
             ),
           ],
         ),
         const SizedBox(height: 10),
+
+        // If no meetings
         if (meetings.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text("No meetings available"),
+            child: Text(
+              "No meetings available",
+              style: TextStyle(color: AppColors.lightGray),
+            ),
           )
         else
           ListView.builder(
@@ -84,7 +85,7 @@ class MeetingsList extends StatelessWidget {
                   border: Border.all(color: _getCardBorderColor(), width: 1.4),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.charcoal5.withOpacity(0.2),
+                      color: AppColors.lightGray.withOpacity(0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     )
@@ -101,7 +102,7 @@ class MeetingsList extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.charcoal2,
+                          color: AppColors.darkGray,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -109,12 +110,13 @@ class MeetingsList extends StatelessWidget {
                       // Date & time
                       Row(
                         children: const [
-                          Icon(Icons.access_time, size: 16, color: AppColors.teal2),
+                          Icon(Icons.access_time,
+                              size: 16, color: AppColors.green),
                           SizedBox(width: 6),
                           Text(
                             "Today, 4:00 pm",
                             style: TextStyle(
-                              color: AppColors.charcoal3,
+                              color: AppColors.lightGray,
                               fontSize: 14,
                             ),
                           ),
@@ -125,12 +127,12 @@ class MeetingsList extends StatelessWidget {
                       // Meeting type
                       Row(
                         children: const [
-                          Icon(Icons.link, size: 16, color: AppColors.teal2),
+                          Icon(Icons.link, size: 16, color: AppColors.green),
                           SizedBox(width: 6),
                           Text(
                             "Online Meeting",
                             style: TextStyle(
-                              color: AppColors.charcoal3,
+                              color: AppColors.lightGray,
                               fontSize: 14,
                             ),
                           ),
@@ -146,12 +148,13 @@ class MeetingsList extends StatelessWidget {
                           children: [
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.amber1,
+                                backgroundColor: AppColors.orange,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 minimumSize: const Size(70, 34),
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
                               ),
                               onPressed: () {},
                               child: const Text(
@@ -161,7 +164,7 @@ class MeetingsList extends StatelessWidget {
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.teal2,
+                                backgroundColor: AppColors.green,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -171,7 +174,8 @@ class MeetingsList extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => AttendanceScreen(meeting: meet),
+                                    builder: (_) =>
+                                        AttendanceScreen(meeting: meet),
                                   ),
                                 );
                               },
@@ -185,7 +189,7 @@ class MeetingsList extends StatelessWidget {
                       else if (isPending)
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.amber1,
+                            backgroundColor: AppColors.orange,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -195,7 +199,8 @@ class MeetingsList extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => AttendanceScreen(meeting: meet),
+                                builder: (_) =>
+                                    AttendanceScreen(meeting: meet),
                               ),
                             );
                           },

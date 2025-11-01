@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
-import '../widgets/searchable_user_dropdown.dart';
-import 'package:cca/core/app_colors.dart';
+import '../core/app_colors.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final VoidCallback onTaskCreated;
-  final Map<String, dynamic>? taskToEdit; // Make task optional for editing
+  final Map<String, dynamic>? taskToEdit;
 
   const CreateTaskScreen({
     super.key,
@@ -23,10 +22,9 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final TaskService taskService = TaskService();
   final UserService userService = UserService();
 
-  // Controllers for text fields
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
   DateTime? deadline;
   bool isSubmitting = false;
 
@@ -40,18 +38,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     super.initState();
     fetchAllUsers();
 
-    // If in edit mode, populate the fields with existing data
     if (isEditMode) {
       final task = widget.taskToEdit!;
       _titleController.text = task['title'];
       _descriptionController.text = task['description'] ?? '';
       deadline = task['deadline'] != null ? DateTime.parse(task['deadline']) : null;
-      
-      // Populate subtasks
+
       if (task['subtasks'] is List) {
         subtasks = List<Map<String, dynamic>>.from(
           (task['subtasks'] as List).map((s) {
-            // Ensure assignedTo is a list of ObjectIDs (Strings)
             final assignedToList = (s['assignedTo'] as List)
                 .map((user) => user['_id'] as String)
                 .toList();
@@ -87,7 +82,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => isUsersLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
     }
   }
 
@@ -110,18 +106,19 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
   void submit() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fix the errors.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please fix the errors.')));
       return;
     }
-     if (deadline == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please pick a deadline.')));
+    if (deadline == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please pick a deadline.')));
       return;
     }
 
     _formKey.currentState!.save();
     setState(() => isSubmitting = true);
 
-    // Prepare subtasks data by removing any temporary UI state
     final cleanSubtasks = subtasks.map((s) {
       return {
         "title": s["title"],
@@ -133,7 +130,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
 
     try {
       if (isEditMode) {
-        // UPDATE existing task
         await taskService.updateTask(widget.taskToEdit!['_id'], {
           'title': _titleController.text,
           'description': _descriptionController.text,
@@ -141,7 +137,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
           'subtasks': cleanSubtasks,
         });
       } else {
-        // CREATE new task
         await taskService.createTask(
           title: _titleController.text,
           description: _descriptionController.text,
@@ -153,24 +148,39 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       widget.onTaskCreated();
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Operation failed: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Operation failed: $e')));
     } finally {
       if (mounted) setState(() => isSubmitting = false);
     }
   }
 
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: AppColors.lightGray),
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.darkTeal),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: AppColors.green, width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.cream5,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-  backgroundColor: AppColors.teal1,
-  title: Text(
-    isEditMode ? 'Edit Task' : 'Create Task',
-    style: const TextStyle(color: AppColors.cream1),
-  ),
-  iconTheme: const IconThemeData(color: AppColors.cream1),
-),      body: Padding(
+        backgroundColor: AppColors.darkTeal,
+        title: Text(
+          isEditMode ? 'Edit Task' : 'Create Task',
+          style: const TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -178,44 +188,33 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                labelText: 'Title', // or 'Description'
-                labelStyle: const TextStyle(color: AppColors.charcoal3),
-                enabledBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: AppColors.teal2),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: AppColors.teal1, width: 2),
-                ),
-              ),
-
-                validator: (val) => val!.isEmpty ? 'Title cannot be empty' : null,
+                decoration: _inputDecoration('Title'),
+                validator: (val) =>
+                    val!.isEmpty ? 'Title cannot be empty' : null,
               ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _descriptionController,
-                decoration: InputDecoration(
-                labelText: 'Description',
-                labelStyle: const TextStyle(color: AppColors.charcoal3),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.teal2),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.teal1, width: 2),
-                ),
-              ),
-
+                decoration: _inputDecoration('Description'),
               ),
               const SizedBox(height: 20),
-              const Text('Subtasks', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+              const Text(
+                'Subtasks',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkGray,
+                ),
+              ),
               const SizedBox(height: 8),
+
               ...subtasks.asMap().entries.map((entry) {
                 int index = entry.key;
                 Map<String, dynamic> subtask = entry.value;
 
                 return Card(
-                  color: AppColors.mint5,
-                  key: ValueKey('subtask_$index'),
+                  color: AppColors.green.withOpacity(0.1),
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
@@ -224,7 +223,10 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Subtask ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Subtask ${index + 1}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkTeal)),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => deleteSubtask(index),
@@ -234,183 +236,168 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         const SizedBox(height: 10),
                         TextFormField(
                           initialValue: subtask["title"],
-                          decoration: InputDecoration(
-                          labelText: 'Task', 
-                          labelStyle: const TextStyle(color: AppColors.charcoal3),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.teal2),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.teal1, width: 2),
-                          ),
-                        ),
-
-                          validator: (val) => val!.isEmpty ? 'Enter subtask title' : null,
+                          decoration: _inputDecoration('Task'),
+                          validator: (val) =>
+                              val!.isEmpty ? 'Enter subtask title' : null,
                           onChanged: (val) => subtask["title"] = val,
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
                           initialValue: subtask["description"],
-                          decoration: InputDecoration(
-                          labelText: 'Description',
-                          labelStyle: const TextStyle(color: AppColors.charcoal3),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.teal2),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.teal1, width: 2),
-                          ),
-                        ),
-
+                          decoration: _inputDecoration('Description'),
                           onChanged: (val) => subtask["description"] = val,
                         ),
                         const SizedBox(height: 10),
-                        // SearchableUserDropdown(
-                        //   allUsers: allUsers,
-                        //   isLoading: isUsersLoading,
-                        //   selectedUserId: subtask["assignedTo"] != null && subtask["assignedTo"].isNotEmpty
-                        //       ? subtask["assignedTo"][0]
-                        //       : null,
-                        //   onUserSelected: (userId, userName) {
-                        //     setState(() {
-                        //       subtask["assignedTo"] = userId != null ? [userId] : [];
-                        //     });
-                        //   },
-                        //   validator: (val) =>
-                        //       subtask["assignedTo"] == null || subtask["assignedTo"].isEmpty ? 'Select a user' : null,
-                        // ),
+
                         ElevatedButton(
-  style: ElevatedButton.styleFrom(
-    backgroundColor: AppColors.teal2,
-    foregroundColor: AppColors.cream1,    
-  ),
-  onPressed: () async {
-  final selected = await showDialog<List<String>>(
-    context: context,
-    builder: (context) {
-      // temporary selected IDs
-      List<String> tempSelected = List.from(subtask["assignedTo"]);
-      String searchQuery = "";
-
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          final filteredUsers = allUsers
-              .where((user) =>
-                  user['username']
-                      .toString()
-                      .toLowerCase()
-                      .contains(searchQuery.toLowerCase()))
-              .toList();
-
-          return AlertDialog(
-            title: const Text('Assign to members'),
-            content: isUsersLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 🔍 Search bar
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search members...',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.green,
+                            foregroundColor: Colors.white,
                           ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 10),
-                        ),
-                        onChanged: (val) =>
-                            setDialogState(() => searchQuery = val),
-                      ),
-                      const SizedBox(height: 10),
+                          onPressed: () async {
+                            final selected = await showDialog<List<String>>(
+                              context: context,
+                              builder: (context) {
+                                List<String> tempSelected =
+                                    List.from(subtask["assignedTo"]);
+                                String searchQuery = "";
 
-                      // 📜 Filtered list of users
-                      SizedBox(
-                        width: double.maxFinite,
-                        height: 300, // limit dialog height
-                        child: ListView(
-                          children: filteredUsers.map((user) {
-                            final id = user['_id'];
-                            final name = user['username'];
-                            final isChecked = tempSelected.contains(id);
+                                return StatefulBuilder(
+                                  builder: (context, setDialogState) {
+                                    final filteredUsers = allUsers
+                                        .where((user) => user['username']
+                                            .toString()
+                                            .toLowerCase()
+                                            .contains(searchQuery.toLowerCase()))
+                                        .toList();
 
-                            return CheckboxListTile(
-                              title: Text(name),
-                              value: isChecked,
-                              onChanged: (checked) {
-                                setDialogState(() {
-                                  if (checked == true) {
-                                    tempSelected.add(id);
-                                  } else {
-                                    tempSelected.remove(id);
-                                  }
-                                });
+                                    return AlertDialog(
+                                      title:
+                                          const Text('Assign to members'),
+                                      content: isUsersLoading
+                                          ? const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            )
+                                          : Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextField(
+                                                  decoration: InputDecoration(
+                                                    hintText:
+                                                        'Search members...',
+                                                    prefixIcon: const Icon(
+                                                        Icons.search),
+                                                    border:
+                                                        OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                    ),
+                                                  ),
+                                                  onChanged: (val) =>
+                                                      setDialogState(() =>
+                                                          searchQuery = val),
+                                                ),
+                                                const SizedBox(height: 10),
+                                                SizedBox(
+                                                  width: double.maxFinite,
+                                                  height: 300,
+                                                  child: ListView(
+                                                    children: filteredUsers
+                                                        .map((user) {
+                                                      final id = user['_id'];
+                                                      final name =
+                                                          user['username'];
+                                                      final isChecked =
+                                                          tempSelected
+                                                              .contains(id);
+
+                                                      return CheckboxListTile(
+                                                        title: Text(name),
+                                                        value: isChecked,
+                                                        onChanged:
+                                                            (checked) {
+                                                          setDialogState(() {
+                                                            if (checked ==
+                                                                true) {
+                                                              tempSelected
+                                                                  .add(id);
+                                                            } else {
+                                                              tempSelected
+                                                                  .remove(
+                                                                      id);
+                                                            }
+                                                          });
+                                                        },
+                                                      );
+                                                    }).toList(),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () => Navigator.pop(
+                                              context, tempSelected),
+                                          style:
+                                              ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      AppColors.darkTeal),
+                                          child: const Text('Done'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               },
                             );
-                          }).toList(),
+
+                            if (selected != null) {
+                              setState(() {
+                                subtask["assignedTo"] = selected;
+                              });
+                            }
+                          },
+                          child: Text(
+                            subtask["assignedTo"].isEmpty
+                                ? 'Select Members'
+                                : 'Assigned: ${allUsers.where((u) => subtask["assignedTo"].contains(u['_id'])).map((u) => u['username']).join(', ')}',
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, tempSelected),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.teal1),
-                child: const Text('Done'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-
-  if (selected != null) {
-    setState(() {
-      subtask["assignedTo"] = selected;
-    });
-  }
-},
-child: Text(
-  subtask["assignedTo"].isEmpty
-      ? 'Select Members'
-      : 'Assigned: ${allUsers
-          .where((u) => subtask["assignedTo"].contains(u['_id']))
-          .map((u) => u['username'])
-          .join(', ')}',
-),
-
-                        ),
-
-
                       ],
                     ),
                   ),
                 );
-              }).toList(),
+              }),
+
               TextButton.icon(
                 onPressed: addSubtaskField,
-                icon: const Icon(Icons.add, color: AppColors.teal1),
-                label: const Text('Add Subtask', style: TextStyle(color: AppColors.teal1)),
+                icon: const Icon(Icons.add, color: AppColors.green),
+                label: const Text(
+                  'Add Subtask',
+                  style: TextStyle(color: AppColors.green),
+                ),
               ),
               const SizedBox(height: 20),
+
               ElevatedButton.icon(
                 icon: const Icon(Icons.calendar_today),
                 style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.teal1,
-                foregroundColor: AppColors.cream1,
+                  backgroundColor: AppColors.orange,
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
                   DateTime? picked = await showDatePicker(
                     context: context,
                     initialDate: deadline ?? DateTime.now(),
-                    firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                    firstDate:
+                        DateTime.now().subtract(const Duration(days: 30)),
                     lastDate: DateTime(2100),
                   );
                   if (picked != null) setState(() => deadline = picked);
@@ -421,17 +408,21 @@ child: Text(
                       : 'Deadline: ${deadline!.toLocal().toString().split(' ')[0]}',
                 ),
               ),
+
               const SizedBox(height: 20),
               isSubmitting
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.teal1))
+                  ? const Center(
+                      child:
+                          CircularProgressIndicator(color: AppColors.darkTeal))
                   : ElevatedButton(
                       onPressed: submit,
                       style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.amber1,
-                      foregroundColor: AppColors.charcoal1,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                      child: Text(isEditMode ? 'Update Task' : 'Create Task'),
+                        backgroundColor: AppColors.darkTeal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child:
+                          Text(isEditMode ? 'Update Task' : 'Create Task'),
                     ),
             ],
           ),

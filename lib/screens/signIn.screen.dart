@@ -42,9 +42,9 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       }
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Invalid Credentials")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid Credentials")),
+      );
     }
   }
 
@@ -53,8 +53,8 @@ class _SignInScreenState extends State<SignInScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Container(
-          padding: EdgeInsets.symmetric(horizontal: 32.0),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Column(
             children: [
               Expanded(
@@ -62,25 +62,27 @@ class _SignInScreenState extends State<SignInScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-
-                    //Logo
+                    // Logo
                     Image.asset('assets/images/logo.png', height: 60, width: 60),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
 
-                    //Email Field
+                    // Email Field
                     Container(
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.cream5,
-                        border: Border.all(color: AppColors.charcoal4, width: 0.5),
-                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.grey.shade100,
+                        border: Border.all(
+                          color: AppColors.lightGray.withOpacity(0.4),
+                          width: 0.8,
+                        ),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: TextField(
                         controller: emailController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: "Email",
                           hintStyle: TextStyle(
-                            color: AppColors.charcoal3,
+                            color: AppColors.lightGray,
                             fontSize: 14,
                           ),
                           border: InputBorder.none,
@@ -89,30 +91,36 @@ class _SignInScreenState extends State<SignInScreen> {
                             vertical: 12,
                           ),
                         ),
-                        style: TextStyle(color: AppColors.charcoal1, fontSize: 14),
+                        style: const TextStyle(
+                          color: AppColors.darkGray,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                    //Password Field
+                    // Password Field
                     Container(
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.cream5,
-                        border: Border.all(color: AppColors.charcoal4, width: 0.5),
-                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.grey.shade100,
+                        border: Border.all(
+                          color: AppColors.lightGray.withOpacity(0.4),
+                          width: 0.8,
+                        ),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: TextField(
                         controller: passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: "Password",
-                          hintStyle: TextStyle(
-                            color: AppColors.charcoal3,
+                          hintStyle: const TextStyle(
+                            color: AppColors.lightGray,
                             fontSize: 14,
                           ),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
                           ),
@@ -121,7 +129,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               _isPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
-                              color: AppColors.charcoal3,
+                              color: AppColors.darkGray,
                               size: 18,
                             ),
                             onPressed: () {
@@ -131,46 +139,49 @@ class _SignInScreenState extends State<SignInScreen> {
                             },
                           ),
                         ),
-                        style: TextStyle(color: AppColors.charcoal1, fontSize: 14),
+                        style: const TextStyle(
+                          color: AppColors.darkGray,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                    //Sign In Button
+                    // Sign In Button
                     isLoading
                         ? Container(
                             height: 44,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: AppColors.teal1.withOpacity(0.7),
+                              color: AppColors.darkTeal.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Center(
+                            child: const Center(
                               child: SizedBox(
                                 height: 18,
                                 width: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.teal1,
+                                    AppColors.darkTeal,
                                   ),
                                 ),
                               ),
                             ),
                           )
-                        : Container(
+                        : SizedBox(
                             height: 44,
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.teal1,
+                                backgroundColor: AppColors.darkTeal,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 elevation: 0,
                               ),
-                              child: Text(
+                              child: const Text(
                                 "Sign in",
                                 style: TextStyle(
                                   color: Colors.white,
@@ -180,15 +191,15 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ),
                           ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
                     // Forgot Password
                     GestureDetector(
                       onTap: () {},
-                      child: Text(
+                      child: const Text(
                         "Forgot password?",
                         style: TextStyle(
-                          color: AppColors.teal2,
+                          color: AppColors.green,
                           fontWeight: FontWeight.w500,
                           fontSize: 13,
                         ),
@@ -198,16 +209,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
 
-              // Spacer to push everything up
-              //Spacer(),
-
               // Footer - PICTOREAL
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(bottom: 30),
                 child: Text(
                   "PICTOREAL",
                   style: TextStyle(
-                    color: AppColors.charcoal2,
+                    color: AppColors.darkGray,
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
                   ),
