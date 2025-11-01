@@ -919,7 +919,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
         description: descriptionController.text,
         location: meetingType == 'offline' ? locationController.text : '',
         onlineLink: meetingType == 'online' ? onlineLinkController.text : '',
-        dateTime: dateTime!,
+        // dateTime: dateTime!,
+        dateTime: dateTime!.toUtc(),
         agenda: agendaController.text,
         duration: durationController.text.isEmpty
             ? 60
