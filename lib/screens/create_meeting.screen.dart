@@ -3,12 +3,13 @@ import '../services/meeting_service.dart';
 import '../services/user_service.dart';
 import '../services/team_service.dart';
 import '../core/app_colors.dart';
+import '../widgets/date_time_picker_widget.dart';
 
 // ------ CONSTANTS -------
-const Color kSelectedBg = Color(0xFFF0652F); // Orange shade from reference
+const Color kSelectedBg = AppColors.orange; 
 const Color kSelectedText = Colors.white;
 const Color kUnselectedBg = Colors.white;
-const Color kUnselectedText = Color(0xFF8D95A8); // Gray shade from reference
+const Color kUnselectedText = AppColors.lightGray; 
 const double kBorderRadius = 14;
 
 // Custom segmented button widget
@@ -450,7 +451,14 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader("Logistics", Icons.schedule_outlined),
-        _buildDateTimePicker(),
+        DateTimePickerWidget(
+          initialDateTime: dateTime,
+          onDateTimeChanged: (selectedDateTime) {
+            setState(() {
+              dateTime = selectedDateTime;
+            });
+          },
+        ),
         const SizedBox(height: 16),
         TextFormField(
           controller: agendaController,
@@ -520,114 +528,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
           }).toList(),
         ),
       ],
-    );
-  }
-
-  Widget _buildDateTimePicker() {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.darkTeal, AppColors.green], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkTeal.withOpacity(0.4),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        height: 55,
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          onPressed: () async {
-            DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime.now(),
-              lastDate: DateTime(2100),
-              builder: (context, child) {
-                return Theme(
-                  data: theme.copyWith(
-                    useMaterial3: true,
-                    colorScheme: theme.colorScheme.copyWith(
-                      primary: AppColors.darkTeal,
-                      onPrimary: Colors.white,
-                      onSurface: AppColors.darkGray,
-                      surfaceTint: Colors.white,
-                    ),
-                    dialogBackgroundColor: Colors.white,
-                    canvasColor: Colors.white,
-                    datePickerTheme: const DatePickerThemeData(
-                      backgroundColor: Colors.white,
-                      surfaceTintColor: Colors.transparent,
-                    ),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (picked != null && mounted) {
-              TimeOfDay? time = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.now(),
-                builder: (context, child) {
-                  return Theme(
-                    data: theme.copyWith(
-                      timePickerTheme: TimePickerThemeData(
-                        backgroundColor: Colors.white,
-                        hourMinuteColor: AppColors.darkTeal.withOpacity(0.12),
-                        hourMinuteTextColor: AppColors.darkGray,
-                        hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        dialBackgroundColor: AppColors.green.withOpacity(0.1),
-                        dialHandColor: AppColors.darkTeal,
-
-                        dialTextColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected) ? Colors.white : AppColors.darkGray,
-                        ),
-
-                        entryModeIconColor: AppColors.darkTeal,
-                        dayPeriodColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected) ? AppColors.darkTeal : AppColors.green.withOpacity(0.08),
-                        ),
-                        dayPeriodTextColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected) ? Colors.white : AppColors.darkTeal,
-                        ),
-                        helpTextStyle: const TextStyle(color: AppColors.darkTeal, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      colorScheme: theme.colorScheme.copyWith(
-                        primary: AppColors.darkTeal,
-                        onPrimary: Colors.white,
-                        onSurface: AppColors.darkGray,
-                      ),
-                    ),
-                    child: child!,
-                  );
-                },
-              );
-              if (time != null) {
-                setState(() {
-                  dateTime = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                });
-              }
-            }
-          },
-          icon: const Icon(Icons.calendar_today_outlined),
-          label: Text(
-            dateTime == null ? 'Pick Date & Time' : 'Selected: ${dateTime!.toString().substring(0, 16)}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        ),
-      ),
     );
   }
 
