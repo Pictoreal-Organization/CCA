@@ -109,12 +109,15 @@ class MeetingsList extends StatelessWidget {
 
                       // Date & time
                       Row(
-                        children: const [
+                        children:  [
                           Icon(Icons.access_time,
                               size: 16, color: AppColors.green),
                           SizedBox(width: 6),
                           Text(
-                            "Today, 4:00 pm",
+                            "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\n"
+                        "Duration: ${meet['duration']} mins\n"
+                        "Type: ${meet['location'] != null ? 'Offline' : 'Online'}\n"
+                        "Location: ${meet['location'] ?? meet['onlineLink'] ?? 'N/A'}",
                             style: TextStyle(
                               color: AppColors.lightGray,
                               fontSize: 14,
