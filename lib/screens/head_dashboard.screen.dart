@@ -451,6 +451,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
 
                       // Toggle Buttons
                       Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8 , vertical: 8),
                         margin: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -523,8 +524,10 @@ class _HeadDashboardState extends State<HeadDashboard> {
                       const SizedBox(height: 16),
 
                       // Content Section
+                      //padding: const EdgeInsets.symmetric(horizontal: 16),
                       showMeetings
-                          ? Column(
+                          ? Padding(padding: const EdgeInsets.symmetric(horizontal: 16), 
+                          child :Column(
                               children: [
                                 MeetingsList(
                                   title: "Ongoing Meetings",
@@ -542,7 +545,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                   role: 'head',
                                 ),
                               ],
-                            )
+                            ),
+                          )
                           : _buildTasksSection(),
 
                       const SizedBox(height: 100), // Space for FAB
@@ -579,7 +583,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color:Colors.black,
+                  color: Colors.black,
                   fontFamily: 'Inter',
                 ),
               ),
@@ -656,16 +660,19 @@ class _HeadDashboardState extends State<HeadDashboard> {
     bool needsReview,
   ) {
     final isCompleted = task['status'] == 'Completed';
-    final borderColor = needsReview
-        ? AppColors.orange
-        : AppColors.green;
+    final borderColor = needsReview ? AppColors.orange : AppColors.green;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor, width: 3),
+        border: Border(
+          left: BorderSide(
+            color: borderColor, // your border color
+            width: 7, // border width
+          ),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
@@ -690,69 +697,85 @@ class _HeadDashboardState extends State<HeadDashboard> {
                       child: Text(
                         task['title'],
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF212121),
-                          fontFamily: 'Roboto',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontFamily: 'Inter',
                         ),
                       ),
                     ),
+                    Text(
+                      "${completedSubtasks}/${subtasks.length} subtasks",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF757575),
+                        fontFamily: 'Roboto',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Subtasks count
+                Row(
+                  children: [
+                    // Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? AppColors.green
+                            : const Color.fromARGB(255, 103, 186, 254),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        task['status'],
+                        style: TextStyle(
+                          color: isCompleted
+                              ? Colors.white
+                              : const Color.fromARGB(255, 5, 38, 94),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          fontFamily: 'Inter',
+                          height: 1.2, // keeps text vertically centered
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     if (needsReview)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
+                          horizontal: 14,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF9800),
-                          borderRadius: BorderRadius.circular(4),
+                          color: AppColors.darkOrange, // bright orange, matches your image
+                          borderRadius: BorderRadius.circular(
+                            20,
+                          ), // fully rounded pill shape
                         ),
                         child: const Text(
                           'Needs Review',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
-                            fontSize: 10,
-                            fontFamily: 'Roboto',
+                            fontSize: 11,
+                            fontFamily: 'Inter',
+                            height: 1.2, // keeps text vertically centered
+                            letterSpacing: 0.2,
                           ),
                         ),
+                        
                       ),
+                      
+                    
+
+                    
                   ],
-                ),
-                const SizedBox(height: 12),
-
-                // Subtasks count
-                Text(
-                  "${completedSubtasks}/${subtasks.length} subtasks",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF757575),
-                    fontFamily: 'Roboto',
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Status Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? const Color(0xFF4CAF50)
-                        : const Color(0xFF2196F3),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    task['status'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -760,14 +783,14 @@ class _HeadDashboardState extends State<HeadDashboard> {
 
           // Buttons Section
           Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(8),
-                bottomRight: Radius.circular(8),
-              ),
-            ),
-            padding: const EdgeInsets.all(12),
+            // decoration: const BoxDecoration(
+            //   color: Color(0xFFF5F5F5),
+            //   borderRadius: BorderRadius.only(
+            //     bottomLeft: Radius.circular(8),
+            //     bottomRight: Radius.circular(8),
+            //   ),
+            // ),
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 18),
             child: Row(
               children: [
                 Expanded(
@@ -777,23 +800,23 @@ class _HeadDashboardState extends State<HeadDashboard> {
                     label: const Text(
                       'Edit',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Roboto',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inter',
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00897B),
+                      backgroundColor: AppColors.darkTeal,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      //padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(9),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _deleteTask(task['_id']),
@@ -805,18 +828,18 @@ class _HeadDashboardState extends State<HeadDashboard> {
                     label: const Text(
                       'Delete',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Roboto',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inter',
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF9800),
+                      backgroundColor: AppColors.darkOrange,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      //padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(9),
                       ),
                     ),
                   ),
