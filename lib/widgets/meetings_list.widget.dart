@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/attendance.screen.dart';
 import '../core/app_colors.dart';
+import '../services/user_service.dart';
 
 class MeetingsList extends StatelessWidget {
   final String title;
@@ -15,8 +16,8 @@ class MeetingsList extends StatelessWidget {
   });
 
   Color _getCardBorderColor() {
-    if (title.contains("Ongoing")) return AppColors.green;
-    if (title.contains("Upcoming")) return AppColors.lightGray;
+    if (title.contains("Ongoing")) return AppColors.darkTeal;
+    if (title.contains("Upcoming")) return AppColors.green;
     if (title.contains("Pending")) return AppColors.orange;
     return AppColors.lightGray;
   }
@@ -42,9 +43,9 @@ class MeetingsList extends StatelessWidget {
             Text(
               title.replaceAll("Meetings", "").trim(),
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkTeal,
+                color: Colors.black,
               ),
             ),
             Text(
@@ -52,6 +53,7 @@ class MeetingsList extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.lightGray,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -76,67 +78,123 @@ class MeetingsList extends StatelessWidget {
               final meet = meetings[index];
               final isOngoing = title.contains("Ongoing");
               final isPending = title.contains("Pending");
+              final isUpcoming = title.contains("Upcoming");
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: _getCardBorderColor(),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _getCardBorderColor(), width: 1.4),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.lightGray.withOpacity(0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
+                      color: AppColors.lightGray.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
                   ],
                 ),
+                //----------------------------------------------
+                child: Container(
+                margin: const EdgeInsets.only(left: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+
+
                 child: Padding(
                   padding: const EdgeInsets.all(14.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title
-                      Text(
-                        meet['title'],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.darkGray,
-                        ),
+// Title Row (with Join button at right)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Title Text
+                          Expanded(
+                            child: Text(
+                              meet['title'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+
+                          if (isOngoing)
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                minimumSize: const Size(70, 31),
+                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                              ),
+                              onPressed: () {
+                                // TODO: Add join logic
+                              },
+                              child: const Text(
+                                "Join",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
+
 
                       // Date & time
                       Row(
-                        children:  [
-                          Icon(Icons.access_time,
-                              size: 16, color: AppColors.green),
-                          SizedBox(width: 6),
-                          Text(
-                            "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\n"
-                        "Duration: ${meet['duration']} mins\n"
-                        "Type: ${meet['location'] != null ? 'Offline' : 'Online'}\n"
-                        "Location: ${meet['location'] ?? meet['onlineLink'] ?? 'N/A'}",
-                            style: TextStyle(
-                              color: AppColors.lightGray,
-                              fontSize: 14,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(top: 3),
+                            padding: const EdgeInsets.all(0),
+                            decoration: const BoxDecoration(
+                              color: AppColors.darkGray,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.access_time,
+                              size: 16,
+                              color: Colors.white, // white icon
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\n"
+                                  "Duration: ${meet['duration']} mins\n"
+                                  "Type: ${meet['location'] != null ? 'Offline' : 'Online'}\n"
+                                  "Location: ${meet['location'] ?? meet['onlineLink'] ?? 'N/A'}",
+                              style: const TextStyle(
+                                color: AppColors.darkGray,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+
+                      const SizedBox(height: 7),
 
                       // Meeting type
                       Row(
                         children: const [
-                          Icon(Icons.link, size: 16, color: AppColors.green),
-                          SizedBox(width: 6),
+                          Icon(Icons.link, size: 19, color: AppColors.darkGray,),
+                          SizedBox(width: 8),
                           Text(
                             "Online Meeting",
                             style: TextStyle(
-                              color: AppColors.lightGray,
-                              fontSize: 14,
+                              color: AppColors.darkGray,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -145,33 +203,14 @@ class MeetingsList extends StatelessWidget {
                       const SizedBox(height: 10),
 
                       // Buttons
-                      if (isOngoing)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
+                      if (!isUpcoming && role == 'head')
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.orange,
+                                backgroundColor: _getCardBorderColor(),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                minimumSize: const Size(70, 34),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 14),
-                              ),
-                              onPressed: () {},
-                              child: const Text(
-                                "Join",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                minimumSize: const Size(120, 34),
+                                minimumSize: const Size.fromHeight(34),
                               ),
                               onPressed: () {
                                 Navigator.push(
@@ -187,33 +226,10 @@ class MeetingsList extends StatelessWidget {
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),
-                          ],
-                        )
-                      else if (isPending)
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.orange,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            minimumSize: const Size.fromHeight(34),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    AttendanceScreen(meeting: meet),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Mark Attendance",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
+
                     ],
                   ),
+                ),
                 ),
               );
             },
