@@ -33,10 +33,30 @@ class _HeadDashboardState extends State<HeadDashboard> {
   int _selectedIndex = 0;
   bool showMeetings = true;
 
+  // Scroll controller for AppBar hide/show
+  final ScrollController _scrollController = ScrollController();
+  bool _isAppBarVisible = true;
+
   @override
   void initState() {
     super.initState();
     fetchAllData();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.offset > 50 && _isAppBarVisible) {
+      setState(() => _isAppBarVisible = false);
+    } else if (_scrollController.offset <= 50 && !_isAppBarVisible) {
+      setState(() => _isAppBarVisible = true);
+    }
   }
 
   // --- DATA FETCHING ---
@@ -59,9 +79,9 @@ class _HeadDashboardState extends State<HeadDashboard> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load data: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load data: $e')));
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -107,19 +127,16 @@ class _HeadDashboardState extends State<HeadDashboard> {
         await taskService.updateSubtask(
           taskId: task['_id'],
           subtaskId: subtask['_id'],
-          data: {
-            'status': 'Pending',
-            'description': controller.text,
-          },
+          data: {'status': 'Pending', 'description': controller.text},
         );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Feedback sent to member.')),
         );
         fetchAllData();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sending feedback: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error sending feedback: $e')));
       }
     }
   }
@@ -153,9 +170,9 @@ class _HeadDashboardState extends State<HeadDashboard> {
         );
         fetchAllData();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error completing task: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error completing task: $e')));
       }
     }
   }
@@ -187,9 +204,9 @@ class _HeadDashboardState extends State<HeadDashboard> {
         );
         fetchAllData();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete task: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete task: $e')));
       }
     }
   }
@@ -224,705 +241,590 @@ class _HeadDashboardState extends State<HeadDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: AppColors.darkTeal,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          "Dashboard",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 22,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            tooltip: "Profile",
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            tooltip: "Logout",
-            onPressed: () {
-              showLogoutDialog(context);
-            },
-          ),
-        ],
-      ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          // ----------- Home / Dashboard -----------
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                  color: AppColors.darkTeal,
-                  onRefresh: fetchAllData,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildWelcomeCard(),
-                        const SizedBox(height: 24),
-                        _buildQuickStats(),
-                        const SizedBox(height: 24),
-                        _buildToggleButtons(),
-                        const SizedBox(height: 16),
-                        showMeetings ? _buildMeetingsView() : _buildTasksView(),
-                      ],
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // AppBar that hides on scroll
+          SliverAppBar(
+            floating: true,
+            snap: true,
+            backgroundColor: AppColors.darkTeal,
+            elevation: 0,
+            pinned: false,
+            expandedHeight: 0,
+            toolbarHeight: _isAppBarVisible ? 56 : 0,
+            title: _isAppBarVisible
+                ? const Text(
+                    "Dashboard",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      fontSize: 25,
+                      fontFamily: 'Inter',
                     ),
+                  )
+                : null,
+            actions: _isAppBarVisible
+                ? [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.logout,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                      onPressed: () {
+                        showLogoutDialog(context);
+                      },
+                    ),
+                  ]
+                : [],
+          ),
+
+          // Main content
+          SliverToBoxAdapter(
+            child: isLoading
+                ? const SizedBox(
+                    height: 400,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : Column(
+                    children: [
+                      // Stats Cards Row
+                      Container(
+                        color: const Color(0xFFF5F5F5),
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                        child: Row(
+                          children: [
+                            // Meetings Card
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // Meetings Icon
+                                    Container(
+                                      width: 52,
+                                      height: 52,
+                                      // decoration: BoxDecoration(
+                                      //   color: const Color(0xFFE3F2FD),
+                                      //   borderRadius: BorderRadius.circular(8),
+                                      // ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4),
+                                        child: Image.asset(
+                                          'assets/images/meetings_icon.png',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Text and Number
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          "MEETINGS",
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkGray,
+                                            letterSpacing: 0,
+                                            fontFamily: 'Inter',
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "${ongoingMeetings.length + upcomingMeetings.length}",
+                                          style: const TextStyle(
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black,
+                                            fontFamily: 'Inter',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // Tasks Card
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // Tasks Icon
+                                    Container(
+                                      width: 52,
+                                      height: 52,
+                                      // decoration: BoxDecoration(
+                                      //   color: const Color(0xFFFFF3E0),
+                                      //   borderRadius: BorderRadius.circular(8),
+                                      // ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4),
+                                        child: Image.asset(
+                                          'assets/images/task_icon.png',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Text and Number
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          "TASKS",
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkGray,
+                                            letterSpacing: 0,
+                                            fontFamily: 'Inter',
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "${allTasks.length}",
+                                          style: const TextStyle(
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black,
+                                            fontFamily: 'Inter',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Toggle Buttons
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: () =>
+                                    setState(() => showMeetings = true),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: showMeetings
+                                        ? AppColors.green
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "Meetings",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: showMeetings
+                                          ? Colors.white
+                                          : AppColors.darkGray,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () =>
+                                    setState(() => showMeetings = false),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: !showMeetings
+                                        ? AppColors.orange
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "Tasks",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: !showMeetings
+                                          ? Colors.white
+                                          : AppColors.darkGray,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 18,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Content Section
+                      showMeetings
+                          ? Column(
+                              children: [
+                                MeetingsList(
+                                  title: "Ongoing Meetings",
+                                  meetings: ongoingMeetings,
+                                  role: 'head',
+                                ),
+                                MeetingsList(
+                                  title: "Upcoming Meetings",
+                                  meetings: upcomingMeetings,
+                                  role: 'head',
+                                ),
+                                MeetingsList(
+                                  title: "Pending Attendance",
+                                  meetings: attendancePendingMeetings,
+                                  role: 'head',
+                                ),
+                              ],
+                            )
+                          : _buildTasksSection(),
+
+                      const SizedBox(height: 100), // Space for FAB
+                    ],
                   ),
-                ),
-          // ----------- Profile Tab -----------
-          const ProfileScreen(),
+          ),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              backgroundColor: showMeetings ? AppColors.orange : AppColors.green,
-              onPressed: showMeetings ? openCreateMeeting : openCreateTask,
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
+
+      // FAB
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: showMeetings
+            ? const Color(0xFF00897B)
+            : const Color(0xFFFF9800),
+        elevation: 6,
+        onPressed: showMeetings ? openCreateMeeting : openCreateTask,
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
     );
   }
 
-  Widget _buildWelcomeCard() {
+  Widget _buildTasksSection() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.darkTeal,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkTeal.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.waving_hand,
-            color: AppColors.orange,
-            size: 32,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            "Welcome Back!",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Here's what's happening today",
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 15,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickStats() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.video_call,
-            count: ongoingMeetings.length + upcomingMeetings.length,
-            label: "Meetings",
-            color: AppColors.orange,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.task_alt,
-            count: allTasks.length,
-            label: "Tasks",
-            color: AppColors.green,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required int count,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "$count",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkGray,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.lightGray,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButtons() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildToggleButton(
-              icon: Icons.event,
-              label: "Meetings",
-              isSelected: showMeetings,
-              onTap: () => setState(() => showMeetings = true),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _buildToggleButton(
-              icon: Icons.checklist,
-              label: "Tasks",
-              isSelected: !showMeetings,
-              onTap: () => setState(() => showMeetings = false),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.darkTeal : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : AppColors.lightGray,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.lightGray,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "All Tasks",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color:Colors.black,
+                  fontFamily: 'Inter',
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMeetingsView() {
-    return Column(
-      children: [
-        MeetingsList(
-          title: "Ongoing Meetings",
-          meetings: ongoingMeetings,
-          role: 'head',
-        ),
-        MeetingsList(
-          title: "Upcoming Meetings",
-          meetings: upcomingMeetings,
-          role: 'head',
-        ),
-        MeetingsList(
-          title: "Pending Attendance",
-          meetings: attendancePendingMeetings,
-          role: 'head',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTasksView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildTasksHeader(),
-        const SizedBox(height: 16),
-        allTasks.isEmpty ? _buildEmptyTasksView() : _buildTasksList(),
-      ],
-    );
-  }
-
-  Widget _buildTasksHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.darkTeal,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            "All Tasks",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              "${allTasks.length} Tasks",
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
+              Text(
+                "${allTasks.length} Tasks",
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.lightGray,
+                  fontFamily: 'Inter',
+                ),
               ),
-            ),
+            ],
           ),
+          const SizedBox(height: 16),
+
+          // Tasks List
+          allTasks.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      children: const [
+                        Icon(
+                          Icons.assignment_outlined,
+                          size: 64,
+                          color: Color(0xFFBDBDBD),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "No tasks available",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF757575),
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: allTasks.length,
+                  itemBuilder: (context, index) {
+                    final task = allTasks[index];
+                    final subtasks = (task['subtasks'] as List?) ?? [];
+                    final completedSubtasks = subtasks
+                        .where((s) => s['status'] == 'Completed')
+                        .length;
+                    final needsReview = subtasks.any(
+                      (s) => s['status'] == 'Completed',
+                    );
+
+                    return _buildTaskCard(
+                      task,
+                      subtasks,
+                      completedSubtasks,
+                      needsReview,
+                    );
+                  },
+                ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyTasksView() {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(40),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.green.withOpacity(0.3), width: 2),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.task_alt, size: 64, color: AppColors.green),
-            const SizedBox(height: 16),
-            Text(
-              "No active tasks found",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.darkGray,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Create your first task to get started!",
-              style: TextStyle(fontSize: 14, color: AppColors.lightGray),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTasksList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: allTasks.length,
-      itemBuilder: (context, index) => _buildTaskItem(allTasks[index]),
-    );
-  }
-
-  Widget _buildTaskItem(dynamic task) {
-    final subtasks = (task['subtasks'] as List?) ?? [];
-    final completedSubtasks =
-        subtasks.where((s) => s['status'] == 'Completed').length;
-    final allSubtasksCompleted = subtasks.isNotEmpty &&
-        subtasks.every((s) => s['status'] == 'Completed');
-    final needsReview = subtasks.any((s) => s['status'] == 'Completed');
-    final progress =
-        subtasks.isEmpty ? 0.0 : completedSubtasks / subtasks.length;
+  Widget _buildTaskCard(
+    dynamic task,
+    List subtasks,
+    int completedSubtasks,
+    bool needsReview,
+  ) {
+    final isCompleted = task['status'] == 'Completed';
+    final borderColor = needsReview
+        ? AppColors.orange
+        : AppColors.green;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: needsReview 
-              ? AppColors.orange.withOpacity(0.5) 
-              : Colors.grey.withOpacity(0.2),
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor, width: 3),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          childrenPadding: const EdgeInsets.only(bottom: 16),
-          iconColor: AppColors.darkTeal,
-          collapsedIconColor: AppColors.lightGray,
-          backgroundColor: Colors.transparent,
-          collapsedBackgroundColor: Colors.transparent,
-          title: _buildTaskTitle(task, subtasks, completedSubtasks, needsReview, progress),
-          trailing: _buildTaskActions(task),
-          children: [
-            if (subtasks.isNotEmpty) _buildSubtasksList(subtasks),
-            if (task['status'] != 'Completed')
-              _buildCompleteButton(task, allSubtasksCompleted),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTaskTitle(dynamic task, List subtasks, int completedSubtasks,
-      bool needsReview, double progress) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                task['title'],
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGray,
-                ),
-              ),
-            ),
-            if (needsReview)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.orange,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.rate_review, size: 12, color: Colors.white),
-                    SizedBox(width: 4),
-                    Text(
-                      'Review',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: task['status'] == 'Completed'
-                    ? AppColors.green.withOpacity(0.2)
-                    : AppColors.darkTeal.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                task['status'],
-                style: TextStyle(
-                  color: task['status'] == 'Completed'
-                      ? AppColors.green
-                      : AppColors.darkTeal,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            if (subtasks.isNotEmpty) ...[
-              Icon(Icons.playlist_add_check,
-                  size: 16, color: AppColors.lightGray),
-              const SizedBox(width: 4),
-              Text(
-                "$completedSubtasks/${subtasks.length} subtasks",
-                style: TextStyle(
-                  color: AppColors.lightGray,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ],
-        ),
-        if (subtasks.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                progress == 1.0 ? AppColors.green : AppColors.darkTeal,
-              ),
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildTaskActions(dynamic task) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.edit_rounded, color: AppColors.darkTeal, size: 20),
-            tooltip: 'Edit Task',
-            onPressed: () => openCreateTask(taskToEdit: task),
-          ),
-          IconButton(
-            icon: Icon(Icons.delete_rounded, color: AppColors.darkOrange, size: 20),
-            tooltip: 'Delete Task',
-            onPressed: () => _deleteTask(task['_id']),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubtasksList(List subtasks) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.subdirectory_arrow_right,
-                  color: AppColors.darkTeal, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                "Subtasks",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGray,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...subtasks.map((sub) => _buildSubtaskItem(sub)).toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubtaskItem(dynamic sub) {
-    final assignedUsers =
-        (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
-    final isCompleted = sub['status'] == 'Completed';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isCompleted 
-              ? AppColors.green.withOpacity(0.3) 
-              : Colors.grey.withOpacity(0.2),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isCompleted 
-                  ? AppColors.green.withOpacity(0.1) 
-                  : AppColors.darkTeal.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isCompleted ? AppColors.green : AppColors.darkTeal,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+          // Task Content
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  sub['title'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: AppColors.darkGray,
-                    decoration:
-                        isCompleted ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                const SizedBox(height: 4),
+                // Title and Badge Row
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.person_outline,
-                        size: 14, color: AppColors.lightGray),
-                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        assignedUsers,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.lightGray,
+                        task['title'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF212121),
+                          fontFamily: 'Roboto',
                         ),
                       ),
                     ),
+                    if (needsReview)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9800),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Needs Review',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ),
                   ],
+                ),
+                const SizedBox(height: 12),
+
+                // Subtasks count
+                Text(
+                  "${completedSubtasks}/${subtasks.length} subtasks",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF757575),
+                    fontFamily: 'Roboto',
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Status Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFF2196F3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    task['status'],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      fontFamily: 'Roboto',
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
+
+          // Buttons Section
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isCompleted 
-                  ? AppColors.green.withOpacity(0.2) 
-                  : AppColors.orange.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              sub['status'],
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isCompleted ? AppColors.green : AppColors.orange,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
               ),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => openCreateTask(taskToEdit: task),
+                    icon: const Icon(Icons.edit, size: 16, color: Colors.white),
+                    label: const Text(
+                      'Edit',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Roboto',
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00897B),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _deleteTask(task['_id']),
+                    icon: const Icon(
+                      Icons.delete,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Roboto',
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF9800),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCompleteButton(dynamic task, bool allSubtasksCompleted) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          icon: Icon(
-            Icons.check_circle,
-            color: allSubtasksCompleted ? Colors.white : Colors.grey,
-          ),
-          label: const Text(
-            'Mark as Completed',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: allSubtasksCompleted 
-                ? AppColors.green 
-                : Colors.grey[300],
-            foregroundColor: allSubtasksCompleted ? Colors.white : Colors.grey,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          onPressed:
-              allSubtasksCompleted ? () => _completeMainTask(task) : null,
-        ),
       ),
     );
   }
