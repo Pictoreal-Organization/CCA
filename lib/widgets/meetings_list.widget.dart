@@ -8,6 +8,7 @@ class MeetingsList extends StatelessWidget {
   final List meetings;
   final String role;
 
+
   const MeetingsList({
     super.key,
     required this.title,
@@ -18,7 +19,7 @@ class MeetingsList extends StatelessWidget {
   Color _getCardBorderColor() {
     if (title.contains("Ongoing")) return AppColors.darkTeal;
     if (title.contains("Upcoming")) return AppColors.green;
-    if (title.contains("Pending")) return AppColors.orange;
+    if (title.contains("Pending")) return AppColors.darkOrange;
     return AppColors.lightGray;
   }
 
@@ -164,13 +165,11 @@ class MeetingsList extends StatelessWidget {
                               color: Colors.white, // white icon
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 9),
                           Expanded(
                             child: Text(
-                              "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}\n"
-                                  "Duration: ${meet['duration']} mins\n"
-                                  "Type: ${meet['location'] != null ? 'Offline' : 'Online'}\n"
-                                  "Location: ${meet['location'] ?? meet['onlineLink'] ?? 'N/A'}",
+                              "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}",
+                                  // "Duration: ${meet['duration']} mins\n"
                               style: const TextStyle(
                                 color: AppColors.darkGray,
                                 fontSize: 15,
@@ -186,11 +185,13 @@ class MeetingsList extends StatelessWidget {
 
                       // Meeting type
                       Row(
-                        children: const [
-                          Icon(Icons.link, size: 19, color: AppColors.darkGray,),
+                        children:  [
+                          meet['location'] == null
+                          ? Icon(Icons.link, size: 19, color: AppColors.darkGray)
+                          : Icon(Icons.location_on, size: 19, color: AppColors.darkGray,),
                           SizedBox(width: 8),
                           Text(
-                            "Online Meeting",
+                            "${meet['location'] != null ? "Location: ${meet['location'] ?? meet['onlineLink'] ?? 'N/A'}" : "Online Meeting"}",
                             style: TextStyle(
                               color: AppColors.darkGray,
                               fontSize: 15,
