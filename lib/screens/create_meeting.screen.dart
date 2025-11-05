@@ -256,36 +256,55 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
   }
 
   void submit() async {
-    if (!_formKey.currentState!.validate() || dateTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please fill all required fields and pick a date/time.'),
-        backgroundColor: AppColors.darkOrange,
-      ));
-      return;
-    }
-    if (meetingScope == 'team-specific' && selectedTeamIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please select at least one team for a team-specific meeting.'),
-        backgroundColor: AppColors.darkOrange,
-      ));
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    setState(() => isSubmitting = true);
+  if (!_formKey.currentState!.validate() || dateTime == null) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Please fill all required fields and pick a date/time.'),
+      backgroundColor: AppColors.darkOrange,
+    ));
+    return;
+  }
+  if (meetingScope == 'team-specific' && selectedTeamIds.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Please select at least one team for a team-specific meeting.'),
+      backgroundColor: AppColors.darkOrange,
+    ));
+    return;
+  }
+  FocusScope.of(context).unfocus();
+  setState(() => isSubmitting = true);
 
-    try {
-      await Future.delayed(const Duration(milliseconds: 1500));
-      widget.onMeetingCreated();
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      setState(() => isSubmitting = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create meeting: $e')));
-      }
+  try {
+    // Call the createMeeting method in MeetingService with data from form fields
+    final createdMeeting = await meetingService.createMeeting(
+      title: titleController.text,
+      description: descriptionController.text,
+      dateTime: dateTime!,
+      location: meetingType == 'offline' ? locationController.text : '',
+      onlineLink: meetingType == 'online' ? onlineLinkController.text : null,
+      agenda: agendaController.text,
+      duration: int.tryParse(durationController.text) ?? 60,
+      priority: priority,
+      tags: selectedTags,
+      isPrivate: isPrivate,
+      invitedMembers: invitedUserIds,
+      team: meetingScope == 'team-specific' ? selectedTeamIds : null,
+    );
+
+    // After successful creation, you can notify parent and close screen
+    widget.onMeetingCreated();
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  } catch (e) {
+    setState(() => isSubmitting = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create meeting: $e')),
+      );
     }
   }
+}
+
 
   Widget _buildAnimatedSection(int index, Widget child) {
     return FadeTransition(
