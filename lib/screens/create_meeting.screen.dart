@@ -278,7 +278,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
     final createdMeeting = await meetingService.createMeeting(
       title: titleController.text,
       description: descriptionController.text,
-      dateTime: dateTime!,
+      dateTime: dateTime!.toUtc(),
       location: meetingType == 'offline' ? locationController.text : '',
       onlineLink: meetingType == 'online' ? onlineLinkController.text : null,
       agenda: agendaController.text,
