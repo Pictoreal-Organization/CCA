@@ -30,7 +30,7 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.darkTeal, AppColors.green], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        color: AppColors.darkTeal, // ✅ Solid dark teal (same as "General" tab)
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -45,11 +45,13 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
         width: double.infinity,
         child: ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
+            backgroundColor: Colors.transparent, // container already colored
             foregroundColor: Colors.white,
             elevation: 0,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
           onPressed: () async {
             DateTime? picked = await showDatePicker(
@@ -78,6 +80,7 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
                 );
               },
             );
+
             if (picked != null && mounted) {
               TimeOfDay? time = await showTimePicker(
                 context: context,
@@ -89,20 +92,32 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
                         backgroundColor: Colors.white,
                         hourMinuteColor: AppColors.darkTeal.withOpacity(0.12),
                         hourMinuteTextColor: AppColors.darkGray,
-                        hourMinuteShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        hourMinuteShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         dialBackgroundColor: AppColors.green.withOpacity(0.1),
                         dialHandColor: AppColors.darkTeal,
                         dialTextColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected) ? Colors.white : AppColors.darkGray,
+                          (states) => states.contains(MaterialState.selected)
+                              ? Colors.white
+                              : AppColors.darkGray,
                         ),
                         entryModeIconColor: AppColors.darkTeal,
                         dayPeriodColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected) ? AppColors.darkTeal : AppColors.green.withOpacity(0.08),
+                          (states) => states.contains(MaterialState.selected)
+                              ? AppColors.darkTeal
+                              : AppColors.green.withOpacity(0.08),
                         ),
                         dayPeriodTextColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected) ? Colors.white : AppColors.darkTeal,
+                          (states) => states.contains(MaterialState.selected)
+                              ? Colors.white
+                              : AppColors.darkTeal,
                         ),
-                        helpTextStyle: const TextStyle(color: AppColors.darkTeal, fontWeight: FontWeight.bold, fontSize: 16),
+                        helpTextStyle: const TextStyle(
+                          color: AppColors.darkTeal,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       colorScheme: theme.colorScheme.copyWith(
                         primary: AppColors.darkTeal,
@@ -114,9 +129,16 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
                   );
                 },
               );
+
               if (time != null) {
                 setState(() {
-                  dateTime = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
+                  dateTime = DateTime(
+                    picked.year,
+                    picked.month,
+                    picked.day,
+                    time.hour,
+                    time.minute,
+                  );
                 });
                 widget.onDateTimeChanged(dateTime!);
               }
@@ -124,11 +146,17 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
           },
           icon: const Icon(Icons.calendar_today_outlined),
           label: Text(
-            dateTime == null ? 'Pick Date & Time' : 'Selected: ${dateTime!.toString().substring(0, 16)}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            dateTime == null
+                ? 'Pick Date & Time'
+                : 'Selected: ${dateTime!.toString().substring(0, 16)}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ),
       ),
     );
   }
 }
+
