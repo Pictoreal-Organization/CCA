@@ -451,11 +451,18 @@ class _HeadDashboardState extends State<HeadDashboard> {
 
                       // Toggle Buttons
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8 , vertical: 8),
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 8 , vertical: 6),
+                        margin: const EdgeInsets.symmetric(horizontal: 14),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                    BoxShadow(
+                      color: AppColors.lightGray.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                         ),
                         child: Row(
                           children: [
@@ -663,10 +670,10 @@ class _HeadDashboardState extends State<HeadDashboard> {
     final borderColor = needsReview ? AppColors.orange : AppColors.green;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         border: Border(
           left: BorderSide(
             color: borderColor, // your border color
@@ -852,3 +859,4 @@ class _HeadDashboardState extends State<HeadDashboard> {
     );
   }
 }
+//task card onclick() =>add subtask  remaining
