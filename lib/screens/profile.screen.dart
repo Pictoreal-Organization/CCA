@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
+import '../core/app_colors.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -61,8 +62,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Failed to load profile data: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to load profile data: $e")),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -86,8 +88,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       setState(() => _isEditing = false);
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -96,12 +99,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: Text(
+          "Profile",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: AppColors.darkTeal,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
-          // ✏️ Toggle Edit / Save
+          // Toggle Edit / Save
           IconButton(
-            icon: Icon(_isEditing ? Icons.check : Icons.edit),
+            icon: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _isEditing
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isEditing ? Icons.check_circle_rounded : Icons.edit_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
             onPressed: () {
               if (_isEditing) {
                 saveProfile();
@@ -113,118 +146,513 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
+                    strokeWidth: 2,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Loading Profile...",
+                    style: TextStyle(color: AppColors.lightGray, fontSize: 14),
+                  ),
+                ],
+              ),
+            )
           : RefreshIndicator(
+              color: AppColors.green,
+              backgroundColor: Colors.white,
               onRefresh: loadAllData,
               child: ListView(
-                padding: const EdgeInsets.all(16.0),
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20.0),
                 children: [
-                  // --- User Info Section ---
-                  Center(
+                  // --- profile header ---
+                  Container(
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.fromARGB(233, 252, 83, 31), // Vibrant start
+                          Color.fromARGB(255, 254, 115, 9), // Bright middle
+                          Color.fromARGB(255, 255, 182, 86),
+                        ],
+                        stops: [0.0, 0.4, 1.2],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFFFF3D00).withOpacity(0.35),
+                          blurRadius: 15,
+                          offset: Offset(5, 10), 
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
                     child: Column(
                       children: [
-                        const Icon(Icons.account_circle, size: 100, color: Colors.blueGrey),
-                        const SizedBox(height: 8),
-                        Text(_email, style: const TextStyle(fontSize: 16)),
-                        Text("Role: $_role", style: const TextStyle(color: Colors.grey)),
+                        Stack(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.2),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 3,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.account_circle_rounded,
+                                size: 90,
+                                color: Colors.white,
+                              ),
+                            ),
+                            if (_isEditing)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.darkTeal,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.camera_alt_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          _nameController.text.isNotEmpty
+                              ? _nameController.text
+                              : "Your Name",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          _email,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _role ?? 'Member',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // --- Editable Fields ---
-                  TextField(
-                    controller: _nameController,
-                    enabled: _isEditing,
-                    decoration: const InputDecoration(labelText: "Full Name"),
+                  // --- Personal Information Section ---
+                  Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade100, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline_rounded,
+                              color: AppColors.green,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Personal Information",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.darkGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 3.5),
+                        _buildEditableField(
+                          "Full Name",
+                          _nameController,
+                          Icons.person,
+                        ),
+                        SizedBox(height: 3.5),
+                        _buildEditableField(
+                          "Roll No",
+                          _rollController,
+                          Icons.badge,
+                        ),
+                        SizedBox(height: 3.5),
+                        _buildEditableField(
+                          "Year",
+                          _yearController,
+                          Icons.school,
+                        ),
+                        SizedBox(height: 3.5),
+                        _buildEditableField(
+                          "Division",
+                          _divisionController,
+                          Icons.group,
+                        ),
+                        SizedBox(height: 3.5),
+                        _buildEditableField(
+                          "Phone Number",
+                          _phoneController,
+                          Icons.phone,
+                        ),
+                      ],
+                    ),
                   ),
-                  TextField(
-                    controller: _rollController,
-                    enabled: _isEditing,
-                    decoration: const InputDecoration(labelText: "Roll No"),
-                  ),
-                  TextField(
-                    controller: _yearController,
-                    enabled: _isEditing,
-                    decoration: const InputDecoration(labelText: "Year"),
-                  ),
-                  TextField(
-                    controller: _divisionController,
-                    enabled: _isEditing,
-                    decoration: const InputDecoration(labelText: "Division"),
-                  ),
-                  TextField(
-                    controller: _phoneController,
-                    enabled: _isEditing,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: "Phone Number"),
-                  ),
-
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // --- Completed Tasks Section ---
-                  const Divider(height: 40, thickness: 1),
-                  const Text(
-                    "Completed Tasks History",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_completedTasks.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.0),
-                        child: Text("No completed tasks to show."),
-                      ),
-                    )
-                  else
-                    ..._completedTasks.map((task) {
-                      final subtasks = (task['subtasks'] as List?) ?? [];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: _role == 'Head'
-                            ? ExpansionTile(
-                                leading: const Icon(Icons.check_circle, color: Colors.green),
-                                title: Text(task['title']),
-                                subtitle: Text(
-                                  "Completed on: ${task['deadline'] != null ? DateTime.parse(task['deadline']).toLocal().toString().split(' ')[0] : 'N/A'}",
-                                ),
-                                children: [
-                                  const Divider(height: 1),
-                                  ...subtasks.map((sub) {
-                                    final assignedUsers = (sub['assignedTo'] as List)
-                                        .map((u) => u['username'])
-                                        .join(', ');
-                                    return ListTile(
-                                      title: Text(sub['title'],
-                                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(sub['description'] ?? 'No completion note.'),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            "Completed by: $assignedUsers",
-                                            style: const TextStyle(
-                                                fontStyle: FontStyle.italic, color: Colors.black54),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList()
-                                ],
-                              )
-                            : ListTile(
-                                leading: const Icon(Icons.check_circle, color: Colors.green),
-                                title: Text(task['title']),
-                                subtitle: Text(
-                                  "Completed on: ${task['deadline'] != null ? DateTime.parse(task['deadline']).toLocal().toString().split(' ')[0] : 'N/A'}",
+                  Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      //border: Border.all(
+                        //color: _completedTasks.length.isEven ? AppColors.orange : AppColors.darkTeal,
+                        //width: 2,
+                      //),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.task_alt,
+                              color: AppColors.green,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Completed Tasks",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.darkGray,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                "${_completedTasks.length}",
+                                style: TextStyle(
+                                  color: AppColors.green,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                      );
-                    }).toList(),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+
+                        if (_completedTasks.isEmpty)
+                          Container(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.incomplete_circle_rounded,
+                                  color: AppColors.lightGray.withOpacity(0.5),
+                                  size: 64,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "No completed tasks yet",
+                                  style: TextStyle(
+                                    color: AppColors.lightGray,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Complete your first task to see it here!",
+                                  style: TextStyle(
+                                    color: AppColors.lightGray.withOpacity(0.7),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          ..._completedTasks.asMap().entries.map((entry) {
+                            final taskIndex = entry.key; // This gives us the actual index
+                            final task = entry.value;
+                            final subtasks = (task['subtasks'] as List?) ?? [];
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey.shade200,
+                                  //taskIndex.isEven ? AppColors.orange.withOpacity(0.3) : AppColors.darkTeal.withOpacity(0.3),
+                                ),
+                                
+                                
+                                /*boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.darkTeal.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],*/
+                              ),
+
+                              child: Stack(
+                                children: [
+                                _role == 'Head'
+                                  ? ExpansionTile(
+                                      leading: Container(
+                                        padding: EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.green.withOpacity(
+                                            0.1,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.check_circle_rounded,
+                                          color: AppColors.green,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        task['title'],
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.darkGray,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        "Completed: ${task['deadline'] != null ? _formatDate(DateTime.parse(task['deadline'])) : 'N/A'}",
+                                        style: TextStyle(
+                                          color: AppColors.lightGray,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                          ),
+                                          child: Divider(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        ...subtasks.map((sub) {
+                                          final assignedUsers =
+                                              (sub['assignedTo'] as List)
+                                                  .map((u) => u['username'])
+                                                  .join(', ');
+                                          return Container(
+                                            margin: EdgeInsets.only(bottom: 8),
+                                            padding: EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  sub['title'],
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.darkGray,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 4),
+                                                Text(
+                                                  sub['description'] ?? 'No completion note.',
+                                                  style: TextStyle(
+                                                    color: AppColors.darkGray.withOpacity(0.8),
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 6),
+                                                Text(
+                                                  "Completed by: $assignedUsers",
+                                                  style: TextStyle(
+                                                    fontStyle: FontStyle.italic,
+                                                    color: AppColors.lightGray,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                        SizedBox(height: 8),
+                                      ],
+                                    )
+                                  : ListTile(
+                                      leading: Container(
+                                        padding: EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.green.withOpacity(
+                                            0.1,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.check_circle_rounded,
+                                          color: AppColors.green,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        task['title'],
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.darkGray,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        "Completed: ${task['deadline'] != null ? _formatDate(DateTime.parse(task['deadline'])) : 'N/A'}",
+                                        style: TextStyle(
+                                          color: AppColors.lightGray,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                 // ADDED: Left colored line
+                                Positioned(
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 8, // Width of the colored line
+                                    decoration: BoxDecoration(
+                                      color: taskIndex.isEven ? AppColors.orange : AppColors.darkTeal,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        bottomLeft: Radius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
     );
+  }
+
+  // Helper method for building editable fields
+  Widget _buildEditableField(
+    String label,
+    TextEditingController controller,
+    IconData icon,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _isEditing ? Colors.grey.shade50 : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: _isEditing
+            ? Border.all(color: AppColors.green.withOpacity(0.3), width: 1.5)
+            : null,
+      ),
+      child: TextField(
+        controller: controller,
+        enabled: _isEditing,
+        style: TextStyle(
+          color: AppColors.darkGray,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: AppColors.lightGray, fontSize: 13),
+          prefixIcon: Icon(
+            icon,
+            color: _isEditing ? AppColors.green : AppColors.lightGray,
+            size: 20,
+          ),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  // Helper method for date formatting
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
   }
 }
