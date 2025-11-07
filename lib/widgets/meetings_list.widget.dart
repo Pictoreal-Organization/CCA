@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import '../screens/attendance.screen.dart';
 import '../core/app_colors.dart';
 import '../services/user_service.dart';
+import 'package:intl/intl.dart';
 
 class MeetingsList extends StatelessWidget {
   final String title;
   final List meetings;
   final String role;
-
 
   const MeetingsList({
     super.key,
@@ -152,31 +152,27 @@ class MeetingsList extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            margin: const EdgeInsets.only(top: 3),
-                            padding: const EdgeInsets.all(0),
-                            decoration: const BoxDecoration(
-                              color: AppColors.darkGray,
-                              shape: BoxShape.circle,
+                            const Icon(
+                              Icons.access_time_filled_rounded,
+                              size: 19,
+                              color: AppColors.darkGray, // white icon
                             ),
-                            child: const Icon(
-                              Icons.access_time,
-                              size: 16,
-                              color: Colors.white, // white icon
-                            ),
-                          ),
-                          const SizedBox(width: 9),
+                          const SizedBox(width: 8),
                           Expanded(
+
                             child: Text(
-                              "Starts: ${DateTime.parse(meet['dateTime']).toLocal()}",
-                                  // "Duration: ${meet['duration']} mins\n"
+                                  () {
+                                final date = DateTime.parse(meet['dateTime']).toLocal();
+                                final formattedDate = DateFormat('d MMM, HH:mm').format(date);
+                                return "Starts: $formattedDate";
+                              }(),
                               style: const TextStyle(
                                 color: AppColors.darkGray,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-
                               ),
                             ),
+
                           ),
                         ],
                       ),
