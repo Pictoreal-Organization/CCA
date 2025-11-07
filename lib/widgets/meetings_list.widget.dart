@@ -163,7 +163,7 @@ class MeetingsList extends StatelessWidget {
                             child: Text(
                                   () {
                                 final date = DateTime.parse(meet['dateTime']).toLocal();
-                                final formattedDate = DateFormat('d MMM, HH:mm').format(date);
+                                final formattedDate = DateFormat('d MMM, h:mm a').format(date);
                                 return "Starts: $formattedDate";
                               }(),
                               style: const TextStyle(
