@@ -107,4 +107,24 @@ class UserService {
     }
   }
 
+  Future<void> updateUserAvatar(String avatarPath) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken");
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/update-avatar'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "avatar": avatarPath,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update avatar: ${response.body}');
+    }
+  }
+
 }
