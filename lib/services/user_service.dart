@@ -61,6 +61,7 @@ class UserService {
     required String year,
     required String division,
     required String phone,
+    required String avatar
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("accessToken");
@@ -77,6 +78,7 @@ class UserService {
         "year": year,
         "division": division,
         "phone": phone,
+        "avatar": avatar
       }),
     );
 
@@ -104,26 +106,6 @@ class UserService {
       return data['user']; // since backend sends { msg, user }
     } else {
       throw Exception('Failed to fetch logged-in user: ${response.body}');
-    }
-  }
-
-  Future<void> updateUserAvatar(String avatarPath) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("accessToken");
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/update-avatar'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode({
-        "avatar": avatarPath,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update avatar: ${response.body}');
     }
   }
 

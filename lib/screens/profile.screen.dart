@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../core/app_colors.dart';
 
 class AvatarConfig {
   static final List<String> avatarPaths = [
-    'assets/images/Avatar1.png',
-    'assets/images/Avatar2.png',
-    'assets/images/Avatar3.png',
-    'assets/images/Avatar4.png',
-    'assets/images/Avatar5.png',
-    'assets/images/Avatar6.png',
-    'assets/images/Avatar7.png',
-    'assets/images/Avatar8.png',
-    'assets/images/Avatar9.png',
+    'assets/images/Avatars/Avatar1.png',
+    'assets/images/Avatars/Avatar2.png',
+    'assets/images/Avatars/Avatar3.png',
+    'assets/images/Avatars/Avatar4.png',
+    'assets/images/Avatars/Avatar5.png',
+    'assets/images/Avatars/Avatar6.png',
+    'assets/images/Avatars/Avatar7.png',
+    'assets/images/Avatars/Avatar8.png',
+    'assets/images/Avatars/Avatar9.png',
   ];
 
-  static const String defaultAvatar = 'assets/images/default.png';
+  static const String defaultAvatar = 'assets/images/Avatars/default.png';
 }
 
 class ProfileScreen extends StatefulWidget {
@@ -41,47 +40,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // State variables
   bool _isLoading = true;
-  bool _isEditing = false; // ✏️ toggle edit mode
+  bool _isEditing = false;
   String _email = "";
   String _role = "";
   String _userId = "";
   List _completedTasks = [];
   String _selectedAvatar = AvatarConfig.defaultAvatar;
-  bool _showAvatarSelection = false;
-
-  final GlobalKey _avatarButtonKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    loadAllData().then((_) {
-      _loadSavedAvatar();
-    });
-  }
-
-  Future<void> _loadSavedAvatar() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (_userId.isEmpty) {
-      await loadAllData();
-    }
-    setState(() {
-      _selectedAvatar =
-          prefs.getString('user_avatar_$_userId') ?? AvatarConfig.defaultAvatar;
-    });
+    loadAllData();
   }
 
   Future<void> _saveAvatar(String avatarPath) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_avatar_$_userId', avatarPath);
-    try {
-      await userService.updateUserAvatar(avatarPath);
-    } catch (e) {
-      print('Failed to save avatar to server: $e');
-    }
-  
     setState(() {
       _selectedAvatar = avatarPath;
-      //_showAvatarSelection = false;
     });
   }
 
@@ -117,6 +91,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _yearController.text = user['year'] ?? '';
       _divisionController.text = user['division'] ?? '';
       _phoneController.text = user['phone'] ?? '';
+      
+      // Load avatar from backend
+      _selectedAvatar = user['avatar'] ?? AvatarConfig.defaultAvatar;
 
       // Fetch completed tasks
       if (_role == 'Head') {
@@ -144,6 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         year: _yearController.text,
         division: _divisionController.text,
         phone: _phoneController.text,
+        avatar: _selectedAvatar,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -152,9 +130,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       setState(() => _isEditing = false);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to update profile: $e")),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -183,7 +161,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          // Toggle Edit / Save
           IconButton(
             icon: Container(
               padding: EdgeInsets.all(6),
@@ -238,7 +215,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Avatar outside the container (on the left)
                       Stack(
                         children: [
                           Container(
@@ -256,34 +232,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             ),
-                          child: _selectedAvatar.isEmpty 
-                            ? Icon(
-                                Icons.account_circle_rounded,
-                                size: 74,
-                                color: Colors.white,
-                              )
-                            : ClipOval(
-                              child: Image.asset(
-                                _selectedAvatar,
-                                width: 74,
-                                height: 74,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, StackTrace) {
-                                  return Icon(
+                            child: _selectedAvatar.isEmpty ||
+                                    _selectedAvatar == AvatarConfig.defaultAvatar
+                                ? Icon(
                                     Icons.account_circle_rounded,
                                     size: 74,
                                     color: Colors.white,
-                                  );
-                                },
-                              ),
-                            ),
+                                  )
+                                : ClipOval(
+                                    child: Image.asset(
+                                      _selectedAvatar,
+                                      width: 74,
+                                      height: 74,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(
+                                          Icons.account_circle_rounded,
+                                          size: 74,
+                                          color: Colors.white,
+                                        );
+                                      },
+                                    ),
+                                  ),
                           ),
                           if (_isEditing)
                             Positioned(
                               bottom: 0,
                               right: 0,
                               child: GestureDetector(
-                                key: _avatarButtonKey,
                                 onTap: _showAvatarSelectionModal,
                                 child: Container(
                                   padding: EdgeInsets.all(5),
@@ -306,24 +282,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
 
-                      SizedBox(width: 16), // Space between avatar and container
-                      // Text info container only
+                      SizedBox(width: 16),
                       Expanded(
                         child: Container(
                           padding: EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            //color: Color.fromARGB(223, 255, 175, 105),
                             color: Color.fromARGB(255, 255, 155, 55),
-                            /*gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color.fromARGB(233, 252, 83, 31),
-                                Color.fromARGB(255, 254, 115, 9),
-                                Color.fromARGB(255, 255, 182, 86),
-                              ],
-                              stops: [0.0, 0.4, 1.2],
-                            ),*/
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
@@ -367,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
-                                  _role ?? 'Member',
+                                  _role,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -420,35 +384,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         SizedBox(height: 3.5),
-                        _buildEditableField(
-                          "Full Name",
-                          _nameController,
-                          Icons.person,
-                        ),
+                        _buildEditableField("Full Name", _nameController, Icons.person),
                         SizedBox(height: 3.5),
-                        _buildEditableField(
-                          "Roll No",
-                          _rollController,
-                          Icons.badge,
-                        ),
+                        _buildEditableField("Roll No", _rollController, Icons.badge),
                         SizedBox(height: 3.5),
-                        _buildEditableField(
-                          "Year",
-                          _yearController,
-                          Icons.school,
-                        ),
+                        _buildEditableField("Year", _yearController, Icons.school),
                         SizedBox(height: 3.5),
-                        _buildEditableField(
-                          "Division",
-                          _divisionController,
-                          Icons.group,
-                        ),
+                        _buildEditableField("Division", _divisionController, Icons.group),
                         SizedBox(height: 3.5),
-                        _buildEditableField(
-                          "Phone Number",
-                          _phoneController,
-                          Icons.phone,
-                        ),
+                        _buildEditableField("Phone Number", _phoneController, Icons.phone),
                       ],
                     ),
                   ),
@@ -460,10 +404,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      //border: Border.all(
-                      //color: _completedTasks.length.isEven ? AppColors.orange : AppColors.darkTeal,
-                      //width: 2,
-                      //),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
@@ -477,11 +417,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.task_alt,
-                              color: AppColors.green,
-                              size: 20,
-                            ),
+                            Icon(Icons.task_alt, color: AppColors.green, size: 20),
                             SizedBox(width: 8),
                             Text(
                               "Completed Tasks",
@@ -493,10 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             Spacer(),
                             Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
@@ -530,10 +463,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 SizedBox(height: 16),
                                 Text(
                                   "No completed tasks yet",
-                                  style: TextStyle(
-                                    color: AppColors.lightGray,
-                                    fontSize: 14,
-                                  ),
+                                  style: TextStyle(color: AppColors.lightGray, fontSize: 14),
                                   textAlign: TextAlign.center,
                                 ),
                                 SizedBox(height: 8),
@@ -550,8 +480,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           )
                         else
                           ..._completedTasks.asMap().entries.map((entry) {
-                            final taskIndex =
-                                entry.key; // This gives us the actual index
+                            final taskIndex = entry.key;
                             final task = entry.value;
                             final subtasks = (task['subtasks'] as List?) ?? [];
                             return Container(
@@ -559,20 +488,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade50,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.grey.shade200,
-                                  //taskIndex.isEven ? AppColors.orange.withOpacity(0.3) : AppColors.darkTeal.withOpacity(0.3),
-                                ),
-
-                                /*boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.darkTeal.withOpacity(0.1),
-                                    blurRadius: 8,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],*/
+                                border: Border.all(color: Colors.grey.shade200),
                               ),
-
                               child: Stack(
                                 children: [
                                   _role == 'Head'
@@ -580,8 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           leading: Container(
                                             padding: EdgeInsets.all(6),
                                             decoration: BoxDecoration(
-                                              color: AppColors.green
-                                                  .withOpacity(0.1),
+                                              color: AppColors.green.withOpacity(0.1),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
@@ -606,12 +522,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                           children: [
                                             Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                              ),
-                                              child: Divider(
-                                                color: Colors.grey.shade300,
-                                              ),
+                                              padding: EdgeInsets.symmetric(horizontal: 16),
+                                              child: Divider(color: Colors.grey.shade300),
                                             ),
                                             ...subtasks.map((sub) {
                                               final assignedUsers =
@@ -619,37 +531,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       .map((u) => u['username'])
                                                       .join(', ');
                                               return Container(
-                                                margin: EdgeInsets.only(
-                                                  bottom: 8,
-                                                ),
+                                                margin: EdgeInsets.only(bottom: 8),
                                                 padding: EdgeInsets.all(12),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
+                                                  borderRadius: BorderRadius.circular(8),
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       sub['title'],
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color:
-                                                            AppColors.darkGray,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: AppColors.darkGray,
                                                         fontSize: 14,
                                                       ),
                                                     ),
                                                     SizedBox(height: 4),
                                                     Text(
-                                                      sub['description'] ??
-                                                          'No completion note.',
+                                                      sub['description'] ?? 'No completion note.',
                                                       style: TextStyle(
-                                                        color: AppColors
-                                                            .darkGray
-                                                            .withOpacity(0.8),
+                                                        color: AppColors.darkGray.withOpacity(0.8),
                                                         fontSize: 12,
                                                       ),
                                                     ),
@@ -657,10 +560,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     Text(
                                                       "Completed by: $assignedUsers",
                                                       style: TextStyle(
-                                                        fontStyle:
-                                                            FontStyle.italic,
-                                                        color:
-                                                            AppColors.lightGray,
+                                                        fontStyle: FontStyle.italic,
+                                                        color: AppColors.lightGray,
                                                         fontSize: 11,
                                                       ),
                                                     ),
@@ -675,8 +576,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           leading: Container(
                                             padding: EdgeInsets.all(6),
                                             decoration: BoxDecoration(
-                                              color: AppColors.green
-                                                  .withOpacity(0.1),
+                                              color: AppColors.green.withOpacity(0.1),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
@@ -700,13 +600,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             ),
                                           ),
                                         ),
-                                  // ADDED: Left colored line
                                   Positioned(
                                     left: 0,
                                     top: 0,
                                     bottom: 0,
                                     child: Container(
-                                      width: 8, // Width of the colored line
+                                      width: 8,
                                       decoration: BoxDecoration(
                                         color: taskIndex.isEven
                                             ? AppColors.orange
@@ -725,7 +624,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: 20),
                 ],
               ),
@@ -733,7 +631,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper method for building editable fields
   Widget _buildEditableField(
     String label,
     TextEditingController controller,
@@ -771,9 +668,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAvatarSelectionContent() {
-    final selectableAvatars = AvatarConfig.avatarPaths.where(
-      (path) => path != AvatarConfig.defaultAvatar
-    ).toList();
+    final selectableAvatars = AvatarConfig.avatarPaths
+        .where((path) => path != AvatarConfig.defaultAvatar)
+        .toList();
 
     return Container(
       padding: EdgeInsets.all(20),
@@ -795,11 +692,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.photo_library_rounded,
-                color: AppColors.green,
-                size: 20,
-              ),
+              Icon(Icons.photo_library_rounded, color: AppColors.green, size: 20),
               SizedBox(width: 8),
               Text(
                 "Choose Your Avatar",
@@ -813,11 +706,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               IconButton(
                 icon: Icon(Icons.close, size: 20),
                 onPressed: () => Navigator.of(context).pop(),
-                /*() {
-                  setState(() {
-                    _showAvatarSelection = false;
-                  });
-                },*/
               ),
             ],
           ),
@@ -827,18 +715,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, // 3 columns for better visual appeal
+              crossAxisCount: 3,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
               childAspectRatio: 1.0,
             ),
             itemCount: selectableAvatars.length,
             itemBuilder: (context, index) {
-              final avatarPath = AvatarConfig.avatarPaths[index];
+              final avatarPath = selectableAvatars[index];
               return GestureDetector(
                 onTap: () {
                   _saveAvatar(avatarPath);
-                  Navigator.of(context).pop(); // CHANGED
+                  Navigator.of(context).pop();
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -850,7 +738,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: _selectedAvatar == avatarPath ? 3 : 2,
                     ),
                   ),
-
                   child: ClipOval(
                     child: Image.asset(
                       avatarPath,
@@ -874,7 +761,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           SizedBox(height: 20),
 
-          // Delete Avatar Button
           if (_selectedAvatar != AvatarConfig.defaultAvatar)
             Container(
               width: double.infinity,
@@ -900,10 +786,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(width: 8),
                     Text(
                       "Remove Avatar",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -914,7 +797,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper method for date formatting
   String _formatDate(DateTime date) {
     return "${date.day}/${date.month}/${date.year}";
   }
