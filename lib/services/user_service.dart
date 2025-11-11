@@ -61,6 +61,7 @@ class UserService {
     required String year,
     required String division,
     required String phone,
+    required String avatar
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("accessToken");
@@ -77,6 +78,7 @@ class UserService {
         "year": year,
         "division": division,
         "phone": phone,
+        "avatar": avatar
       }),
     );
 
