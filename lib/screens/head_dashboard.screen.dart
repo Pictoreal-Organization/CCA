@@ -668,208 +668,215 @@ class _HeadDashboardState extends State<HeadDashboard> {
   }
 
   Widget _buildTaskCard(
-  dynamic task,
-  List subtasks,
-  int completedSubtasks,
-  bool needsReview,
-) {
-  final isCompleted = task['status'] == 'Completed';
-  final borderColor = needsReview ? AppColors.orange : AppColors.green;
-  final taskId = task['_id']; // Unique ID
-  final isExpanded = expandedTasks.contains(taskId);
+    dynamic task,
+    List subtasks,
+    int completedSubtasks,
+    bool needsReview,
+  ) {
+    final isCompleted = task['status'] == 'Completed';
+    final borderColor = needsReview ? AppColors.orange : AppColors.green;
+    final taskId = task['_id']; // Unique ID
+    final isExpanded = expandedTasks.contains(taskId);
 
-  return Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: () {
-        setState(() {
-          if (isExpanded) {
-            expandedTasks.remove(taskId);
-          } else {
-            expandedTasks.add(taskId);
-          }
-        });
-      },
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border(
-            left: BorderSide(
-              color: borderColor,
-              width: 7,
-            ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isExpanded) {
+              expandedTasks.remove(taskId);
+            } else {
+              expandedTasks.add(taskId);
+            }
+          });
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border(left: BorderSide(color: borderColor, width: 7)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title and subtasks
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          task['title'],
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title and subtasks
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            task['title'],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "${completedSubtasks}/${subtasks.length} subtasks",
                           style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            fontSize: 12,
+                            color: Color(0xFF757575),
                             fontFamily: 'Inter',
                           ),
                         ),
-                      ),
-                      Text(
-                        "${completedSubtasks}/${subtasks.length} subtasks",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF757575),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  if (isExpanded)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: subtasks.map<Widget>((s) {
-                          final title = s['title'];
-                          final status = s['status'];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text('• $title  ($status)'),
-                          );
-                        }).toList(),
-                      ),
+                      ],
                     ),
 
-                  // Status badges row
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isCompleted
-                              ? AppColors.green
-                              : const Color.fromARGB(255, 103, 186, 254),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          task['status'],
-                          style: TextStyle(
-                            color: isCompleted
-                                ? Colors.white
-                                : const Color.fromARGB(255, 5, 38, 94),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            fontFamily: 'Inter',
-                            height:1.2,
-                            letterSpacing: 0.2,
-                          ),
+                    const SizedBox(height: 12),
+
+                    if (isExpanded)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: subtasks.map<Widget>((s) {
+                            final title = s['title'];
+                            final status = s['status'];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text('• $title  ($status)'),
+                            );
+                          }).toList(),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      if (needsReview)
+
+                    // Status badges row
+                    Row(
+                      children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 14,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.darkOrange,
+                            color: isCompleted
+                                ? AppColors.green
+                                : const Color.fromARGB(255, 103, 186, 254),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
-                            'Needs Review',
+                          child: Text(
+                            task['status'],
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                              color: isCompleted
+                                  ? Colors.white
+                                  : const Color.fromARGB(255, 5, 38, 94),
+                              fontWeight: FontWeight.bold,
                               fontSize: 11,
                               fontFamily: 'Inter',
-                              height:1.2,
+                              height: 1.2,
                               letterSpacing: 0.2,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 12),
+                        if (needsReview)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.darkOrange,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Needs Review',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                                height: 1.2,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // Buttons
-            Container(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 18),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => openCreateTask(taskToEdit: task),
-                      icon: const Icon(Icons.edit, size: 16 , color: Colors.white,),
-                      label: const Text('Edit',style: TextStyle(
+              // Buttons
+              Container(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 18),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => openCreateTask(taskToEdit: task),
+                        icon: const Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Inter',
-                          ),),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.darkTeal,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(9),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.darkTeal,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(9),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _deleteTask(task['_id']),
-                      icon: const Icon(Icons.delete, size: 16,color:Colors.white),
-                      label: const Text('Delete',style: TextStyle(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _deleteTask(task['_id']),
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Delete',
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Inter',
-                          ),),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.darkOrange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(9),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.darkOrange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(9),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
-
-}
-//task card onclick() =>add subtask  remaining

@@ -55,13 +55,13 @@ class _SplashScreenState extends State<SplashScreen> {
             // 👇 Replace with your logo or app name
             Image.asset(
               'assets/images/logo.png',
-              width: 120,  // adjust size as needed
-              height: 120,
+              width: 200,
+              height: 200,
               fit: BoxFit.contain,
             ),
             SizedBox(height: 20),
             Text(
-              "PICTO Track",
+              "Picto Creds",
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
