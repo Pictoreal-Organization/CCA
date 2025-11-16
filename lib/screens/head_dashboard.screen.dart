@@ -4,6 +4,7 @@ import '../services/meeting_service.dart';
 import '../services/task_service.dart';
 import 'create_meeting.screen.dart';
 import 'create_task.screen.dart';
+import 'package:intl/intl.dart';
 import 'signIn.screen.dart';
 import 'profile.screen.dart';
 import '../widgets/meetings_list.widget.dart';
@@ -677,7 +678,9 @@ class _HeadDashboardState extends State<HeadDashboard> {
   final borderColor = needsReview ? AppColors.orange : AppColors.green;
   final taskId = task['_id']; // Unique ID
   final isExpanded = expandedTasks.contains(taskId);
-
+  final date = DateTime.parse(task['deadline']).toLocal();
+  final formattedDeadline = DateFormat('d MMM').format(date);
+  //final deadline = task['deadline'];
   return Material(
     color: Colors.transparent,
     child: InkWell(
@@ -732,14 +735,40 @@ class _HeadDashboardState extends State<HeadDashboard> {
                           ),
                         ),
                       ),
-                      Text(
-                        "${completedSubtasks}/${subtasks.length} subtasks",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF757575),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
+                      Row(
+  children: [
+    Text(
+      "🗓 $formattedDeadline",
+      style: const TextStyle(
+        fontSize: 12,
+        color: Color(0xFF757575),
+        fontFamily: 'Inter',
+      ),
+    ),
+
+    const SizedBox(width: 12),
+
+    const Text(
+      "•",
+      style: TextStyle(
+        fontSize: 14,
+        color: Color(0xFF757575),
+      ),
+    ),
+
+    const SizedBox(width: 12),
+
+    Text(
+      "📌 ${completedSubtasks}/${subtasks.length}",
+      style: const TextStyle(
+        fontSize: 12,
+        color: Color(0xFF757575),
+        fontFamily: 'Inter',
+      ),
+    ),
+  ],
+)
+
                     ],
                   ),
 
@@ -748,20 +777,90 @@ class _HeadDashboardState extends State<HeadDashboard> {
                   if (isExpanded)
                     Padding(
                       padding: const EdgeInsets.only(left: 4, bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: subtasks.map<Widget>((s) {
-                          final title = s['title'];
-                          final status = s['status'];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text('• $title  ($status)'),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: subtasks.map<Widget>((s) {
+                      
+                      final title = s['title'];
+                      final status = s['status'];
+                      final assignedList = s['assignedTo'] ?? [];
+                      final assignedUser = assignedList.isNotEmpty ? assignedList[0] : null;
+
+                      final assignedName = assignedUser?['name'] ?? 'Not Assigned';
+                      return Padding(
+  padding: const EdgeInsets.only(bottom: 6),
+  child: Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    // PERSON ICON instead of blue dot
+    Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Icon(
+        Icons.person,
+        size: 16,
+        color: AppColors.darkGray, 
+      ),
+    ),
+
+    const SizedBox(width: 10),
+
+    // LEFT SIDE (title | assignedName)
+    Expanded(
+      child: RichText(
+        text: TextSpan(
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+            height: 1.4,
+          ),
+          children: [
+            TextSpan(text: title),
+
+            // --- Separator | ---
+            const TextSpan(
+              text: '  |  ',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+
+            // assignedName
+            TextSpan(
+              text: assignedName,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+
+    // RIGHT SIDE: STATUS
+    Text(
+      status,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: status.toLowerCase() == 'pending'
+            ? AppColors.orange
+            : AppColors.green,
+      ),
+    ),
+  ],
+),
+                      );
+
+
+    }).toList(),
+  ),
+                  )
 
                   // Status badges row
+                  else
                   Row(
                     children: [
                       Container(
