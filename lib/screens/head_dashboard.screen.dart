@@ -723,7 +723,37 @@ class _HeadDashboardState extends State<HeadDashboard> {
           children: [
             
             /// TITLE + SUBTASK COUNT
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: [
+            //     Expanded(
+            //       child: Text(
+            //         task['title'],
+            //         style: const TextStyle(
+            //           fontSize: 18,
+            //           fontWeight: FontWeight.bold,
+            //           color: Colors.black,
+            //           fontFamily: 'Inter',
+            //         ),
+            //       ),
+            //     ),
+
+            //     Text(
+            //       "${completedSubtasks}/${subtasks.length} subtasks",
+            //       style: const TextStyle(
+            //         fontSize: 12,
+            //         color: Color(0xFF757575),
+            //         fontFamily: 'Inter',
+            //       ),
+            //     ),
+            //   ],
+            // ),
+
+            // const SizedBox(height: 6),
+
+            /// DEADLINE + COUNTER ROW
             Row(
+              
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
@@ -737,23 +767,6 @@ class _HeadDashboardState extends State<HeadDashboard> {
                     ),
                   ),
                 ),
-
-                Text(
-                  "${completedSubtasks}/${subtasks.length} subtasks",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF757575),
-                    fontFamily: 'Inter',
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 6),
-
-            /// DEADLINE + COUNTER ROW
-            Row(
-              children: [
                 Text(
                   "🗓 $formattedDeadline",
                   style: const TextStyle(
