@@ -63,8 +63,8 @@ class _SignInScreenState extends State<SignInScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Logo
-                    Image.asset('assets/images/logo.png', height: 60, width: 60),
-                    const SizedBox(height: 40),
+                    Image.asset('assets/images/logo.png', height: 200, width: 200),
+                    const SizedBox(height: 20),
 
                     // Email Field
                     Container(
