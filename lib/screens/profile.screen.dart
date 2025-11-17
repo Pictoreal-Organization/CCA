@@ -75,6 +75,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Future<void> loadAllData() async {
+  //   if (!mounted) return;
+  //   setState(() => _isLoading = true);
+
+  //   try {
+  //     final user = await userService.getLoggedInUser();
+
+  //     // Populate controllers & vars
+  //     _userId = user['_id'] ?? '';
+  //     _email = user['email'] ?? '';
+  //     _role = user['role'] ?? '';
+  //     _nameController.text = user['name'] ?? '';
+  //     _rollController.text = user['rollNo'] ?? '';
+  //     _yearController.text = user['year'] ?? '';
+  //     _divisionController.text = user['division'] ?? '';
+  //     _phoneController.text = user['phone'] ?? '';
+      
+  //     // Load avatar from backend
+  //     _selectedAvatar = user['avatar'] ?? AvatarConfig.defaultAvatar;
+
+  //     // Fetch completed tasks
+  //     if (_role == 'Head') {
+  //       _completedTasks = await taskService.getAllCompletedTasks();
+  //     } else if (_role == 'Member' && _userId.isNotEmpty) {
+  //       _completedTasks = await taskService.getCompletedTasksByUser(_userId);
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text("Failed to load profile data: $e")),
+  //       );
+  //     }
+  //   } finally {
+  //     if (mounted) setState(() => _isLoading = false);
+  //   }
+  // }
+
+
   Future<void> loadAllData() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -82,7 +120,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final user = await userService.getLoggedInUser();
 
-      // Populate controllers & vars
       _userId = user['_id'] ?? '';
       _email = user['email'] ?? '';
       _role = user['role'] ?? '';
@@ -92,12 +129,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _divisionController.text = user['division'] ?? '';
       _phoneController.text = user['phone'] ?? '';
       
-      // Load avatar from backend
       _selectedAvatar = user['avatar'] ?? AvatarConfig.defaultAvatar;
 
-      // Fetch completed tasks
       if (_role == 'Head') {
-        _completedTasks = await taskService.getAllCompletedTasks();
+        final userTeams = user['team'] as List?;
+        
+        if (userTeams != null && userTeams.isNotEmpty) {
+          final teamId = userTeams[0];
+          _completedTasks = await taskService.getCompletedTasksByTeam(teamId);
+        } else {
+          _completedTasks = await taskService.getAllCompletedTasks();
+        }
       } else if (_role == 'Member' && _userId.isNotEmpty) {
         _completedTasks = await taskService.getCompletedTasksByUser(_userId);
       }
@@ -513,8 +555,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: AppColors.darkGray,
                                             ),
                                           ),
+                                          // subtitle: Text(
+                                          //   "Completed: ${task['deadline'] != null ? _formatDate(DateTime.parse(task['deadline'])) : 'N/A'}",
+                                          //   style: TextStyle(
+                                          //     color: AppColors.lightGray,
+                                          //     fontSize: 12,
+                                          //   ),
+                                          // ),
                                           subtitle: Text(
-                                            "Completed: ${task['deadline'] != null ? _formatDate(DateTime.parse(task['deadline'])) : 'N/A'}",
+                                            task['completedAt'] != null
+                                                ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
+                                                : task['deadline'] != null
+                                                    ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
+                                                    : 'Completion date not available',
                                             style: TextStyle(
                                               color: AppColors.lightGray,
                                               fontSize: 12,
@@ -592,8 +645,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: AppColors.darkGray,
                                             ),
                                           ),
+                                          // subtitle: Text(
+                                          //   "Completed: ${task['deadline'] != null ? _formatDate(DateTime.parse(task['deadline'])) : 'N/A'}",
+                                          //   style: TextStyle(
+                                          //     color: AppColors.lightGray,
+                                          //     fontSize: 12,
+                                          //   ),
+                                          // ),
                                           subtitle: Text(
-                                            "Completed: ${task['deadline'] != null ? _formatDate(DateTime.parse(task['deadline'])) : 'N/A'}",
+                                            task['completedAt'] != null
+                                                ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
+                                                : task['deadline'] != null
+                                                    ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
+                                                    : 'Completion date not available',
                                             style: TextStyle(
                                               color: AppColors.lightGray,
                                               fontSize: 12,

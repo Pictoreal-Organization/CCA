@@ -176,4 +176,22 @@ class TaskService {
       throw Exception('Failed to load all completed tasks');
     }
   }
+  Future<List<dynamic>> getCompletedTasksByTeam(String teamId) async {
+    final token = await _getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/team/$teamId/completed'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load completed tasks for team');
+    }
+  }
+
 }

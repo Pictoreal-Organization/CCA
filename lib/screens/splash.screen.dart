@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 20),
             Text(
-              "Picto Creds",
+              "PICTO CREDS",
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
