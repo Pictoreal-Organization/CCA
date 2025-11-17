@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserService {
-  // final String baseUrl = "http://10.0.2.2:5001/api/user";
   final String baseUrl = "${dotenv.env['BASE_URL']}/api/user";
 
   Future<List<Map<String, dynamic>>> getAllUsers() async {
@@ -24,34 +23,6 @@ class UserService {
       return data.map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u)).toList();
     } else {
       throw Exception('Failed to fetch users: ${response.body}');
-    }
-  }
-
-  Future<void> requestPasswordChange(String email) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/request-password-change'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"email": email}),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to request OTP: ${response.body}');
-    }
-  }
-
-  Future<void> changePasswordWithOTP(String email, String otp, String newPassword) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/change-password'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "email": email,
-        "otp": otp,
-        "newPassword": newPassword,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to change password: ${response.body}');
     }
   }
 

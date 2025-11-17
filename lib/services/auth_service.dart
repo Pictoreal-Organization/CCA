@@ -7,18 +7,17 @@ class AuthService {
   // final String baseUrl = "http://10.0.2.2:5001/api/auth"; 
   final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
 
-  Future<bool> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"email": email, "password": password}),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final accessToken = data["accessToken"];
+    final Map<String, dynamic> body = jsonDecode(response.body);
 
-      // Decode the JWT to get userId
+    if (response.statusCode == 200) {
+      final accessToken = body["accessToken"];
       final payload = accessToken.split('.')[1];
       final normalized = base64Url.normalize(payload);
       final decoded = jsonDecode(utf8.decode(base64Url.decode(normalized)));
@@ -26,15 +25,20 @@ class AuthService {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString("accessToken", accessToken);
-      await prefs.setString("refreshToken", data["refreshToken"]);
-      await prefs.setString("role", data["role"]);
-      await prefs.setString("userId", userId); // store userId
+      await prefs.setString("refreshToken", body["refreshToken"]);
+      await prefs.setString("role", body["role"]);
+      await prefs.setString("userId", userId);
 
-      return true;
-    } else {
-      return false;
+      return {"success": true};
+    } 
+    else {
+      return {
+        "success": false,
+        "message": body["msg"] ?? "Login failed"
+      };
     }
   }
+
 
   Future<bool> register(String username, String email, String password) async {
     final response = await http.post(
@@ -61,5 +65,69 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("accessToken") != null;
+  }
+
+  Future<Map<String, dynamic>> requestPasswordChange(String email) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/request-password-change'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"email": email}),
+    );
+
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return {"success": true};
+    }
+
+    return {
+      "success": false,
+      "message": body["msg"] ?? "Something went wrong"
+    };
+  }
+
+  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/verify-otp'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": email,
+        "otp": otp,
+      }),
+    );
+
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return {"success": true};
+    }
+
+    return {
+      "success": false,
+      "message": body["msg"] ?? "Invalid or expired OTP"
+    };
+  }
+
+  Future<Map<String, dynamic>> changePasswordWithOTP(String email, String otp, String newPassword) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/change-password-otp'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": email,
+        "otp": otp,
+        "newPassword": newPassword,
+      }),
+    );
+
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return {"success": true};
+    }
+
+    return {
+      "success": false,
+      "message": body["msg"] ?? "Failed to change password"
+    };
   }
 }

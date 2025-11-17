@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import 'member_dashboard.screen.dart';
 import 'head_dashboard.screen.dart';
+import 'forgot_password.screen.dart';
 import '../core/app_colors.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -20,16 +21,27 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _isPasswordVisible = false;
 
   void login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    // simple frontend validation
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email and password cannot be empty")),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
-    bool success = await authService.login(
-      emailController.text,
-      passwordController.text,
-    );
+
+    final result = await authService.login(email, password);
+
     setState(() => isLoading = false);
 
-    if (success) {
+    if (result["success"] == true) {
       final prefs = await SharedPreferences.getInstance();
       String? role = prefs.getString("role");
+
       if (role == "Head") {
         Navigator.pushReplacement(
           context,
@@ -42,11 +54,15 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       }
     } else {
+      // show detailed backend error
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid Credentials")),
+        SnackBar(
+          content: Text(result["message"] ?? "Login failed"),
+        ),
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +211,12 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     // Forgot Password
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ForgotPasswordScreen()),
+                        );
+                      },
                       child: const Text(
                         "Forgot password?",
                         style: TextStyle(
@@ -205,6 +226,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                     ),
+
                   ],
                 ),
               ),
