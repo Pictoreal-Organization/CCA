@@ -10,6 +10,7 @@ import 'profile.screen.dart';
 import '../widgets/meetings_list.widget.dart';
 import '../core/app_colors.dart';
 import '../widgets/logout_confirm.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class HeadDashboard extends StatefulWidget {
   const HeadDashboard({super.key});
@@ -290,7 +291,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
             child: isLoading
                 ? const SizedBox(
                     height: 400,
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(child: LoadingAnimation(size: 180)),
                   )
                 : Column(
                     children: [
@@ -614,6 +615,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
     bool needsReview,
   ) {
     final isCompleted = task['status'] == 'Completed';
+<<<<<<< HEAD
     final allSubtasksCompleted =
         subtasks.isNotEmpty && subtasks.every((s) => s['status'] == 'Completed');
     final borderColor = needsReview ? AppColors.orange : AppColors.green;
@@ -649,6 +651,42 @@ class _HeadDashboardState extends State<HeadDashboard> {
               ),
             ],
           ),
+=======
+    final borderColor = needsReview ? AppColors.orange : AppColors.green;
+    final taskId = task['_id']; // Unique ID
+    final isExpanded = expandedTasks.contains(taskId);
+    final date = DateTime.parse(task['deadline']).toLocal();
+    final formattedDeadline = DateFormat('d MMM').format(date);
+    //final deadline = task['deadline'];
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            if (isExpanded) {
+              expandedTasks.remove(taskId);
+            } else {
+              expandedTasks.add(taskId);
+            }
+          });
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border(left: BorderSide(color: borderColor, width: 7)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+
+>>>>>>> af4ffef (added gif of loading animation)
           child: Column(
             children: [
               Padding(
@@ -656,7 +694,40 @@ class _HeadDashboardState extends State<HeadDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+<<<<<<< HEAD
                     /// TITLE + DEADLINE + ARROW
+=======
+                    /// TITLE + SUBTASK COUNT
+                    // Row(
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   children: [
+                    //     Expanded(
+                    //       child: Text(
+                    //         task['title'],
+                    //         style: const TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.black,
+                    //           fontFamily: 'Inter',
+                    //         ),
+                    //       ),
+                    //     ),
+
+                    //     Text(
+                    //       "${completedSubtasks}/${subtasks.length} subtasks",
+                    //       style: const TextStyle(
+                    //         fontSize: 12,
+                    //         color: Color(0xFF757575),
+                    //         fontFamily: 'Inter',
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+
+                    // const SizedBox(height: 6),
+
+                    /// DEADLINE + COUNTER ROW
+>>>>>>> af4ffef (added gif of loading animation)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -671,6 +742,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                             ),
                           ),
                         ),
+<<<<<<< HEAD
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -682,6 +754,69 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                     fontSize: 12,
                                     color: Color(0xFF757575),
                                     fontFamily: 'Inter',
+=======
+                        Text(
+                          "🗓 $formattedDeadline",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF757575),
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        const Text(
+                          "•",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF757575),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        Text(
+                          "📌 ${completedSubtasks}/${subtasks.length}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF757575),
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// SUBTASKS WHEN EXPANDED
+                    if (isExpanded)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: subtasks.map<Widget>((s) {
+                            final title = s['title'];
+                            final status = s['status'];
+                            final assignedList = s['assignedTo'] ?? [];
+                            final assignedUser = assignedList.isNotEmpty
+                                ? assignedList[0]
+                                : null;
+                            final assignedName =
+                                assignedUser?['name'] ?? 'Not Assigned';
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // PERSON ICON
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 4),
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.grey,
+                                    ),
+>>>>>>> af4ffef (added gif of loading animation)
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -708,6 +843,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                       ],
                     ),
 
+<<<<<<< HEAD
                     const SizedBox(height: 12),
 
                     /// SUBTASKS WHEN EXPANDED
@@ -785,12 +921,55 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 14)),
                                         Text(assignedName,
+=======
+                                  const SizedBox(width: 10),
+
+                                  Expanded(
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                          height: 1.4,
+                                        ),
+                                        children: [
+                                          TextSpan(text: title),
+
+                                          const TextSpan(
+                                            text: "  |  ",
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+
+                                          TextSpan(
+                                            text: assignedName,
+>>>>>>> af4ffef (added gif of loading animation)
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey.shade600,
                                               fontStyle: FontStyle.italic,
+<<<<<<< HEAD
                                             )),
                                       ],
+=======
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  Text(
+                                    status,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: status.toLowerCase() == 'pending'
+                                          ? AppColors.orange
+                                          : AppColors.green,
+>>>>>>> af4ffef (added gif of loading animation)
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -800,6 +979,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                               ),
                             );
                           }).toList(),
+<<<<<<< HEAD
                         ),
                       ),
 
@@ -939,6 +1119,112 @@ class _HeadDashboardState extends State<HeadDashboard> {
                     ],
                   ),
                 ),
+=======
+                        ),
+                      )
+                    else
+                      /// STATUS BADGES ROW
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isCompleted
+                                  ? AppColors.green
+                                  : const Color.fromARGB(255, 103, 186, 254),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              task['status'],
+                              style: TextStyle(
+                                color: isCompleted
+                                    ? Colors.white
+                                    : const Color.fromARGB(255, 5, 38, 94),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          if (needsReview)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.darkOrange,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Needs Review',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 11,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+
+              /// BUTTONS
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 18),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => openCreateTask(taskToEdit: task),
+                        icon: const Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: const Text('Edit'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.darkTeal,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _deleteTask(task['_id']),
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: const Text('Delete'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.darkOrange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+>>>>>>> af4ffef (added gif of loading animation)
             ],
           ),
         ),

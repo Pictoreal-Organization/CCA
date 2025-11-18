@@ -8,6 +8,7 @@ import '../services/task_service.dart';
 import '../widgets/meetings_list.widget.dart';
 import 'signIn.screen.dart';
 import '../widgets/logout_confirm.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class MemberDashboard extends StatefulWidget {
   const MemberDashboard({super.key});
@@ -138,7 +139,7 @@ class _MemberDashboardState extends State<MemberDashboard> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: LoadingAnimation(size: 180))
           : RefreshIndicator(
               onRefresh: fetchAllData,
               child: CustomScrollView(

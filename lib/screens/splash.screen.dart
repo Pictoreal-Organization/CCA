@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'signIn.screen.dart';
 import 'member_dashboard.screen.dart';
 import 'head_dashboard.screen.dart';
+import '../widgets/loading_animation.widget.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,29 +51,39 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 👇 Replace with your logo or app name
-            Image.asset(
-              'assets/images/logo.png',
-              width: 200,
-              height: 200,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(height: 20),
-            Text(
-              "PICTO CREDS",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 40),
-            CircularProgressIndicator(),
-          ],
-        ),
+        child: LoadingAnimation(size: 250),
       ),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     backgroundColor: Colors.white,
+  //     body: Center(
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           // 👇 Replace with your logo or app name
+  //           Image.asset(
+  //             'assets/images/logo.png',
+  //             width: 200,
+  //             height: 200,
+  //             fit: BoxFit.contain,
+  //           ),
+  //           SizedBox(height: 20),
+  //           Text(
+  //             "PICTO CREDS",
+  //             style: TextStyle(
+  //               fontSize: 26,
+  //               fontWeight: FontWeight.bold,
+  //             ),
+  //           ),
+  //           SizedBox(height: 40),
+  //           CircularProgressIndicator(),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
