@@ -90,7 +90,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       filteredAttendanceList = attendanceList.where((record) {
         final member = record['member'];
         final text =
-            "${member['name']} ${member['year']} ${member['division']}".toLowerCase();
+            "${member['name']} ${member['year']} ${member['rollNo']}".toLowerCase();
         return text.contains(query.toLowerCase());
       }).toList();
     });
@@ -167,7 +167,7 @@ Widget build(BuildContext context) {
                     ),
                     child: TextField(
                       decoration: InputDecoration(
-                        labelText: 'Search by name, Roll no, or division',
+                        labelText: 'Search by name or Roll no',
                         labelStyle: TextStyle(
                           color: AppColors.darkTeal,
                           fontWeight: FontWeight.bold,
