@@ -192,8 +192,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: _isLoading
           ? const Center(
-              child: LoadingAnimation(size: 250), // <-- your custom loading widget
-            )
+              child: LoadingAnimation(size: 250),
+          )
           : RefreshIndicator(
               color: AppColors.green,
               backgroundColor: Colors.white,
