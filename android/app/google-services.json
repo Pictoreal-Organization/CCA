@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "116396092394",
+    "project_id": "cca-flutter-app",
+    "storage_bucket": "cca-flutter-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116396092394:android:3cf4d2445317127cd16093",
+        "android_client_info": {
+          "package_name": "com.example.cca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRMI0XWnzvn0YEKilbyZf90MSAMvD5z9k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
