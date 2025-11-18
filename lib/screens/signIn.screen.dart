@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
-import '../services/notification_service.dart'; // ✅ Import this
 import 'member_dashboard.screen.dart';
 import 'head_dashboard.screen.dart';
 import 'forgot_password.screen.dart';
@@ -42,7 +41,6 @@ class _SignInScreenState extends State<SignInScreen> {
     if (result["success"] == true) {
       // ✅ INITIALIZE NOTIFICATIONS & SAVE TOKEN
       // This sends the device token to the backend associated with the user who just logged in
-      await NotificationService().initialize();
 
       setState(() => isLoading = false);
 

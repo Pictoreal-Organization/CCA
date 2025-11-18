@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/attendance_service.dart';
 import '../core/app_colors.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class AttendanceScreen extends StatefulWidget {
   final Map meeting;
@@ -138,9 +139,7 @@ Widget build(BuildContext context) {
     ),
     body: isLoading
         ? const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
+            child: LoadingAnimation(size: 250)
           )
         : Container(
             color: Colors.white, // solid white background

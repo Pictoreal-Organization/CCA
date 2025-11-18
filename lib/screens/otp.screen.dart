@@ -73,18 +73,12 @@ class _OTPScreenState extends State<OTPScreen> {
               decoration: InputDecoration(labelText: "6-digit OTP"),
             ),
             SizedBox(height: 20),
-             loading
+            loading
                 ? LoadingAnimation()
                 : ElevatedButton(
                     onPressed: loading ? null : verify,
                     child: Text("Next"),
                   )
-            // ElevatedButton(
-            //   onPressed: loading ? null : verify,
-            //   child: loading
-            //       ? LoadingAnimation()
-            //       : Text("Next"),
-            // )
           ],
         ),
       ),

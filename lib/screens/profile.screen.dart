@@ -3,6 +3,7 @@ import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../widgets/loading_animation.widget.dart';
 import '../core/app_colors.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class AvatarConfig {
   static final List<String> avatarPaths = [
