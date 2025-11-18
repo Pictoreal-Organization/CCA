@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
+import '../widgets/loading_animation.widget.dart';
 import '../core/app_colors.dart';
 
 class AvatarConfig {
@@ -189,21 +190,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
-                    strokeWidth: 2,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Loading Profile...",
-                    style: TextStyle(color: AppColors.lightGray, fontSize: 14),
-                  ),
-                ],
-              ),
+          ? const Center(
+              child: LoadingAnimation(size: 250), // <-- your custom loading widget
             )
           : RefreshIndicator(
               color: AppColors.green,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'signin.screen.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -67,7 +68,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             SizedBox(height: 20),
             loading
-                ? CircularProgressIndicator()
+                ? LoadingAnimation()
                 : ElevatedButton(
                     onPressed: resetPassword,
                     child: Text("Update Password"),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'otp.screen.dart';
 import '../services/auth_service.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   @override
@@ -59,7 +60,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             SizedBox(height: 20),
             loading
-                ? CircularProgressIndicator()
+                ? LoadingAnimation()
                 : ElevatedButton(
                     onPressed: requestOTP,
                     child: Text("Send OTP"),

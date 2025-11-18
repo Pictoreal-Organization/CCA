@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'reset_password.screen.dart';
-import '../services/auth_service.dart';  // <-- IMPORTANT
+import '../services/auth_service.dart';
+import '../widgets/loading_animation.widget.dart';
 
 class OTPScreen extends StatefulWidget {
   final String email;
@@ -72,12 +73,18 @@ class _OTPScreenState extends State<OTPScreen> {
               decoration: InputDecoration(labelText: "6-digit OTP"),
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: loading ? null : verify,
-              child: loading
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Text("Next"),
-            )
+             loading
+                ? LoadingAnimation()
+                : ElevatedButton(
+                    onPressed: loading ? null : verify,
+                    child: Text("Next"),
+                  )
+            // ElevatedButton(
+            //   onPressed: loading ? null : verify,
+            //   child: loading
+            //       ? LoadingAnimation()
+            //       : Text("Next"),
+            // )
           ],
         ),
       ),
