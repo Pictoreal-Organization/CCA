@@ -3,21 +3,35 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'auth_service.dart'; 
 
 class NotificationService {
+  // Singleton pattern
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
+
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final AuthService _authService = AuthService();
-  
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
-  // 1. Initialize everything
   Future<void> initialize() async {
-    // Request Permission (Required for iOS/Android 13+)
+    // 1. Request Permission
     await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    // Setup Local Notifications (so alerts show even when app is open)
+    // 2. Setup Local Notifications (Android)
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel', // id
+      'High Importance Notifications', // title
+      description: 'This channel is used for important notifications.',
+      importance: Importance.max,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     const AndroidInitializationSettings androidSettings = 
         AndroidInitializationSettings('@mipmap/ic_launcher');
     
@@ -26,20 +40,25 @@ class NotificationService {
     
     await _localNotifications.initialize(initSettings);
 
-    // 2. Get the Device Token (The "Address" of this phone)
-    final token = await _firebaseMessaging.getToken();
+    // 3. ✅ GET TOKEN & SAVE TO BACKEND
+    String? token = await _firebaseMessaging.getToken();
     if (token != null) {
       print("🔥 FCM Token: $token");
-      // We will save this to the backend in the next step
+      await _authService.saveFcmToken(token);
     }
 
-    // 3. Handle Foreground Messages (When app is open)
+    // 4. Listen for Token Refresh
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      print("🔄 FCM Token Refreshed");
+      _authService.saveFcmToken(newToken);
+    });
+
+    // 5. Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       _showForegroundNotification(message);
     });
   }
 
-  // Helper to show popup when app is open
   Future<void> _showForegroundNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
@@ -51,8 +70,9 @@ class NotificationService {
         notification.body,
         const NotificationDetails(
           android: AndroidNotificationDetails(
-            'high_importance_channel', // id
-            'High Importance Notifications', // title
+            'high_importance_channel',
+            'High Importance Notifications',
+            icon: '@mipmap/ic_launcher',
             importance: Importance.max,
             priority: Priority.high,
           ),

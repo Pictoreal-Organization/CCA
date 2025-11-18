@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart'; // ✅ Import this
 import 'member_dashboard.screen.dart';
 import 'head_dashboard.screen.dart';
 import 'forgot_password.screen.dart';
@@ -36,11 +37,19 @@ class _SignInScreenState extends State<SignInScreen> {
 
     final result = await authService.login(email, password);
 
-    setState(() => isLoading = false);
-
+    // Note: We keep isLoading true here to prevent UI flicker while setting up notifications
+    
     if (result["success"] == true) {
+      // ✅ INITIALIZE NOTIFICATIONS & SAVE TOKEN
+      // This sends the device token to the backend associated with the user who just logged in
+      await NotificationService().initialize();
+
+      setState(() => isLoading = false);
+
       final prefs = await SharedPreferences.getInstance();
       String? role = prefs.getString("role");
+
+      if (!mounted) return;
 
       if (role == "Head") {
         Navigator.pushReplacement(
@@ -54,12 +63,15 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       }
     } else {
+      setState(() => isLoading = false);
       // show detailed backend error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result["message"] ?? "Login failed"),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Login failed"),
+          ),
+        );
+      }
     }
   }
 

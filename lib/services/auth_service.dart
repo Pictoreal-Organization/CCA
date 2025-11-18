@@ -130,4 +130,25 @@ class AuthService {
       "message": body["msg"] ?? "Failed to change password"
     };
   }
+
+  Future<void> saveFcmToken(String fcmToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken");
+
+    if (token == null) return; // User not logged in yet
+
+    try {
+      await http.put(
+        Uri.parse('$baseUrl/fcm-token'), // Ensure this route exists in your backend auth.routes.js
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({"fcmToken": fcmToken}),
+      );
+      print("✅ FCM Token saved to backend");
+    } catch (e) {
+      print("❌ Failed to save FCM Token: $e");
+    }
+  }
 }
