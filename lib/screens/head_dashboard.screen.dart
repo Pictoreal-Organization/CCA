@@ -517,6 +517,29 @@ class _HeadDashboardState extends State<HeadDashboard> {
   }
 
   Widget _buildTasksSection() {
+    // 1. Sort the tasks: Needs Review -> Pending -> Completed
+    final sortedTasks = List.from(allTasks);
+    sortedTasks.sort((a, b) {
+      final subtasksA = (a['subtasks'] as List?) ?? [];
+      final subtasksB = (b['subtasks'] as List?) ?? [];
+
+      final needsReviewA = subtasksA.any((s) => s['status'] == 'Completed');
+      final needsReviewB = subtasksB.any((s) => s['status'] == 'Completed');
+
+      final isCompletedA = a['status'] == 'Completed';
+      final isCompletedB = b['status'] == 'Completed';
+
+      // Priority 1: Needs Review comes first
+      if (needsReviewA && !needsReviewB) return -1;
+      if (!needsReviewA && needsReviewB) return 1;
+
+      // Priority 2: Completed comes last
+      if (!isCompletedA && isCompletedB) return -1;
+      if (isCompletedA && !isCompletedB) return 1;
+
+      return 0; // Keep original order if same priority
+    });
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -540,7 +563,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
             ],
           ),
           const SizedBox(height: 16),
-          allTasks.isEmpty
+          sortedTasks.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(40),
@@ -562,9 +585,9 @@ class _HeadDashboardState extends State<HeadDashboard> {
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: allTasks.length,
+                  itemCount: sortedTasks.length,
                   itemBuilder: (context, index) {
-                    final task = allTasks[index];
+                    final task = sortedTasks[index];
                     final subtasks = (task['subtasks'] as List?) ?? [];
                     final completedSubtasks =
                         subtasks.where((s) => s['status'] == 'Completed').length;
@@ -617,8 +640,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border(
-                left: BorderSide(color: borderColor, width: 7)),
+            border: Border(left: BorderSide(color: borderColor, width: 7)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.06),
@@ -634,7 +656,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// TITLE + DEADLINE
+                    /// TITLE + DEADLINE + ARROW
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -649,26 +671,39 @@ class _HeadDashboardState extends State<HeadDashboard> {
                             ),
                           ),
                         ),
-                        Text(
-                          "🗓 $formattedDeadline",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF757575),
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text("•",
-                            style:
-                                TextStyle(fontSize: 14, color: Color(0xFF757575))),
-                        const SizedBox(width: 12),
-                        Text(
-                          "📌 $completedSubtasks/${subtasks.length}",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF757575),
-                            fontFamily: 'Inter',
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "🗓 $formattedDeadline",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF757575),
+                                    fontFamily: 'Inter',
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "📌 $completedSubtasks/${subtasks.length}",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF757575),
+                                    fontFamily: 'Inter',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Visual cue for expandability
+                            Icon(
+                              isExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              color: AppColors.lightGray,
+                              size: 20,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -690,50 +725,52 @@ class _HeadDashboardState extends State<HeadDashboard> {
                             final assignedName =
                                 assignedUser?['name'] ?? 'Not Assigned';
 
-                            // RESTORED LOGIC: Action Buttons for Subtasks
+                            // Action Buttons for Subtasks
                             Widget actionWidget;
                             if (status == 'Completed') {
-                              // Show "Changes?" button
-                              actionWidget = ActionChip(
-                                avatar: const Icon(Icons.undo,
-                                    size: 14, color: Colors.brown),
-                                label: const Text('Changes?',
-                                    style: TextStyle(fontSize: 11)),
-                                tooltip: 'Suggest Changes',
-                                padding: const EdgeInsets.all(0),
-                                backgroundColor: Colors.orange.shade100,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20)),
-                                onPressed: () =>
-                                    _showSuggestChangesDialog(task, s),
+                              // Show "Changes" button (Styled like Edit/Review)
+                              actionWidget = SizedBox(
+                                height: 34,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showSuggestChangesDialog(task, s),
+                                  icon: const Icon(Icons.undo, size: 14, color: Colors.white),
+                                  label: const Text('Changes'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.darkTeal,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(9)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  ),
+                                ),
                               );
                             } else {
-                              // Show "Mark Done" button
-                              actionWidget = ElevatedButton(
-                                onPressed: () {
-                                  taskService.updateSubtask(
-                                    taskId: task['_id'],
-                                    subtaskId: s['_id'],
-                                    data: {'status': 'Completed'},
-                                  ).then((_) => fetchAllData());
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.green,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 6),
-                                  minimumSize: const Size(0, 30),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  "Mark Done",
-                                  style: TextStyle(
-                                      fontSize: 11, color: Colors.white),
+                              // Show "Mark Done" button (Styled like Edit/Review)
+                              actionWidget = SizedBox(
+                                height: 34,
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    taskService.updateSubtask(
+                                      taskId: task['_id'],
+                                      subtaskId: s['_id'],
+                                      data: {'status': 'Completed'},
+                                    ).then((_) => fetchAllData());
+                                  },
+                                  icon: const Icon(Icons.check, size: 14, color: Colors.white),
+                                  label: const Text('Mark Done'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.green,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(9)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  ),
                                 ),
                               );
                             }
 
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Row(
                                 children: [
                                   const Icon(Icons.person,
@@ -757,6 +794,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
+                                  // Button on the far right
                                   actionWidget,
                                 ],
                               ),
@@ -765,7 +803,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                         ),
                       ),
 
-                      // RESTORED LOGIC: Mark Main Task Completed Button
+                      // Mark Main Task Completed Button
                       if (task['status'] != 'Completed')
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -789,32 +827,12 @@ class _HeadDashboardState extends State<HeadDashboard> {
                           ),
                         ),
                     ] else
-                      /// COLLAPSED VIEW: STATUS BADGES
+                      /// COLLAPSED VIEW: STATUS BADGES AND REVIEW BUTTON
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isCompleted
-                                  ? AppColors.green
-                                  : const Color.fromARGB(255, 103, 186, 254),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              task['status'],
-                              style: TextStyle(
-                                color: isCompleted
-                                    ? Colors.white
-                                    : const Color.fromARGB(255, 5, 38, 94),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                                fontFamily: 'Inter',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          if (needsReview)
+                          // If it needs review, show ONLY Needs Review UI
+                          if (needsReview) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 4),
@@ -827,6 +845,53 @@ class _HeadDashboardState extends State<HeadDashboard> {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
+                                  fontSize: 11,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                            ),
+                            // Review button (moved to the right)
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: SizedBox(
+                                  height: 38,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        expandedTasks.add(taskId);
+                                      });
+                                    },
+                                    icon: const Icon(Icons.rate_review, size: 16, color: Colors.white),
+                                    label: const Text('Review'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.darkTeal,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(9)),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ] else
+                            // Otherwise show standard status badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isCompleted
+                                    ? AppColors.green
+                                    : const Color.fromARGB(255, 103, 186, 254),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                task['status'],
+                                style: TextStyle(
+                                  color: isCompleted
+                                      ? Colors.white
+                                      : const Color.fromARGB(255, 5, 38, 94),
+                                  fontWeight: FontWeight.bold,
                                   fontSize: 11,
                                   fontFamily: 'Inter',
                                 ),
