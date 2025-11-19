@@ -376,7 +376,11 @@ class MeetingsList extends StatelessWidget {
                                       horizontal: 14),
                                 ),
                                 onPressed: () async {
-                                  final link = meet['onlineLink'];
+                                  // final link = meet['onlineLink'];
+                                  final raw = meet['onlineLink'];
+                                  final link = raw.startsWith("http") ? raw : "https://$raw";
+                                  // final uri = Uri.parse(link);
+
                                   if (link != null && link.isNotEmpty) {
                                     final uri = Uri.parse(link);
 
@@ -493,7 +497,7 @@ class MeetingsList extends StatelessWidget {
               );
             },
           ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
       ],
     );
   }
