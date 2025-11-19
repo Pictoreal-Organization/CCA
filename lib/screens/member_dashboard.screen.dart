@@ -672,9 +672,13 @@ class _MemberDashboardState extends State<MemberDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
+      body: RefreshIndicator(
+        color: AppColors.darkTeal,
+        onRefresh: fetchAllData,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           // Fixed AppBar
           SliverAppBar(
             floating: false,
@@ -903,6 +907,7 @@ class _MemberDashboardState extends State<MemberDashboard> {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

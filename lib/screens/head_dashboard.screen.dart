@@ -985,8 +985,12 @@ class _HeadDashboardState extends State<HeadDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: CustomScrollView(
-        controller: _scrollController,
+      body: RefreshIndicator(
+        color: AppColors.darkTeal,
+        onRefresh: fetchAllData,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           // Fixed AppBar - Always visible at top
           SliverAppBar(
@@ -1215,6 +1219,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
                   ),
           ),
         ],
+      ),
       ),
 
       // Floating Action Button (Dynamic based on tab)
