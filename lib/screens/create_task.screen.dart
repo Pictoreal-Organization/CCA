@@ -1919,7 +1919,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   DateTime? picked = await showDatePicker(
                     context: context,
                     initialDate: deadline ?? DateTime.now(),
-                    firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                    firstDate: DateTime.now(),
                     lastDate: DateTime(2100),
                   );
                   if (picked != null) setState(() => deadline = picked);
