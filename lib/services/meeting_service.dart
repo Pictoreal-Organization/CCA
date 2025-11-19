@@ -7,12 +7,16 @@ class MeetingService {
   // final String baseUrl = "http://10.0.2.2:5001/api/meetings";
   final String baseUrl = "${dotenv.env['BASE_URL']}/api/meetings";
 
-  Future<List<dynamic>> getOngoingMeetings() async {
+  // Helper to get token
+  Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("accessToken");
+    return prefs.getString("accessToken");
+  }
 
+  Future<List<dynamic>> getOngoingMeetings() async {
+    final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/status/ongoing'), // <- updated endpoint
+      Uri.parse('$baseUrl/status/ongoing'),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token"
@@ -27,11 +31,9 @@ class MeetingService {
   }
 
   Future<List<dynamic>> getUpcomingMeetings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("accessToken");
-
+    final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/status/scheduled'), // <- updated endpoint
+      Uri.parse('$baseUrl/status/scheduled'),
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token"
@@ -46,9 +48,7 @@ class MeetingService {
   }
 
   Future<List<dynamic>> getCompletedMeetings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("accessToken");
-
+    final token = await _getToken();
     final response = await http.get(
       Uri.parse('$baseUrl/status/completed'),
       headers: {
@@ -65,9 +65,7 @@ class MeetingService {
   }
 
   Future<List<dynamic>> getMeetingsForAttendance() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("accessToken");
-
+    final token = await _getToken();
     final response = await http.get(
       Uri.parse('$baseUrl/attendance/pending'),
       headers: {
@@ -92,14 +90,12 @@ class MeetingService {
     int? duration,
     String? priority,
     String? onlineLink,
-    // String? teamId,
     List<String>? tags,
     bool? isPrivate,
     List<String>? invitedMembers,
     List<String>? team,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("accessToken");
+    final token = await _getToken();
 
     final body = {
       "title": title,
@@ -115,6 +111,7 @@ class MeetingService {
       "isPrivate": isPrivate ?? false,
       "invitedMembers": invitedMembers ?? [],
     };
+    
     final response = await http.post(
       Uri.parse("$baseUrl/create"),
       headers: {
@@ -128,6 +125,38 @@ class MeetingService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to create meeting: ${response.body}');
+    }
+  }
+
+  // ✅ ADDED: Update Meeting
+  Future<void> updateMeeting(String id, Map<String, dynamic> data) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/$id'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update meeting: ${response.body}');
+    }
+  }
+
+  // ✅ ADDED: Delete Meeting
+  Future<void> deleteMeeting(String id) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$id'),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete meeting: ${response.body}');
     }
   }
 }

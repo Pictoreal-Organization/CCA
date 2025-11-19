@@ -197,114 +197,98 @@
 //     }
 //   }
 
-//   // void fetchVisibleTeams() async {
-//   //   try {
-//   //     final teams = await teamService.getVisibleTeams();
-//   //     if (mounted) {
-//   //       setState(() => allTeams = List<Map<String, dynamic>>.from(teams));
-//   //     }
-//   //   } catch (e) {
-//   //     if (mounted) {
-//   //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load teams: $e')));
-//   //     }
-//   //   }
-//   // }
 //   void fetchVisibleTeams() async {
-//   try {
-//     final teams = await teamService.getVisibleTeams();
+//     try {
+//       final teams = await teamService.getVisibleTeams();
 
-//     // ✅ Clean team names before setting state
-//     final cleanedTeams = teams.map<Map<String, dynamic>>((team) {
-//       final name = team['name']?.trim() ?? '';
-//       final words = name.split(RegExp(r'\s+')); // split by any spaces
-//       if (words.length > 1) {
-//         words.removeLast(); // remove last word safely
+//       // ✅ Clean team names before setting state
+//       final cleanedTeams = teams.map<Map<String, dynamic>>((team) {
+//         final name = team['name']?.trim() ?? '';
+//         final words = name.split(RegExp(r'\s+')); // split by any spaces
+//         if (words.length > 1) {
+//           words.removeLast(); // remove last word safely
+//         }
+//         final cleanedName = words.join(' ');
+
+//         return {
+//           ...team,
+//           'name': cleanedName,
+//         };
+//       }).toList();
+
+//       if (mounted) {
+//         setState(() => allTeams = cleanedTeams);
 //       }
-//       final cleanedName = words.join(' ');
-
-//       return {
-//         ...team,
-//         'name': cleanedName,
-//       };
-//     }).toList();
-
-//     if (mounted) {
-//       setState(() => allTeams = cleanedTeams);
-//     }
-//   } catch (e) {
-//     if (mounted) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Failed to load teams: $e')),
-//       );
+//     } catch (e) {
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text('Failed to load teams: $e')),
+//         );
+//       }
 //     }
 //   }
-// }
-
-
 
 //   void filterUserSearch(String query) {
 //     setState(() {
 //       searchQuery = query;
 //       filteredUsers = allUsers.where((user) {
 //         final name = user['name'] ?? '';
-//         final year = user['year'] ?? '';
-//         final division = user['division'] ?? '';
-//         final text = "$name $year $division".toLowerCase();
+//         final rollNo = user['rollNo'] ?? '';
+//         final text = "$name $rollNo".toLowerCase();
 //         return text.contains(query.toLowerCase());
 //       }).toList();
 //     });
 //   }
 
 //   void submit() async {
-//   if (!_formKey.currentState!.validate() || dateTime == null) {
-//     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-//       content: Text('Please fill all required fields and pick a date/time.'),
-//       backgroundColor: AppColors.darkOrange,
-//     ));
-//     return;
-//   }
-//   if (meetingScope == 'team-specific' && selectedTeamIds.isEmpty) {
-//     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-//       content: Text('Please select at least one team for a team-specific meeting.'),
-//       backgroundColor: AppColors.darkOrange,
-//     ));
-//     return;
-//   }
-//   FocusScope.of(context).unfocus();
-//   setState(() => isSubmitting = true);
-
-//   try {
-//     // Call the createMeeting method in MeetingService with data from form fields
-//     final createdMeeting = await meetingService.createMeeting(
-//       title: titleController.text,
-//       description: descriptionController.text,
-//       dateTime: dateTime!.toUtc(),
-//       location: meetingType == 'offline' ? locationController.text : '',
-//       onlineLink: meetingType == 'online' ? onlineLinkController.text : null,
-//       agenda: agendaController.text,
-//       duration: int.tryParse(durationController.text) ?? 60,
-//       priority: priority,
-//       tags: selectedTags,
-//       isPrivate: isPrivate,
-//       invitedMembers: invitedUserIds,
-//       team: meetingScope == 'team-specific' ? selectedTeamIds : null,
-//     );
-
-//     // After successful creation, you can notify parent and close screen
-//     widget.onMeetingCreated();
-//     if (mounted) {
-//       Navigator.pop(context);
+//     if (!_formKey.currentState!.validate() || dateTime == null) {
+//       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+//         content: Text('Please fill all required fields and pick a date/time.'),
+//         backgroundColor: AppColors.darkOrange,
+//       ));
+//       return;
 //     }
-//   } catch (e) {
-//     setState(() => isSubmitting = false);
-//     if (mounted) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Failed to create meeting: $e')),
+//     if (meetingScope == 'team-specific' && selectedTeamIds.isEmpty) {
+//       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+//         content: Text('Please select at least one team for a team-specific meeting.'),
+//         backgroundColor: AppColors.darkOrange,
+//       ));
+//       return;
+//     }
+//     FocusScope.of(context).unfocus();
+//     setState(() => isSubmitting = true);
+
+//     try {
+//       // Call the createMeeting method in MeetingService with data from form fields
+//       final createdMeeting = await meetingService.createMeeting(
+//         title: titleController.text,
+//         description: descriptionController.text,
+//         dateTime: dateTime!.toUtc(),
+//         location: meetingType == 'offline' ? locationController.text : '',
+//         onlineLink: meetingType == 'online' ? onlineLinkController.text : null,
+//         agenda: agendaController.text,
+//         duration: int.tryParse(durationController.text) ?? 60,
+//         priority: priority,
+//         tags: selectedTags,
+//         isPrivate: isPrivate,
+//         invitedMembers: invitedUserIds,
+//         team: meetingScope == 'team-specific' ? selectedTeamIds : null,
 //       );
+
+//       // After successful creation, you can notify parent and close screen
+//       widget.onMeetingCreated();
+//       if (mounted) {
+//         Navigator.pop(context);
+//       }
+//     } catch (e) {
+//       setState(() => isSubmitting = false);
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text('Failed to create meeting: $e')),
+//         );
+//       }
 //     }
 //   }
-// }
-
 
 //   Widget _buildAnimatedSection(int index, Widget child) {
 //     return FadeTransition(
@@ -424,91 +408,88 @@
 //           },
 //         ),
 
-//       if (meetingScope == 'team-specific') ...[
-//   const SizedBox(height: 16),
-//   const Text(
-//     'Select Teams',
-//     style: TextStyle(
-//       fontWeight: FontWeight.bold,
-//       color: AppColors.darkGray,
-//     ),
-//   ),
-//   const SizedBox(height: 8),
-
-//   // ✅ Outer padding for the whole grid
-//   Padding(
-//     padding: const EdgeInsets.all(16.0),
-//     child: GridView.count(
-//       shrinkWrap: true,
-//       physics: const NeverScrollableScrollPhysics(),
-//       crossAxisCount: 2, // ✅ 2 columns
-//       mainAxisSpacing: 12,
-//       crossAxisSpacing: 12,
-//       childAspectRatio: 3.8, // ✅ Keeps equal box shape
-//       children: allTeams.take(8).map<Widget>((team) {
-//         final isSelected = selectedTeamIds.contains(team['_id']);
-
-//         return GestureDetector(
-//           onTap: () {
-//             setState(() {
-//               if (isSelected) {
-//                 selectedTeamIds.remove(team['_id']);
-//               } else {
-//                 selectedTeamIds.add(team['_id']);
-//               }
-//             });
-//           },
-//           child: Container(
-//             alignment: Alignment.center,
-//             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-//             decoration: BoxDecoration(
-//               color: isSelected
-//                   ? AppColors.darkTeal.withOpacity(0.2)
-//                   : Colors.white,
-//               borderRadius: BorderRadius.circular(25),
-//               border: Border.all(
-//                 color: isSelected
-//                     ? AppColors.darkTeal
-//                     : Colors.grey.shade300,
-//                 width: 1,
-//               ),
-//             ),
-//             child: Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               mainAxisSize: MainAxisSize.min,
-//               children: [
-//                 if (isSelected) ...[
-//                   const Icon(
-//                     Icons.check,
-//                     color: AppColors.darkTeal,
-//                     size: 16,
-//                   ),
-//                   const SizedBox(width: 6),
-//                 ],
-//                 Flexible(
-//                   child: Text(
-//                     team['name'],
-//                     overflow: TextOverflow.ellipsis,
-//                     style: TextStyle(
-//                       color: isSelected
-//                           ? AppColors.darkTeal
-//                           : AppColors.lightGray,
-//                       fontWeight: FontWeight.w600,
-//                       fontSize: 14,
-//                     ),
-//                   ),
-//                 ),
-//               ],
+//         if (meetingScope == 'team-specific') ...[
+//           const SizedBox(height: 16),
+//           const Text(
+//             'Select Teams',
+//             style: TextStyle(
+//               fontWeight: FontWeight.bold,
+//               color: AppColors.darkGray,
 //             ),
 //           ),
-//         );
-//       }).toList(),
-//     ),
-//   ),
-// ]
+//           const SizedBox(height: 8),
 
-     
+//           // ✅ Outer padding for the whole grid
+//           Padding(
+//             padding: const EdgeInsets.all(16.0),
+//             child: GridView.count(
+//               shrinkWrap: true,
+//               physics: const NeverScrollableScrollPhysics(),
+//               crossAxisCount: 2, // ✅ 2 columns
+//               mainAxisSpacing: 12,
+//               crossAxisSpacing: 12,
+//               childAspectRatio: 3.8, // ✅ Keeps equal box shape
+//               children: allTeams.take(8).map<Widget>((team) {
+//                 final isSelected = selectedTeamIds.contains(team['_id']);
 
+//                 return GestureDetector(
+//                   onTap: () {
+//                     setState(() {
+//                       if (isSelected) {
+//                         selectedTeamIds.remove(team['_id']);
+//                       } else {
+//                         selectedTeamIds.add(team['_id']);
+//                       }
+//                     });
+//                   },
+//                   child: Container(
+//                     alignment: Alignment.center,
+//                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+//                     decoration: BoxDecoration(
+//                       color: isSelected
+//                           ? AppColors.darkTeal.withOpacity(0.2)
+//                           : Colors.white,
+//                       borderRadius: BorderRadius.circular(25),
+//                       border: Border.all(
+//                         color: isSelected
+//                             ? AppColors.darkTeal
+//                             : Colors.grey.shade300,
+//                         width: 1,
+//                       ),
+//                     ),
+//                     child: Row(
+//                       mainAxisAlignment: MainAxisAlignment.center,
+//                       mainAxisSize: MainAxisSize.min,
+//                       children: [
+//                         if (isSelected) ...[
+//                           const Icon(
+//                             Icons.check,
+//                             color: AppColors.darkTeal,
+//                             size: 16,
+//                           ),
+//                           const SizedBox(width: 6),
+//                         ],
+//                         Flexible(
+//                           child: Text(
+//                             team['name'],
+//                             overflow: TextOverflow.ellipsis,
+//                             style: TextStyle(
+//                               color: isSelected
+//                                   ? AppColors.darkTeal
+//                                   : AppColors.lightGray,
+//                               fontWeight: FontWeight.w600,
+//                               fontSize: 14,
+//                             ),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 );
+//               }).toList(),
+//             ),
+//           ),
+//         ]
 //       ],
 //     );
 //   }
@@ -663,186 +644,185 @@
 //     );
 //   }
 
- 
 //   Widget _buildMemberSelector() {
-//   TextEditingController? memberController; // ✅ store controller reference
+//     TextEditingController? memberController;
 
-//   return Column(
-//     crossAxisAlignment: CrossAxisAlignment.start,
-//     children: [
-//       const Text(
-//         'Invite Specific Members',
-//         style: TextStyle(
-//           fontWeight: FontWeight.bold,
-//           color: AppColors.darkGray,
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         const Text(
+//           'Invite Specific Members',
+//           style: TextStyle(
+//             fontWeight: FontWeight.bold,
+//             color: AppColors.darkGray,
+//           ),
 //         ),
-//       ),
-//       const SizedBox(height: 12),
-//       Autocomplete<Map<String, dynamic>>(
-//         optionsBuilder: (TextEditingValue textEditingValue) {
-//           if (textEditingValue.text.isEmpty) {
-//             return const Iterable<Map<String, dynamic>>.empty();
-//           }
-//           return allUsers.where((user) {
-//             final name = user['name'] ?? '';
-//             final year = user['year'] ?? '';
-//             final division = user['division'] ?? '';
-//             final text = "$name $year $division".toLowerCase();
-//             return text.contains(textEditingValue.text.toLowerCase());
-//           });
-//         },
-//         displayStringForOption: (user) =>
-//             "${user['name']} ${user['year']} ${user['division']}",
-//         fieldViewBuilder:
-//             (context, controller, focusNode, onFieldSubmitted) {
-//           // ✅ keep a reference so we can clear it later
-//           memberController = controller;
-//           return TextField(
-//             controller: controller,
-//             focusNode: focusNode,
-//             decoration: _buildInputDecoration(
-//               'Search & Select Members',
-//               Icons.person_search_outlined,
-//             ),
-//           );
-//         },
-//         optionsViewBuilder: (context, onSelected, options) {
-//           return Align(
-//             alignment: Alignment.topLeft,
-//             child: Material(
-//               elevation: 4,
-//               color: Colors.white,
-//               borderRadius: BorderRadius.circular(12),
-//               child: ConstrainedBox(
-//                 constraints: const BoxConstraints(maxHeight: 250),
-//                 child: ListView.builder(
-//                   padding: EdgeInsets.zero,
-//                   itemCount: options.length,
-//                   itemBuilder: (context, index) {
-//                     final user = options.elementAt(index);
-//                     final selected =
-//                         invitedUserIds.contains(user['_id']);
+//         const SizedBox(height: 12),
+//         Autocomplete<Map<String, dynamic>>(
+//           optionsBuilder: (TextEditingValue textEditingValue) {
+//             if (textEditingValue.text.isEmpty) {
+//               return const Iterable<Map<String, dynamic>>.empty();
+//             }
+//             return allUsers.where((user) {
+//               final name = user['name'] ?? '';
+//               final rollNo = user['rollNo'] ?? '';
+//               final text = "$name $rollNo".toLowerCase();
+//               return text.contains(textEditingValue.text.toLowerCase());
+//             });
+//           },
+//           displayStringForOption: (user) =>
+//               "${user['name']} - Roll No: ${user['rollNo']}",
+//           fieldViewBuilder:
+//               (context, controller, focusNode, onFieldSubmitted) {
+//             memberController = controller;
+//             return TextField(
+//               controller: controller,
+//               focusNode: focusNode,
+//               decoration: _buildInputDecoration(
+//                 'Search & Select Members',
+//                 Icons.person_search_outlined,
+//               ),
+//             );
+//           },
+//           optionsViewBuilder: (context, onSelected, options) {
+//             return Align(
+//               alignment: Alignment.topLeft,
+//               child: Material(
+//                 elevation: 4,
+//                 color: Colors.white,
+//                 borderRadius: BorderRadius.circular(12),
+//                 child: ConstrainedBox(
+//                   constraints: const BoxConstraints(maxHeight: 250),
+//                   child: ListView.builder(
+//                     padding: EdgeInsets.zero,
+//                     itemCount: options.length,
+//                     itemBuilder: (context, index) {
+//                       final user = options.elementAt(index);
+//                       final selected =
+//                           invitedUserIds.contains(user['_id']);
 
-//                     return ListTile(
-//                       title: Text(
-//                         "${user['name']} ${user['year']} ${user['division']}",
-//                         style: const TextStyle(color: AppColors.darkGray),
-//                       ),
-//                       trailing: selected
-//                           ? const Icon(Icons.check,
-//                               color: AppColors.darkTeal)
-//                           : null,
-//                       onTap: () {
-//                         setState(() {
-//                           if (selected) {
-//                             invitedUserIds.remove(user['_id']);
-//                           } else {
-//                             invitedUserIds.add(user['_id']);
-//                           }
-//                         });
+//                       return ListTile(
+//                         title: Text(
+//                           "${user['name']}",
+//                           style: const TextStyle(
+//                             color: AppColors.darkGray,
+//                             fontWeight: FontWeight.bold,
+//                           ),
+//                         ),
+//                         subtitle: Text(
+//                           "Roll No: ${user['rollNo']}",
+//                           style: const TextStyle(color: AppColors.lightGray),
+//                         ),
+//                         trailing: selected
+//                             ? const Icon(Icons.check,
+//                                 color: AppColors.darkTeal)
+//                             : null,
+//                         onTap: () {
+//                           setState(() {
+//                             if (selected) {
+//                               invitedUserIds.remove(user['_id']);
+//                             } else {
+//                               invitedUserIds.add(user['_id']);
+//                             }
+//                           });
 
-//                         // ✅ Clear field text immediately after selection
-//                         memberController?.clear();
-//                         FocusScope.of(context).unfocus();
+//                           memberController?.clear();
+//                           FocusScope.of(context).unfocus();
 
-//                         onSelected(user);
-//                       },
-//                     );
-//                   },
+//                           onSelected(user);
+//                         },
+//                       );
+//                     },
+//                   ),
 //                 ),
 //               ),
-//             ),
-//           );
-//         },
-//         onSelected: (user) {
-//           // ✅ Ensure focus reset and text cleared safely
-//           memberController?.clear();
-//           FocusScope.of(context).unfocus();
-//         },
-//       ),
-//       const SizedBox(height: 12),
-//       Wrap(
-//         spacing: 8,
-//         runSpacing: 8,
-//         children: invitedUserIds.map<Widget>((id) {
-//           final user = allUsers.firstWhere(
-//             (u) => u['_id'] == id,
-//             orElse: () =>
-//                 {'name': 'Unknown', 'year': '', 'division': ''},
-//           );
-//           return Chip(
-//             label: Text(
-//               "${user['name']} ${user['year']} ${user['division']}",
-//             ),
-//             backgroundColor: AppColors.darkTeal.withOpacity(0.1),
-//             deleteIconColor: AppColors.darkTeal,
-//             labelStyle: const TextStyle(
-//               color: AppColors.darkTeal,
-//               fontWeight: FontWeight.w500,
-//             ),
-//             shape:
-//                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-//             side: const BorderSide(color: AppColors.green),
-//             onDeleted: () {
-//               setState(() {
-//                 invitedUserIds.remove(id);
-//               });
-//             },
-//           );
-//         }).toList(),
-//       ),
-//     ],
-//   );
-// }
-
-
+//             );
+//           },
+//           onSelected: (user) {
+//             memberController?.clear();
+//             FocusScope.of(context).unfocus();
+//           },
+//         ),
+//         const SizedBox(height: 12),
+//         Wrap(
+//           spacing: 8,
+//           runSpacing: 8,
+//           children: invitedUserIds.map<Widget>((id) {
+//             final user = allUsers.firstWhere(
+//               (u) => u['_id'] == id,
+//               orElse: () =>
+//                   {'name': 'Unknown', 'rollNo': ''},
+//             );
+//             return Chip(
+//               label: Text(
+//                 "${user['name']} - ${user['rollNo']}",
+//               ),
+//               backgroundColor: AppColors.darkTeal.withOpacity(0.1),
+//               deleteIconColor: AppColors.darkTeal,
+//               labelStyle: const TextStyle(
+//                 color: AppColors.darkTeal,
+//                 fontWeight: FontWeight.w500,
+//               ),
+//               shape:
+//                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+//               side: const BorderSide(color: AppColors.green),
+//               onDeleted: () {
+//                 setState(() {
+//                   invitedUserIds.remove(id);
+//                 });
+//               },
+//             );
+//           }).toList(),
+//         ),
+//       ],
+//     );
+//   }
 
 //   Widget _buildSubmitButton() {
-//   return isSubmitting
-//       ? const Center(
-//           child: CircularProgressIndicator(
-//           color: AppColors.darkTeal, // 🟢 match the same tone
-//         ))
-//       : Padding(
-//           padding: const EdgeInsets.all(16.0),
-//           child: Container(
-//             decoration: BoxDecoration(
-//               color: AppColors.darkTeal, // 🟢 solid darkTeal background
-//               borderRadius: BorderRadius.circular(14),
-//               boxShadow: [
-//                 BoxShadow(
-//                   color: AppColors.darkTeal.withOpacity(0.4),
-//                   blurRadius: 8,
-//                   offset: const Offset(0, 4),
-//                 ),
-//               ],
-//             ),
-//             child: SizedBox(
-//               width: double.infinity,
-//               height: 55,
-//               child: ElevatedButton.icon(
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: Colors.transparent,
-//                   foregroundColor: Colors.white,
-//                   textStyle: const TextStyle(
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.bold,
+//     return isSubmitting
+//         ? const Center(
+//             child: CircularProgressIndicator(
+//             color: AppColors.darkTeal,
+//           ))
+//         : Padding(
+//             padding: const EdgeInsets.all(16.0),
+//             child: Container(
+//               decoration: BoxDecoration(
+//                 color: AppColors.darkTeal,
+//                 borderRadius: BorderRadius.circular(14),
+//                 boxShadow: [
+//                   BoxShadow(
+//                     color: AppColors.darkTeal.withOpacity(0.4),
+//                     blurRadius: 8,
+//                     offset: const Offset(0, 4),
 //                   ),
-//                   shape: RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.circular(14),
+//                 ],
+//               ),
+//               child: SizedBox(
+//                 width: double.infinity,
+//                 height: 55,
+//                 child: ElevatedButton.icon(
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: Colors.transparent,
+//                     foregroundColor: Colors.white,
+//                     textStyle: const TextStyle(
+//                       fontSize: 18,
+//                       fontWeight: FontWeight.bold,
+//                     ),
+//                     shape: RoundedRectangleBorder(
+//                       borderRadius: BorderRadius.circular(14),
+//                     ),
+//                     shadowColor: Colors.transparent,
+//                     elevation: 0,
 //                   ),
-//                   shadowColor: Colors.transparent,
-//                   elevation: 0,
+//                   onPressed: submit,
+//                   icon: const Icon(Icons.add_circle_outline, size: 24),
+//                   label: const Text('Create Meeting'),
 //                 ),
-//                 onPressed: submit,
-//                 icon: const Icon(Icons.add_circle_outline, size: 24),
-//                 label: const Text('Create Meeting'),
 //               ),
 //             ),
-//           ),
-//         );
-// }
-
+//           );
+//   }
 
 //   @override
 //   Widget build(BuildContext context) {
@@ -875,10 +855,6 @@
 //   }
 // }
 
-
-
-
-
 import 'package:flutter/material.dart';
 import '../services/meeting_service.dart';
 import '../services/user_service.dart';
@@ -891,7 +867,7 @@ const Color kUnselectedBg = Colors.white;
 const Color kUnselectedText = AppColors.lightGray;
 const double kBorderRadius = 14;
 
-// Custom segmented button widget with per-tab color logic
+// Custom segmented button widget
 class CustomToggleSelector<T> extends StatelessWidget {
   final List<_ToggleOption<T>> options;
   final T selected;
@@ -914,7 +890,8 @@ class CustomToggleSelector<T> extends StatelessWidget {
         final option = entry.value;
         final bool isSelected = option.value == selected;
 
-        final Color selectedBg = perOptionSelectedColors != null && perOptionSelectedColors!.containsKey(idx)
+        final Color selectedBg = perOptionSelectedColors != null &&
+                perOptionSelectedColors!.containsKey(idx)
             ? perOptionSelectedColors![idx]!
             : AppColors.orange;
         final Color selectedText = Colors.white;
@@ -983,18 +960,26 @@ class _ToggleOption<T> {
 // --------- MAIN SCREEN ---------
 class CreateMeetingScreen extends StatefulWidget {
   final VoidCallback onMeetingCreated;
-  const CreateMeetingScreen({super.key, required this.onMeetingCreated});
+  final Map<String, dynamic>? meetingToEdit; // Optional: Pass this to edit
+
+  const CreateMeetingScreen({
+    super.key,
+    required this.onMeetingCreated,
+    this.meetingToEdit,
+  });
 
   @override
   State<CreateMeetingScreen> createState() => _CreateMeetingScreenState();
 }
 
-class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTickerProviderStateMixin {
+class _CreateMeetingScreenState extends State<CreateMeetingScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final MeetingService meetingService = MeetingService();
   final TeamService teamService = TeamService();
   final UserService userService = UserService();
 
+  // Controllers
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
@@ -1002,6 +987,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
   final TextEditingController agendaController = TextEditingController();
   final TextEditingController durationController = TextEditingController();
 
+  // State Variables
   String? priority = 'Medium';
   DateTime? dateTime;
 
@@ -1015,6 +1001,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
   String searchQuery = '';
 
   bool isSubmitting = false;
+  bool isEditMode = false; // Flag to track mode
 
   String meetingType = 'offline';
   String meetingScope = 'general';
@@ -1024,11 +1011,14 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
   late AnimationController _animationController;
   late List<Animation<double>> _animations;
 
-  final ValueNotifier<String> selectedScopeNotifier = ValueNotifier<String>('general');
+  final ValueNotifier<String> selectedScopeNotifier =
+      ValueNotifier<String>('general');
 
   @override
   void initState() {
     super.initState();
+
+    // Animation setup
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -1047,8 +1037,70 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
       ),
     );
     _animationController.forward();
+
+    // Load initial data
     fetchAllUsers();
     fetchVisibleTeams();
+
+    // Check if we are editing an existing meeting
+    if (widget.meetingToEdit != null) {
+      isEditMode = true;
+      _prefillData(widget.meetingToEdit!);
+    }
+  }
+
+  // Helper to pre-fill form when editing
+  void _prefillData(Map<String, dynamic> meeting) {
+    titleController.text = meeting['title'] ?? '';
+    descriptionController.text = meeting['description'] ?? '';
+    agendaController.text = meeting['agenda'] ?? '';
+    durationController.text = (meeting['duration'] ?? 60).toString();
+    priority = meeting['priority'] ?? 'Medium';
+
+    // Date
+    if (meeting['dateTime'] != null) {
+      dateTime = DateTime.parse(meeting['dateTime']).toLocal();
+    }
+
+    // Meeting Type & Location/Link
+    if (meeting['onlineLink'] != null &&
+        meeting['onlineLink'].toString().isNotEmpty) {
+      meetingType = 'online';
+      onlineLinkController.text = meeting['onlineLink'];
+    } else {
+      meetingType = 'offline';
+      locationController.text = meeting['location'] ?? '';
+    }
+
+    // Tags
+    if (meeting['tags'] != null) {
+      selectedTags = List<String>.from(meeting['tags']);
+    }
+
+    // Privacy
+    isPrivate = meeting['isPrivate'] ?? false;
+
+    // Scope & Teams
+    // Backend sends populated 'team' array (List of objects). We need just IDs.
+    if (meeting['team'] != null && (meeting['team'] as List).isNotEmpty) {
+      meetingScope = 'team-specific';
+      selectedScopeNotifier.value = 'team-specific';
+      selectedTeamIds = (meeting['team'] as List).map<String>((t) {
+        // Handle if team is populated Map or just ID String
+        return t is Map ? t['_id'].toString() : t.toString();
+      }).toList();
+    } else {
+      meetingScope = 'general';
+      selectedScopeNotifier.value = 'general';
+    }
+
+    // Invited Members
+    // Backend sends populated 'invitedMembers' array. We need just IDs.
+    if (meeting['invitedMembers'] != null) {
+      invitedUserIds = (meeting['invitedMembers'] as List).map<String>((u) {
+        return u is Map ? u['_id'].toString() : u.toString();
+      }).toList();
+    }
   }
 
   @override
@@ -1073,7 +1125,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
       }
     }
   }
@@ -1082,12 +1135,12 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
     try {
       final teams = await teamService.getVisibleTeams();
 
-      // ✅ Clean team names before setting state
+      // Clean up team names (remove extra spaces/newlines)
       final cleanedTeams = teams.map<Map<String, dynamic>>((team) {
         final name = team['name']?.trim() ?? '';
-        final words = name.split(RegExp(r'\s+')); // split by any spaces
+        final words = name.split(RegExp(r'\s+'));
         if (words.length > 1) {
-          words.removeLast(); // remove last word safely
+          words.removeLast(); // specific logic for your team naming
         }
         final cleanedName = words.join(' ');
 
@@ -1109,19 +1162,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
     }
   }
 
-  void filterUserSearch(String query) {
-    setState(() {
-      searchQuery = query;
-      filteredUsers = allUsers.where((user) {
-        final name = user['name'] ?? '';
-        final rollNo = user['rollNo'] ?? '';
-        final text = "$name $rollNo".toLowerCase();
-        return text.contains(query.toLowerCase());
-      }).toList();
-    });
-  }
-
   void submit() async {
+    // 1. Form Validation
     if (!_formKey.currentState!.validate() || dateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please fill all required fields and pick a date/time.'),
@@ -1131,52 +1173,98 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
     }
     if (meetingScope == 'team-specific' && selectedTeamIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please select at least one team for a team-specific meeting.'),
+        content: Text(
+            'Please select at least one team for a team-specific meeting.'),
         backgroundColor: AppColors.darkOrange,
       ));
       return;
     }
+
     FocusScope.of(context).unfocus();
     setState(() => isSubmitting = true);
 
     try {
-      // Call the createMeeting method in MeetingService with data from form fields
-      final createdMeeting = await meetingService.createMeeting(
-        title: titleController.text,
-        description: descriptionController.text,
-        dateTime: dateTime!.toUtc(),
-        location: meetingType == 'offline' ? locationController.text : '',
-        onlineLink: meetingType == 'online' ? onlineLinkController.text : null,
-        agenda: agendaController.text,
-        duration: int.tryParse(durationController.text) ?? 60,
-        priority: priority,
-        tags: selectedTags,
-        isPrivate: isPrivate,
-        invitedMembers: invitedUserIds,
-        team: meetingScope == 'team-specific' ? selectedTeamIds : null,
-      );
+      // 2. Prepare Data Map
+      // Note: "dateTime" here is converted to ISO String because updateMeeting
+      // sends a raw JSON body which requires strings.
+      final data = {
+        "title": titleController.text,
+        "description": descriptionController.text,
+        "dateTime": dateTime!.toUtc().toIso8601String(), // ✅ FIX for Update
+        "location": meetingType == 'offline' ? locationController.text : '',
+        "onlineLink":
+            meetingType == 'online' ? onlineLinkController.text : null,
+        "agenda": agendaController.text,
+        "duration": int.tryParse(durationController.text) ?? 60,
+        "priority": priority,
+        "tags": selectedTags,
+        "isPrivate": isPrivate,
+        "invitedMembers": invitedUserIds,
+        "team": meetingScope == 'team-specific' ? selectedTeamIds : null,
+      };
 
-      // After successful creation, you can notify parent and close screen
-      widget.onMeetingCreated();
+      if (isEditMode) {
+        // ✅ UPDATE LOGIC
+        // Calls the new update method which expects a Map<String, dynamic>
+        await meetingService.updateMeeting(widget.meetingToEdit!['_id'], data);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Meeting updated successfully!')),
+          );
+        }
+      } else {
+        // ✅ CREATE LOGIC
+        // Calls the original create method.
+        // Note: We pass the raw DateTime object here because the service method
+        // signature expects DateTime and handles the conversion internally.
+        await meetingService.createMeeting(
+          title: data['title'] as String,
+          description: data['description'] as String,
+          dateTime: dateTime!.toUtc(), // Pass raw object for create
+          location: data['location'] as String,
+          onlineLink: data['onlineLink'] as String?,
+          agenda: data['agenda'] as String?,
+          duration: data['duration'] as int?,
+          priority: data['priority'] as String?,
+          tags: data['tags'] as List<String>?,
+          isPrivate: data['isPrivate'] as bool?,
+          invitedMembers: data['invitedMembers'] as List<String>?,
+          team: data['team'] as List<String>?,
+        );
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Meeting created successfully!')),
+          );
+        }
+      }
+
+      // 3. Success & Cleanup
+      widget.onMeetingCreated(); // Notify dashboard to refresh
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context); // Close screen
       }
     } catch (e) {
       setState(() => isSubmitting = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create meeting: $e')),
+          SnackBar(content: Text('Failed to save meeting: $e')),
         );
       }
     }
   }
 
+  // ---------------- UI WIDGETS ----------------
+
   Widget _buildAnimatedSection(int index, Widget child) {
     return FadeTransition(
       opacity: _animations[index],
       child: SlideTransition(
-        position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(_animations[index]),
-        child: Padding(padding: const EdgeInsets.only(bottom: 18.0), child: child),
+        position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+            .animate(_animations[index]),
+        child:
+            Padding(padding: const EdgeInsets.only(bottom: 18.0), child: child),
       ),
     );
   }
@@ -1207,7 +1295,10 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
           const SizedBox(width: 10),
           Text(title,
               style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkTeal, letterSpacing: 0.5)),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkTeal,
+                  letterSpacing: 0.5)),
         ],
       ),
     );
@@ -1216,17 +1307,22 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
   InputDecoration _buildInputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.lightGray, fontWeight: FontWeight.w500),
+      labelStyle: const TextStyle(
+          color: AppColors.lightGray, fontWeight: FontWeight.w500),
       prefixIcon: Icon(icon, color: AppColors.green),
       filled: true,
       fillColor: Colors.white,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.darkGray.withOpacity(0.1), width: 1.5)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+              color: AppColors.darkGray.withOpacity(0.1), width: 1.5)),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.darkTeal, width: 2.5)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.darkTeal, width: 2.5)),
     );
   }
 
@@ -1243,7 +1339,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
         const SizedBox(height: 16),
         TextFormField(
           controller: descriptionController,
-          decoration: _buildInputDecoration('Description', Icons.description_outlined),
+          decoration:
+              _buildInputDecoration('Description', Icons.description_outlined),
           validator: (val) => val!.isEmpty ? 'Enter description' : null,
           maxLines: 3,
         ),
@@ -1269,8 +1366,14 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
                 width: double.infinity,
                 child: CustomToggleSelector<String>(
                   options: const [
-                    _ToggleOption(value: 'general', label: 'General', icon: Icons.public),
-                    _ToggleOption(value: 'team-specific', label: 'Team-Specific', icon: Icons.group),
+                    _ToggleOption(
+                        value: 'general',
+                        label: 'General',
+                        icon: Icons.public),
+                    _ToggleOption(
+                        value: 'team-specific',
+                        label: 'Team-Specific',
+                        icon: Icons.group),
                   ],
                   selected: meetingScope,
                   onSelectionChanged: (selected) {
@@ -1288,7 +1391,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
             );
           },
         ),
-
         if (meetingScope == 'team-specific') ...[
           const SizedBox(height: 16),
           const Text(
@@ -1299,17 +1401,15 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
             ),
           ),
           const SizedBox(height: 8),
-
-          // ✅ Outer padding for the whole grid
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2, // ✅ 2 columns
+              crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 3.8, // ✅ Keeps equal box shape
+              childAspectRatio: 3.8,
               children: allTeams.take(8).map<Widget>((team) {
                 final isSelected = selectedTeamIds.contains(team['_id']);
 
@@ -1325,7 +1425,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
                   },
                   child: Container(
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.darkTeal.withOpacity(0.2)
@@ -1384,11 +1485,18 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
           width: double.infinity,
           child: CustomToggleSelector<String>(
             options: const [
-              _ToggleOption(value: 'offline', label: 'Offline', icon: Icons.location_on_outlined),
-              _ToggleOption(value: 'online', label: 'Online', icon: Icons.videocam_outlined),
+              _ToggleOption(
+                  value: 'offline',
+                  label: 'Offline',
+                  icon: Icons.location_on_outlined),
+              _ToggleOption(
+                  value: 'online',
+                  label: 'Online',
+                  icon: Icons.videocam_outlined),
             ],
             selected: meetingType,
-            onSelectionChanged: (selected) => setState(() => meetingType = selected),
+            onSelectionChanged: (selected) =>
+                setState(() => meetingType = selected),
             perOptionSelectedColors: const {
               0: AppColors.darkTeal,
               1: AppColors.orange,
@@ -1399,14 +1507,20 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
         if (meetingType == 'offline')
           TextFormField(
             controller: locationController,
-            decoration: _buildInputDecoration('Location (e.g., Conference Room B)', Icons.location_city_outlined),
-            validator: (val) => val!.isEmpty ? 'Enter location for offline meeting' : null,
+            decoration: _buildInputDecoration(
+                'Location (e.g., Conference Room B)',
+                Icons.location_city_outlined),
+            validator: (val) =>
+                val!.isEmpty ? 'Enter location for offline meeting' : null,
           ),
         if (meetingType == 'online')
           TextFormField(
             controller: onlineLinkController,
-            decoration: _buildInputDecoration('Online Meeting Link (e.g., Zoom/Meet URL)', Icons.link_rounded),
-            validator: (val) => val!.isEmpty ? 'Enter meeting link for online meeting' : null,
+            decoration: _buildInputDecoration(
+                'Online Meeting Link (e.g., Zoom/Meet URL)',
+                Icons.link_rounded),
+            validator: (val) =>
+                val!.isEmpty ? 'Enter meeting link for online meeting' : null,
           ),
       ],
     );
@@ -1428,7 +1542,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
         const SizedBox(height: 16),
         TextFormField(
           controller: agendaController,
-          decoration: _buildInputDecoration('Agenda (Optional)', Icons.list_alt_rounded),
+          decoration: _buildInputDecoration(
+              'Agenda (Optional)', Icons.list_alt_rounded),
           maxLines: 2,
         ),
         const SizedBox(height: 16),
@@ -1438,7 +1553,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
             Expanded(
               child: TextFormField(
                 controller: durationController,
-                decoration: _buildInputDecoration('Duration (mins)', Icons.timer_outlined),
+                decoration: _buildInputDecoration(
+                    'Duration (mins)', Icons.timer_outlined),
                 keyboardType: TextInputType.number,
                 validator: (val) {
                   if (val == null || val.isEmpty) return null;
@@ -1452,16 +1568,20 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
               child: DropdownButtonFormField<String>(
                 value: priority,
                 items: ['Low', 'Medium', 'High', 'Urgent']
-                    .map<DropdownMenuItem<String>>((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .map<DropdownMenuItem<String>>(
+                        (e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (val) => setState(() => priority = val),
-                decoration: _buildInputDecoration('Priority', Icons.flag_outlined),
+                decoration:
+                    _buildInputDecoration('Priority', Icons.flag_outlined),
               ),
             ),
           ],
         ),
         const SizedBox(height: 20),
-        const Text('Tags', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkGray)),
+        const Text('Tags',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: AppColors.darkGray)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 10,
@@ -1474,13 +1594,17 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
               backgroundColor: Colors.white,
               selectedColor: AppColors.green.withOpacity(0.2),
               checkmarkColor: AppColors.darkTeal,
-              labelStyle: TextStyle(color: selected ? AppColors.darkTeal : AppColors.lightGray, fontWeight: FontWeight.w600),
+              labelStyle: TextStyle(
+                  color: selected ? AppColors.darkTeal : AppColors.lightGray,
+                  fontWeight: FontWeight.w600),
               side: BorderSide(
                 color: selected ? AppColors.darkTeal : Colors.grey.shade300,
                 width: 1,
               ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-              labelPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25)),
+              labelPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               onSelected: (val) {
                 setState(() {
                   if (val) {
@@ -1507,10 +1631,12 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
           child: CustomToggleSelector<bool>(
             options: const [
               _ToggleOption(value: false, label: 'Public', icon: Icons.public),
-              _ToggleOption(value: true, label: 'Private', icon: Icons.lock_outline),
+              _ToggleOption(
+                  value: true, label: 'Private', icon: Icons.lock_outline),
             ],
             selected: isPrivate,
-            onSelectionChanged: (selected) => setState(() => isPrivate = selected),
+            onSelectionChanged: (selected) =>
+                setState(() => isPrivate = selected),
             perOptionSelectedColors: const {
               0: AppColors.darkTeal,
               1: AppColors.orange,
@@ -1553,8 +1679,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
           },
           displayStringForOption: (user) =>
               "${user['name']} - Roll No: ${user['rollNo']}",
-          fieldViewBuilder:
-              (context, controller, focusNode, onFieldSubmitted) {
+          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
             memberController = controller;
             return TextField(
               controller: controller,
@@ -1579,8 +1704,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
                     itemCount: options.length,
                     itemBuilder: (context, index) {
                       final user = options.elementAt(index);
-                      final selected =
-                          invitedUserIds.contains(user['_id']);
+                      final selected = invitedUserIds.contains(user['_id']);
 
                       return ListTile(
                         title: Text(
@@ -1595,8 +1719,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
                           style: const TextStyle(color: AppColors.lightGray),
                         ),
                         trailing: selected
-                            ? const Icon(Icons.check,
-                                color: AppColors.darkTeal)
+                            ? const Icon(Icons.check, color: AppColors.darkTeal)
                             : null,
                         onTap: () {
                           setState(() {
@@ -1631,8 +1754,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
           children: invitedUserIds.map<Widget>((id) {
             final user = allUsers.firstWhere(
               (u) => u['_id'] == id,
-              orElse: () =>
-                  {'name': 'Unknown', 'rollNo': ''},
+              orElse: () => {'name': 'Unknown', 'rollNo': ''},
             );
             return Chip(
               label: Text(
@@ -1644,8 +1766,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
                 color: AppColors.darkTeal,
                 fontWeight: FontWeight.w500,
               ),
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25)),
               side: const BorderSide(color: AppColors.green),
               onDeleted: () {
                 setState(() {
@@ -1697,8 +1819,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
                     elevation: 0,
                   ),
                   onPressed: submit,
-                  icon: const Icon(Icons.add_circle_outline, size: 24),
-                  label: const Text('Create Meeting'),
+                  icon: Icon(
+                      isEditMode ? Icons.save : Icons.add_circle_outline,
+                      size: 24),
+                  label:
+                      Text(isEditMode ? 'Update Meeting' : 'Create Meeting'),
                 ),
               ),
             ),
@@ -1710,7 +1835,7 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> with SingleTi
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('New Meeting'),
+        title: Text(isEditMode ? 'Edit Meeting' : 'New Meeting'),
         backgroundColor: AppColors.darkTeal,
         foregroundColor: Colors.white,
         elevation: 4,
