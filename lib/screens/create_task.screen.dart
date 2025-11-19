@@ -1190,6 +1190,15 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   }
 
   void submit() async {
+    if (subtasks.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please create at least one subtask.'),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+    return;
+    }
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Please fix the errors.')));
@@ -1626,32 +1635,76 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                                       spacing: 6,
                                       runSpacing: 6,
                                       children: allUsers
-                                          .where((u) => subtask["assignedTo"].contains(u['_id']))
-                                          .map((u) => Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10,
-                                                  vertical: 6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white.withOpacity(0.2),
-                                                  borderRadius: BorderRadius.circular(20),
-                                                  border: Border.all(
-                                                    color: Colors.white.withOpacity(0.4),
-                                                    width: 1,
+                                          .where(
+                                            (u) => subtask["assignedTo"]
+                                                .contains(u['_id']),
+                                          )
+                                          .map((u) {
+                                            final userId = u['_id'];
+                                            return Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 6,
                                                   ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(
+                                                  0.2,
                                                 ),
-                                                child: Text(
-                                                  // ✅ Display name and roll number
-                                                  "${u['name']} - ${u['rollNo']}",
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withOpacity(0.4),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    "${u['name']} - ${u['rollNo']}",
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                                   ),
-                                                ),
-                                              ))
+                                                  const SizedBox(width: 6),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      setState(() {
+                                                        subtask["assignedTo"]
+                                                            .remove(userId);
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      decoration:
+                                                          const BoxDecoration(
+                                                            shape:
+                                                                BoxShape.circle,
+                                                            color: Colors
+                                                                .white, // white circle
+                                                          ),
+                                                      padding: const EdgeInsets.all(
+                                                        2,
+                                                      ), // small padding for the icon
+                                                      child: const Icon(
+                                                        Icons.close,
+                                                        size: 14,
+                                                        color: AppColors
+                                                            .darkTeal, 
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          })
                                           .toList(),
                                     ),
+
                                   ],
                                 ),
                         ),
