@@ -83,10 +83,13 @@ import 'package:flutter/material.dart';
 import 'screens/splash.screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/app_colors.dart'; // <-- your color file
+import 'package:firebase_core/firebase_core.dart'; // 1. Add this import
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 

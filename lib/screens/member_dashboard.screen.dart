@@ -604,6 +604,7 @@ import '../widgets/tasks_list_member.widget.dart';
 import 'signIn.screen.dart';
 import '../widgets/logout_confirm.dart';
 import '../widgets/loading_animation.widget.dart';
+import '../services/notification_handler.dart';
 
 class MemberDashboard extends StatefulWidget {
   const MemberDashboard({super.key});
@@ -627,6 +628,7 @@ class _MemberDashboardState extends State<MemberDashboard> {
   @override
   void initState() {
     super.initState();
+    NotificationHandler().initialize();
     fetchAllData();
   }
 

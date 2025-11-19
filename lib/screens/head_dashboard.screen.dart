@@ -419,6 +419,7 @@ import '../widgets/tasks_list.widget.dart';
 import '../core/app_colors.dart';
 import '../widgets/logout_confirm.dart';
 import '../widgets/loading_animation.widget.dart';
+import '../services/notification_handler.dart';
 
 class HeadDashboard extends StatefulWidget {
   const HeadDashboard({super.key});
@@ -448,6 +449,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
   @override
   void initState() {
     super.initState();
+    NotificationHandler().initialize();
     fetchAllData();
   }
 
