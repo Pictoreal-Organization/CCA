@@ -26,7 +26,10 @@ void showLogoutDialog(BuildContext context) {
               MaterialPageRoute(builder: (_) => const SignInScreen()),
             );
           },
-          child: const Text("Logout"),
+          child: const Text(
+            "Logout",
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ],
     ),
