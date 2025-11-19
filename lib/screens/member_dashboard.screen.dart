@@ -687,7 +687,7 @@ class _MemberDashboardState extends State<MemberDashboard> {
             elevation: 4,
             toolbarHeight: 56,
             title: const Text(
-              'Member Dashboard',
+              'Dashboard',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
