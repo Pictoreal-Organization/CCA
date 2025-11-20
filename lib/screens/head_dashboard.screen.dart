@@ -985,7 +985,10 @@ class _HeadDashboardState extends State<HeadDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: RefreshIndicator(
+      body: isLoading
+      ? const Center(
+        child : LoadingAnimation(size: 220),
+      ): RefreshIndicator(
         color: AppColors.darkTeal,
         onRefresh: fetchAllData,
         child: CustomScrollView(
@@ -1219,11 +1222,14 @@ class _HeadDashboardState extends State<HeadDashboard> {
                   ),
           ),
         ],
+      
       ),
       ),
 
       // Floating Action Button (Dynamic based on tab)
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isLoading
+      ?null
+      : FloatingActionButton(
         backgroundColor: showMeetings
             ? const Color(0xFF00897B)
             : const Color(0xFFFF9800),

@@ -672,7 +672,10 @@ class _MemberDashboardState extends State<MemberDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: RefreshIndicator(
+      body: isLoading
+      ? const Center(
+        child : LoadingAnimation(size: 220),
+      ): RefreshIndicator(
         color: AppColors.darkTeal,
         onRefresh: fetchAllData,
         child: CustomScrollView(
