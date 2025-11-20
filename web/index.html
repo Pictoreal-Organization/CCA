@@ -23,16 +23,28 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="cca">
+  <meta name="apple-mobile-web-app-title" content="PictoCreds">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="app_icon.png"/>
 
-  <title>cca</title>
+  <title>PictoCreds</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((reg) => {
+          console.log('Service worker registered!', reg);
+        })
+        .catch((err) => {
+          console.error('Service worker registration failed:', err);
+        });
+    }
+  </script>
+  
 </body>
 </html>

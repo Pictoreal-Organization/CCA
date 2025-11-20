@@ -84,14 +84,25 @@ import 'screens/splash.screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/app_colors.dart'; // <-- your color file
 import 'package:firebase_core/firebase_core.dart'; // 1. Add this import
-
+import 'firebase_options.dart'; // <- generated file
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // <-- pass options
+  );
+
   runApp(const MyApp());
 }
+
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await dotenv.load(fileName: ".env");
+//   await Firebase.initializeApp();
+//   runApp(const MyApp());
+// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -102,7 +113,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'My App',
+      title: 'PictoCreds',
 
       // 👇 Force app to always use light theme
       themeMode: ThemeMode.light,
