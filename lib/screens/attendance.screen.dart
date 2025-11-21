@@ -233,15 +233,50 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                   ),
 
                                   child: ListTile(
+                                    // leading: CircleAvatar(
+                                    //   backgroundColor: AppColors.darkTeal,
+                                    //   child: Icon(
+                                    //     Icons.person,
+                                    //     color: Colors.white,
+                                    //     size: 32,
+                                    //   ),
+                                    //   radius: 24,
+                                    // ),
                                     leading: CircleAvatar(
-                                      backgroundColor: AppColors.darkTeal,
-                                      child: Icon(
-                                        Icons.person,
-                                        color: Colors.white,
-                                        size: 32,
-                                      ),
                                       radius: 24,
+                                      backgroundColor: Colors.transparent,
+                                      child: ClipOval(
+                                        child:
+                                            member['avatar'] != null &&
+                                                member['avatar']
+                                                    .toString()
+                                                    .isNotEmpty
+                                            ? Image.asset(
+                                                member['avatar'],
+                                                width: 48,
+                                                height: 48,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) {
+                                                      return const Icon(
+                                                        Icons.account_circle,
+                                                        size: 48,
+                                                        color: Colors.grey,
+                                                      );
+                                                    },
+                                              )
+                                            : const Icon(
+                                                Icons.account_circle,
+                                                size: 48,
+                                                color: Colors.grey,
+                                              ),
+                                      ),
                                     ),
+
                                     title: Text(
                                       "${member['name']} - ${member['year']} ${member['division']}",
                                       style: TextStyle(

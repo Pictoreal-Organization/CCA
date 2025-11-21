@@ -82,17 +82,26 @@
 import 'package:flutter/material.dart';
 import 'screens/splash.screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'core/app_colors.dart'; // <-- your color file
-import 'package:firebase_core/firebase_core.dart'; // 1. Add this import
-import 'firebase_options.dart'; // <- generated file
+import 'core/app_colors.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'services/notification_handler.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("🔵 Background message received: ${message.messageId}");
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // <-- pass options
+    options: DefaultFirebaseOptions.currentPlatform,
   );
+  NotificationHandler().initialize(); // You will add this file
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
 }
