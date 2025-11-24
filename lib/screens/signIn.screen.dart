@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
+import '../services/notification_handler.dart'; // ✅ Import Notification Handler
 import 'member_dashboard.screen.dart';
 import 'head_dashboard.screen.dart';
 import 'forgot_password.screen.dart';
@@ -20,11 +21,34 @@ class _SignInScreenState extends State<SignInScreen> {
   bool isLoading = false;
   bool _isPasswordVisible = false;
 
+  void _handlePostLogin() async {
+    // ✅ Common logic for after successful login (Email or Google)
+    // Initialize Notifications
+    await NotificationHandler().initialize();
+
+    final prefs = await SharedPreferences.getInstance();
+    String? role = prefs.getString("role");
+
+    if (!mounted) return;
+    setState(() => isLoading = false);
+
+    if (role == "Head") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HeadDashboard()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => MemberDashboard()),
+      );
+    }
+  }
+
   void login() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    // simple frontend validation
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Email and password cannot be empty")),
@@ -37,24 +61,7 @@ class _SignInScreenState extends State<SignInScreen> {
     final result = await authService.login(email, password);
 
     if (result["success"] == true) {
-      setState(() => isLoading = false);
-
-      final prefs = await SharedPreferences.getInstance();
-      String? role = prefs.getString("role");
-
-      if (!mounted) return;
-
-      if (role == "Head") {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HeadDashboard()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => MemberDashboard()),
-        );
-      }
+      _handlePostLogin(); // ✅ Reuse logic
     } else {
       setState(() => isLoading = false);
       if (mounted) {
@@ -65,17 +72,33 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
+  // ✅ NEW: Google Login Handler
+  void googleLogin() async {
+    setState(() => isLoading = true);
+    
+    final result = await authService.loginWithGoogle();
+
+    if (result["success"] == true) {
+      _handlePostLogin();
+    } else {
+      setState(() => isLoading = false);
+      if (mounted && result["message"] != "Google sign in cancelled") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result["message"] ?? "Google Login failed")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Check if keyboard is visible
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = bottomInset > 0;
 
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
-        resizeToAvoidBottomInset:
-            true, // Important: allows content to resize when keyboard appears
+        resizeToAvoidBottomInset: true,
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -89,13 +112,12 @@ class _SignInScreenState extends State<SignInScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(height: 40), // Top spacing
-                  // Main Content
+                  const SizedBox(height: 40), 
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Logo - Hide or shrink when keyboard is visible
+                      // Logo
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         height: 200,
@@ -233,6 +255,33 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                               ),
                             ),
+                      const SizedBox(height: 15),
+
+                      // ✅ Google Login Button
+                      if (!isLoading)
+                        SizedBox(
+                          height: 44,
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: googleLogin,
+                            icon: const Icon(Icons.login, color: Colors.black54, size: 20), // Replace with Google Logo asset if available
+                            label: const Text(
+                              "Sign in with Google",
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.grey.shade300),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+
                       const SizedBox(height: 20),
 
                       // Forgot Password
@@ -257,24 +306,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     ],
                   ),
 
-                  // Footer - PICTOREAL (Hides when keyboard is visible)
-                  // AnimatedOpacity(
-                  //   opacity: isKeyboardVisible ? 0.0 : 1.0,
-                  //   duration: const Duration(milliseconds: 200),
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.only(bottom: 30, top: 20),
-                  //     child: Text(
-                  //       "PICTOREAL",
-                  //       style: TextStyle(
-                  //         color: isKeyboardVisible
-                  //             ? Colors.transparent
-                  //             : AppColors.darkGray,
-                  //         fontWeight: FontWeight.w500,
-                  //         fontSize: 12,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
                   AnimatedOpacity(
                     opacity: isKeyboardVisible ? 0.0 : 1.0,
                     duration: const Duration(milliseconds: 200),

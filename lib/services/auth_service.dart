@@ -2,10 +2,18 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart'; // ✅ Import
 
 class AuthService {
   // final String baseUrl = "http://10.0.2.2:5001/api/auth"; 
   final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
+  
+  // ✅ Google Sign In Instance
+  // Make sure to use the WEB Client ID from Google Cloud Console here if needed
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+    scopes: ['email'],
+  );
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
@@ -39,6 +47,61 @@ class AuthService {
     }
   }
 
+  // ✅ NEW: Login With Google
+  Future<Map<String, dynamic>> loginWithGoogle() async {
+    try {
+      // 1. Start Google Sign In Flow
+      // This opens the dialog on the phone
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        // User canceled the sign-in
+        return {"success": false, "message": "Google sign in cancelled"}; 
+      }
+
+      // 2. Get Auth Headers (ID Token)
+      // This retrieves the token we need to send to the backend
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      
+      // 3. Send ID Token to Backend
+      // Your backend verifies this token with Google
+      final response = await http.post(
+        Uri.parse('$baseUrl/google'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "token": googleAuth.idToken, // Verification token
+        }),
+      );
+
+      final Map<String, dynamic> body = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Standard Login Success Logic (Save JWTs)
+        final accessToken = body["accessToken"];
+        final payload = accessToken.split('.')[1];
+        final normalized = base64Url.normalize(payload);
+        final decoded = jsonDecode(utf8.decode(base64Url.decode(normalized)));
+        final userId = decoded['id'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("accessToken", accessToken);
+        await prefs.setString("refreshToken", body["refreshToken"]);
+        await prefs.setString("role", body["role"]);
+        await prefs.setString("userId", userId);
+
+        return {"success": true};
+      } else {
+        // Ensure we sign out from Google if backend rejects us (e.g. user not in DB)
+        await _googleSignIn.signOut();
+        return {
+          "success": false, 
+          "message": body["msg"] ?? "Google Login failed"
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error: $e"};
+    }
+  }
 
   Future<bool> register(String username, String email, String password) async {
     final response = await http.post(
@@ -60,6 +123,7 @@ class AuthService {
     await prefs.remove("accessToken");
     await prefs.remove("refreshToken");
     await prefs.remove("role");
+    await _googleSignIn.signOut(); // ✅ Sign out of Google too
   }
 
   Future<bool> isLoggedIn() async {

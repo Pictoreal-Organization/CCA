@@ -12,7 +12,16 @@
           "package_name": "com.example.cca"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "116396092394-7p1h95tfv6dc5tkcnv3mobmn6ad6l0b9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cca",
+            "certificate_hash": "8db128444cf94acf9bf6b691c56533bcd161cb22"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCRMI0XWnzvn0YEKilbyZf90MSAMvD5z9k"
