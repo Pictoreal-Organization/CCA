@@ -3,17 +3,29 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // ✅ Import
+import 'package:flutter/foundation.dart';
+
 
 class AuthService {
-  // final String baseUrl = "http://10.0.2.2:5001/api/auth"; 
+  // final String baseUrl = "http://10.0.2.2:5001/api/auth";
   final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
-  
+
   // ✅ Google Sign In Instance
   // Make sure to use the WEB Client ID from Google Cloud Console here if needed
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: dotenv.env['GOOGLE_CLIENT_ID'],
-    scopes: ['email'],
-  );
+  // final GoogleSignIn _googleSignIn = GoogleSignIn(
+  //   clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+  //   scopes: ['email'],
+  // );
+
+  final GoogleSignIn _googleSignIn = kIsWeb
+    ? GoogleSignIn(
+        scopes: ['email'],                 // ✔ Web version → NO clientId, NO serverClientId
+      )
+    : GoogleSignIn(
+        serverClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],   // ✔ Backend verification
+        clientId: dotenv.env['GOOGLE_ANDROID_CLIENT_ID'],     // ✔ Android OAuth Client ID
+        scopes: ['email'],
+      );
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
@@ -38,12 +50,8 @@ class AuthService {
       await prefs.setString("userId", userId);
 
       return {"success": true};
-    } 
-    else {
-      return {
-        "success": false,
-        "message": body["msg"] ?? "Login failed"
-      };
+    } else {
+      return {"success": false, "message": body["msg"] ?? "Login failed"};
     }
   }
 
@@ -52,31 +60,49 @@ class AuthService {
     try {
       // 1. Start Google Sign In Flow
       // This opens the dialog on the phone
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
+      final GoogleSignInAccount? googleUser = await _googleSignIn
+          .signIn();
+
+      print(dotenv.env['GOOGLE_CLIENT_ID']);
+
+
       if (googleUser == null) {
         // User canceled the sign-in
-        return {"success": false, "message": "Google sign in cancelled"}; 
+        return {"success": false, "message": "Google sign in cancelled"};
       }
 
       // 2. Get Auth Headers (ID Token)
       // This retrieves the token we need to send to the backend
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
-      // 3. Send ID Token to Backend
-      // Your backend verifies this token with Google
+
+      // ⚠️ IMPORTANT: Web gives accessToken, Mobile gives idToken
+      final token = kIsWeb ? googleAuth.accessToken : googleAuth.idToken;
+
+      if (token == null) {
+        print("❌ No token received");
+        return {
+          "success": false,
+          "message": "Could not retrieve authentication token"
+        };
+      }
+
+      print("🔑 Sending ${kIsWeb ? 'access' : 'id'} token to backend...");
+
+      // Send token to backend
       final response = await http.post(
         Uri.parse('$baseUrl/google'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          "token": googleAuth.idToken, // Verification token
+          "token": token,
+          "isWeb": kIsWeb, // ✅ Tell backend which token type
         }),
       );
+
+      print("📥 Backend response: ${response.statusCode}");
 
       final Map<String, dynamic> body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Standard Login Success Logic (Save JWTs)
         final accessToken = body["accessToken"];
         final payload = accessToken.split('.')[1];
         final normalized = base64Url.normalize(payload);
@@ -89,15 +115,57 @@ class AuthService {
         await prefs.setString("role", body["role"]);
         await prefs.setString("userId", userId);
 
+        print("✅ Login successful!");
         return {"success": true};
       } else {
-        // Ensure we sign out from Google if backend rejects us (e.g. user not in DB)
         await _googleSignIn.signOut();
+        print("❌ Backend rejected: ${body["msg"]}");
         return {
-          "success": false, 
-          "message": body["msg"] ?? "Google Login failed"
+          "success": false,
+          "message": body["msg"] ?? "Google Login failed",
         };
       }
+
+      // // Check if we have the token
+      // if (googleAuth.idToken == null) {
+      //   return {"success": false, "message": "Could not retrieve ID token"};
+      // }
+
+      // // 3. Send ID Token to Backend
+      // // Your backend verifies this token with Google
+      // final response = await http.post(
+      //   Uri.parse('$baseUrl/google'),
+      //   headers: {"Content-Type": "application/json"},
+      //   body: jsonEncode({
+      //     "token": googleAuth.idToken, // Verification token
+      //   }),
+      // );
+
+      // final Map<String, dynamic> body = jsonDecode(response.body);
+
+      // if (response.statusCode == 200) {
+      //   // Standard Login Success Logic (Save JWTs)
+      //   final accessToken = body["accessToken"];
+      //   final payload = accessToken.split('.')[1];
+      //   final normalized = base64Url.normalize(payload);
+      //   final decoded = jsonDecode(utf8.decode(base64Url.decode(normalized)));
+      //   final userId = decoded['id'];
+
+      //   final prefs = await SharedPreferences.getInstance();
+      //   await prefs.setString("accessToken", accessToken);
+      //   await prefs.setString("refreshToken", body["refreshToken"]);
+      //   await prefs.setString("role", body["role"]);
+      //   await prefs.setString("userId", userId);
+
+      //   return {"success": true};
+      // } else {
+      //   // Ensure we sign out from Google if backend rejects us (e.g. user not in DB)
+      //   await _googleSignIn.signOut();
+      //   return {
+      //     "success": false,
+      //     "message": body["msg"] ?? "Google Login failed",
+      //   };
+      // }
     } catch (e) {
       return {"success": false, "message": "Error: $e"};
     }
@@ -111,7 +179,7 @@ class AuthService {
         "username": username,
         "email": email,
         "password": password,
-        "role": "Member" // default role
+        "role": "Member", // default role
       }),
     );
 
@@ -144,20 +212,14 @@ class AuthService {
       return {"success": true};
     }
 
-    return {
-      "success": false,
-      "message": body["msg"] ?? "Something went wrong"
-    };
+    return {"success": false, "message": body["msg"] ?? "Something went wrong"};
   }
 
   Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
     final response = await http.post(
       Uri.parse('$baseUrl/verify-otp'),
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "email": email,
-        "otp": otp,
-      }),
+      body: jsonEncode({"email": email, "otp": otp}),
     );
 
     final body = jsonDecode(response.body);
@@ -168,11 +230,15 @@ class AuthService {
 
     return {
       "success": false,
-      "message": body["msg"] ?? "Invalid or expired OTP"
+      "message": body["msg"] ?? "Invalid or expired OTP",
     };
   }
 
-  Future<Map<String, dynamic>> changePasswordWithOTP(String email, String otp, String newPassword) async {
+  Future<Map<String, dynamic>> changePasswordWithOTP(
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
     final response = await http.post(
       Uri.parse('$baseUrl/change-password-otp'),
       headers: {"Content-Type": "application/json"},
@@ -191,7 +257,7 @@ class AuthService {
 
     return {
       "success": false,
-      "message": body["msg"] ?? "Failed to change password"
+      "message": body["msg"] ?? "Failed to change password",
     };
   }
 
@@ -203,7 +269,9 @@ class AuthService {
 
     try {
       await http.put(
-        Uri.parse('$baseUrl/fcm-token'), // Ensure this route exists in your backend auth.routes.js
+        Uri.parse(
+          '$baseUrl/fcm-token',
+        ), // Ensure this route exists in your backend auth.routes.js
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",

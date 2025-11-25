@@ -7,7 +7,7 @@ firebase.initializeApp({
     projectId: "cca-flutter-app",
     storageBucket: "cca-flutter-app.firebasestorage.app",
     messagingSenderId: "116396092394",
-    appId: "1:116396092394:web:95809f64e81fa484d16093"
+    appId: "1:116396092394:web:377b25d2e8d73527d16093"
 });
 
 const messaging = firebase.messaging();

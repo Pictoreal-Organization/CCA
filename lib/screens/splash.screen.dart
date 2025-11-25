@@ -175,7 +175,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Colors.white,
-      body: Center(child: LoadingAnimation(size: 250)),
+      body: Center(child: LoadingAnimation(size: 220)),
     );
   }
 }

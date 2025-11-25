@@ -5,6 +5,7 @@ import '../services/team_service.dart';
 import '../services/tag_service.dart';
 import '../core/app_colors.dart';
 import '../widgets/date_time_picker_widget.dart';
+import '../widgets/customAppbar.widget.dart';
 
 // ------ CONSTANTS -------
 const Color kUnselectedBg = Colors.white;
@@ -1069,13 +1070,18 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Meeting' : 'New Meeting'),
-        backgroundColor: AppColors.darkTeal,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        centerTitle: true,
+      // appBar: AppBar(
+      //   title: Text(isEditMode ? 'Edit Meeting' : 'New Meeting'),
+      //   backgroundColor: AppColors.darkTeal,
+      //   foregroundColor: Colors.white,
+      //   iconTheme: const IconThemeData(color: Colors.white),
+      //   elevation: 4,
+      // ),
+      appBar: customAppBar(
+        title: isEditMode ? "Edit Meeting" : "New Meeting",
+        context: context,
       ),
+
       body: Form(
         key: _formKey,
         child: ListView(

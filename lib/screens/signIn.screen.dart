@@ -434,7 +434,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    // const SizedBox(height: 10),
 
                     // Welcome Text
                     const Text(

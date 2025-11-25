@@ -5,6 +5,7 @@ import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../services/notification_handler.dart'; // ✅ Added
 import '../widgets/loading_animation.widget.dart';
+import '../widgets/customAppbar.widget.dart';
 import '../core/app_colors.dart';
 
 class AvatarConfig {
@@ -49,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _email = "";
   String _role = "";
   String _userId = "";
+  String _userTeam = "";
   List _completedTasks = [];
   String _selectedAvatar = AvatarConfig.defaultAvatar;
 
@@ -68,25 +70,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ✅ Toggle Logic
+  // Future<void> _toggleNotifications(bool value) async {
+  //   setState(() => _notificationsEnabled = value);
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.setBool('notifications_enabled', value);
+
+  //   if (value) {
+  //     // Turn ON: Re-initialize to get token
+  //     await NotificationHandler().initialize();
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text("Notifications Enabled ✅"),
+  //           duration: Duration(seconds: 1),
+  //         ),
+  //       );
+  //     }
+  //   } else {
+  //     // Turn OFF: Delete token so FCM stops sending to this device
+  //     await FirebaseMessaging.instance.deleteToken();
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text("Notifications Disabled 🔕"),
+  //           duration: Duration(seconds: 1),
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
+
+  // ✅ UPDATED: Use the new disable/enable methods
   Future<void> _toggleNotifications(bool value) async {
     setState(() => _notificationsEnabled = value);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notifications_enabled', value);
 
     if (value) {
-      // Turn ON: Re-initialize to get token
-      await NotificationHandler().initialize();
-      if(mounted) {
+      // Turn ON: Use the new enableNotifications method
+      await NotificationHandler().enableNotifications();
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Notifications Enabled ✅"), duration: Duration(seconds: 1)),
+          const SnackBar(
+            content: Text("Notifications Enabled ✅"),
+            duration: Duration(seconds: 1),
+          ),
         );
       }
     } else {
-      // Turn OFF: Delete token so FCM stops sending to this device
-      await FirebaseMessaging.instance.deleteToken();
-      if(mounted) {
+      // Turn OFF: Use the new disableNotifications method
+      await NotificationHandler().disableNotifications();
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Notifications Disabled 🔕"), duration: Duration(seconds: 1)),
+          const SnackBar(
+            content: Text("Notifications Disabled 🔕"),
+            duration: Duration(seconds: 1),
+          ),
         );
       }
     }
@@ -124,20 +161,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userId = user['_id'] ?? '';
       _email = user['email'] ?? '';
       _role = user['role'] ?? '';
+
+      // ✅ FIXED: Extract team ID correctly
+      // Check if team is an array or a single value
+      if (user['team'] != null) {
+        if (user['team'] is List && (user['team'] as List).isNotEmpty) {
+          // If it's an array, get the first team's ID
+          _userTeam = user['team'][0]['_id'] ?? user['team'][0].toString();
+        } else if (user['team'] is Map) {
+          // If it's a populated object with _id
+          _userTeam = user['team']['_id'] ?? '';
+        } else {
+          // If it's already a string ID
+          _userTeam = user['team'].toString();
+        }
+      } else {
+        _userTeam = '';
+      }
+
       _nameController.text = user['name'] ?? '';
       _rollController.text = user['rollNo'] ?? '';
       _yearController.text = user['year'] ?? '';
       _divisionController.text = user['division'] ?? '';
       _phoneController.text = user['phone'] ?? '';
-      
+
       _selectedAvatar = user['avatar'] ?? AvatarConfig.defaultAvatar;
 
+      // ✅ Load completed tasks based on role
       if (_role == 'Head') {
-         _completedTasks = await taskService.getAllCompletedTasks();
+        if (_userTeam.isNotEmpty) {
+          print('Loading completed tasks for team: $_userTeam'); // Debug log
+          _completedTasks = await taskService.getCompletedTasksByTeam(
+            _userTeam,
+          );
+        } else {
+          _completedTasks = await taskService.getAllCompletedTasks();
+        }
       } else if (_role == 'Member' && _userId.isNotEmpty) {
         _completedTasks = await taskService.getCompletedTasksByUser(_userId);
       }
     } catch (e) {
+      print('Error loading data: $e'); // Debug log
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to load profile data: $e")),
@@ -166,9 +230,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       setState(() => _isEditing = false);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to update profile: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -178,54 +242,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          "Profile",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-        backgroundColor: AppColors.darkTeal,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: _isEditing
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _isEditing ? Icons.check_circle_rounded : Icons.edit_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            onPressed: () {
-              if (_isEditing) {
-                saveProfile();
-              } else {
-                setState(() => _isEditing = true);
-              }
-            },
-          ),
-        ],
+      appBar: customAppBar(
+        title: "Profile",
+        context: context,
+        showEdit: true,
+        isEditing: _isEditing,
+        onEditToggle: () {
+          if (_isEditing) {
+            saveProfile();
+          } else {
+            setState(() => _isEditing = true);
+          }
+        },
       ),
+
       body: _isLoading
-          ? const Center(
-              child: LoadingAnimation(size: 250),
-          )
+          ? const Center(child: LoadingAnimation(size: 250))
           : RefreshIndicator(
               color: AppColors.green,
               backgroundColor: Colors.white,
@@ -255,8 +287,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             ),
-                            child: _selectedAvatar.isEmpty ||
-                                    _selectedAvatar == AvatarConfig.defaultAvatar
+                            child:
+                                _selectedAvatar.isEmpty ||
+                                    _selectedAvatar ==
+                                        AvatarConfig.defaultAvatar
                                 ? const Icon(
                                     Icons.account_circle_rounded,
                                     size: 74,
@@ -268,13 +302,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       width: 74,
                                       height: 74,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(
-                                          Icons.account_circle_rounded,
-                                          size: 74,
-                                          color: Colors.white,
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.account_circle_rounded,
+                                              size: 74,
+                                              color: Colors.white,
+                                            );
+                                          },
                                     ),
                                   ),
                           ),
@@ -407,16 +442,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 3.5),
-                        _buildEditableField("Full Name", _nameController, Icons.person),
+                        _buildEditableField(
+                          "Full Name",
+                          _nameController,
+                          Icons.person,
+                        ),
                         const SizedBox(height: 3.5),
-                        _buildEditableField("Roll No", _rollController, Icons.badge),
+                        _buildEditableField(
+                          "Roll No",
+                          _rollController,
+                          Icons.badge,
+                        ),
                         const SizedBox(height: 3.5),
-                        _buildEditableField("Year", _yearController, Icons.school),
+                        _buildEditableField(
+                          "Year",
+                          _yearController,
+                          Icons.school,
+                        ),
                         const SizedBox(height: 3.5),
-                        _buildEditableField("Division", _divisionController, Icons.group),
+                        _buildEditableField(
+                          "Division",
+                          _divisionController,
+                          Icons.group,
+                        ),
                         const SizedBox(height: 3.5),
-                        _buildEditableField("Phone Number", _phoneController, Icons.phone),
-                        
+                        _buildEditableField(
+                          "Phone Number",
+                          _phoneController,
+                          Icons.phone,
+                        ),
+
                         // ✅ Added Notification Toggle Here
                         const Divider(height: 24),
                         SwitchListTile(
@@ -431,8 +486,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           secondary: Icon(
-                            _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
-                            color: _notificationsEnabled ? AppColors.green : AppColors.lightGray,
+                            _notificationsEnabled
+                                ? Icons.notifications_active
+                                : Icons.notifications_off,
+                            color: _notificationsEnabled
+                                ? AppColors.green
+                                : AppColors.lightGray,
                             size: 20,
                           ),
                           value: _notificationsEnabled,
@@ -444,6 +503,304 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
 
                   // --- Completed Tasks Section ---
+                  // Container(
+                  //   padding: const EdgeInsets.all(20),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.white,
+                  //     borderRadius: BorderRadius.circular(16),
+                  //     boxShadow: [
+                  //       BoxShadow(
+                  //         color: Colors.black.withOpacity(0.2),
+                  //         blurRadius: 8,
+                  //         offset: const Offset(0, 2),
+                  //       ),
+                  //     ],
+                  //   ),
+                  //   child: Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       Row(
+                  //         children: [
+                  //           const Icon(
+                  //             Icons.task_alt,
+                  //             color: AppColors.green,
+                  //             size: 20,
+                  //           ),
+                  //           const SizedBox(width: 8),
+                  //           const Text(
+                  //             "Completed Tasks",
+                  //             style: TextStyle(
+                  //               fontSize: 16,
+                  //               fontWeight: FontWeight.w600,
+                  //               color: AppColors.darkGray,
+                  //             ),
+                  //           ),
+                  //           const Spacer(),
+                  //           Container(
+                  //             padding: const EdgeInsets.symmetric(
+                  //               horizontal: 8,
+                  //               vertical: 4,
+                  //             ),
+                  //             decoration: BoxDecoration(
+                  //               color: AppColors.green.withOpacity(0.1),
+                  //               borderRadius: BorderRadius.circular(12),
+                  //             ),
+                  //             child: Text(
+                  //               "${_completedTasks.length}",
+                  //               style: const TextStyle(
+                  //                 color: AppColors.green,
+                  //                 fontSize: 12,
+                  //                 fontWeight: FontWeight.w600,
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //       const SizedBox(height: 16),
+
+                  //       if (_completedTasks.isEmpty)
+                  //         Container(
+                  //           padding: const EdgeInsets.symmetric(vertical: 40),
+                  //           width: double.infinity,
+                  //           child: Column(
+                  //             mainAxisAlignment: MainAxisAlignment.center,
+                  //             crossAxisAlignment: CrossAxisAlignment.center,
+                  //             children: [
+                  //               Icon(
+                  //                 Icons.incomplete_circle_rounded,
+                  //                 color: AppColors.lightGray.withOpacity(0.5),
+                  //                 size: 64,
+                  //               ),
+                  //               const SizedBox(height: 16),
+                  //               const Text(
+                  //                 "No completed tasks yet",
+                  //                 style: TextStyle(
+                  //                   color: AppColors.lightGray,
+                  //                   fontSize: 14,
+                  //                 ),
+                  //                 textAlign: TextAlign.center,
+                  //               ),
+                  //               const SizedBox(height: 8),
+                  //               Text(
+                  //                 "Complete your first task to see it here!",
+                  //                 style: TextStyle(
+                  //                   color: AppColors.lightGray.withOpacity(0.7),
+                  //                   fontSize: 12,
+                  //                 ),
+                  //                 textAlign: TextAlign.center,
+                  //               ),
+                  //             ],
+                  //           ),
+                  //         )
+                  //       else
+                  //         ..._completedTasks.asMap().entries.map((entry) {
+                  //           final taskIndex = entry.key;
+                  //           final task = entry.value;
+                  //           final subtasks = (task['subtasks'] as List?) ?? [];
+
+                  //           return Container(
+                  //             margin: const EdgeInsets.only(bottom: 12),
+                  //             decoration: BoxDecoration(
+                  //               color: Colors.grey.shade50,
+                  //               borderRadius: BorderRadius.circular(12),
+                  //               border: Border.all(color: Colors.grey.shade200),
+                  //             ),
+                  //             child: Stack(
+                  //               children: [
+                  //                 _role == 'Head'
+                  //                     ? Theme(
+                  //                         data: Theme.of(context).copyWith(
+                  //                           dividerColor: Colors.transparent,
+                  //                         ),
+                  //                         child: ExpansionTile(
+                  //                           tilePadding:
+                  //                               const EdgeInsets.symmetric(
+                  //                                 horizontal: 16,
+                  //                                 vertical: 4,
+                  //                               ),
+                  //                           leading: Container(
+                  //                             padding: const EdgeInsets.all(6),
+                  //                             decoration: BoxDecoration(
+                  //                               color: AppColors.green
+                  //                                   .withOpacity(0.1),
+                  //                               shape: BoxShape.circle,
+                  //                             ),
+                  //                             child: const Icon(
+                  //                               Icons.check_circle_rounded,
+                  //                               color: AppColors.green,
+                  //                               size: 20,
+                  //                             ),
+                  //                           ),
+                  //                           title: Text(
+                  //                             task['title'],
+                  //                             style: const TextStyle(
+                  //                               fontWeight: FontWeight.w500,
+                  //                               color: AppColors.darkGray,
+                  //                             ),
+                  //                           ),
+                  //                           subtitle: Text(
+                  //                             task['completedAt'] != null
+                  //                                 ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
+                  //                                 : task['deadline'] != null
+                  //                                 ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
+                  //                                 : 'Completion date not available',
+                  //                             style: const TextStyle(
+                  //                               color: AppColors.lightGray,
+                  //                               fontSize: 12,
+                  //                             ),
+                  //                           ),
+                  //                           children: [
+                  //                             Padding(
+                  //                               padding:
+                  //                                   const EdgeInsets.symmetric(
+                  //                                     horizontal: 16,
+                  //                                   ),
+                  //                               child: Divider(
+                  //                                 color: Colors.grey.shade300,
+                  //                               ),
+                  //                             ),
+                  //                             ...subtasks.map((sub) {
+                  //                               final assignedUsers =
+                  //                                   (sub['assignedTo'] as List)
+                  //                                       .map(
+                  //                                         (u) => u['username'],
+                  //                                       )
+                  //                                       .join(', ');
+                  //                               return Container(
+                  //                                 margin: const EdgeInsets.only(
+                  //                                   bottom: 8,
+                  //                                   left: 16,
+                  //                                   right: 16,
+                  //                                 ),
+                  //                                 padding: const EdgeInsets.all(
+                  //                                   12,
+                  //                                 ),
+                  //                                 decoration: BoxDecoration(
+                  //                                   color: Colors.white,
+                  //                                   borderRadius:
+                  //                                       BorderRadius.circular(
+                  //                                         8,
+                  //                                       ),
+                  //                                   border: Border.all(
+                  //                                     color:
+                  //                                         Colors.grey.shade200,
+                  //                                   ),
+                  //                                 ),
+                  //                                 child: Column(
+                  //                                   crossAxisAlignment:
+                  //                                       CrossAxisAlignment
+                  //                                           .start,
+                  //                                   children: [
+                  //                                     Row(
+                  //                                       children: [
+                  //                                         Expanded(
+                  //                                           child: Text(
+                  //                                             sub['title'],
+                  //                                             style: const TextStyle(
+                  //                                               fontWeight:
+                  //                                                   FontWeight
+                  //                                                       .w600,
+                  //                                               color: AppColors
+                  //                                                   .darkGray,
+                  //                                               fontSize: 14,
+                  //                                             ),
+                  //                                           ),
+                  //                                         ),
+                  //                                       ],
+                  //                                     ),
+                  //                                     const SizedBox(height: 4),
+                  //                                     Text(
+                  //                                       sub['description'] ??
+                  //                                           'No completion note.',
+                  //                                       style: TextStyle(
+                  //                                         color: AppColors
+                  //                                             .darkGray
+                  //                                             .withOpacity(0.8),
+                  //                                         fontSize: 12,
+                  //                                       ),
+                  //                                     ),
+                  //                                     const SizedBox(height: 6),
+                  //                                     Text(
+                  //                                       "Completed by: $assignedUsers",
+                  //                                       style: const TextStyle(
+                  //                                         fontStyle:
+                  //                                             FontStyle.italic,
+                  //                                         color: AppColors
+                  //                                             .lightGray,
+                  //                                         fontSize: 11,
+                  //                                       ),
+                  //                                     ),
+                  //                                   ],
+                  //                                 ),
+                  //                               );
+                  //                             }).toList(),
+                  //                             const SizedBox(height: 8),
+                  //                           ],
+                  //                         ),
+                  //                       )
+                  //                     : ListTile(
+                  //                         contentPadding:
+                  //                             const EdgeInsets.symmetric(
+                  //                               horizontal: 16,
+                  //                               vertical: 4,
+                  //                             ),
+                  //                         leading: Container(
+                  //                           padding: const EdgeInsets.all(6),
+                  //                           decoration: BoxDecoration(
+                  //                             color: AppColors.green
+                  //                                 .withOpacity(0.1),
+                  //                             shape: BoxShape.circle,
+                  //                           ),
+                  //                           child: const Icon(
+                  //                             Icons.check_circle_rounded,
+                  //                             color: AppColors.green,
+                  //                             size: 20,
+                  //                           ),
+                  //                         ),
+                  //                         title: Text(
+                  //                           task['title'],
+                  //                           style: const TextStyle(
+                  //                             fontWeight: FontWeight.w500,
+                  //                             color: AppColors.darkGray,
+                  //                           ),
+                  //                         ),
+                  //                         subtitle: Text(
+                  //                           task['completedAt'] != null
+                  //                               ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
+                  //                               : task['deadline'] != null
+                  //                               ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
+                  //                               : 'Completion date not available',
+                  //                           style: const TextStyle(
+                  //                             color: AppColors.lightGray,
+                  //                             fontSize: 12,
+                  //                           ),
+                  //                         ),
+                  //                       ),
+
+                  //                 Positioned(
+                  //                   left: 0,
+                  //                   top: 0,
+                  //                   bottom: 0,
+                  //                   child: Container(
+                  //                     width: 8,
+                  //                     decoration: BoxDecoration(
+                  //                       color: taskIndex.isEven
+                  //                           ? AppColors.orange
+                  //                           : AppColors.darkTeal,
+                  //                       borderRadius: const BorderRadius.only(
+                  //                         topLeft: Radius.circular(12),
+                  //                         bottomLeft: Radius.circular(12),
+                  //                       ),
+                  //                     ),
+                  //                   ),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           );
+                  //         }).toList(),
+                  //     ],
+                  //   ),
+                  // ),
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -462,19 +819,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.task_alt, color: AppColors.green, size: 20),
+                            const Icon(
+                              Icons.task_alt,
+                              color: AppColors.green,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
-                            const Text(
-                              "Completed Tasks",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.darkGray,
+                            Expanded(
+                              child: Text(
+                                _role == 'Head'
+                                    ? "Team Completed Tasks"
+                                    : "My Completed Tasks",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.darkGray,
+                                ),
                               ),
                             ),
-                            const Spacer(),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
@@ -492,6 +859,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
 
+                        // ✅ Different empty states for Head vs Member
                         if (_completedTasks.isEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 40),
@@ -501,19 +869,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.incomplete_circle_rounded,
+                                  _role == 'Head'
+                                      ? Icons.groups_outlined
+                                      : Icons.incomplete_circle_rounded,
                                   color: AppColors.lightGray.withOpacity(0.5),
                                   size: 64,
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  "No completed tasks yet",
-                                  style: TextStyle(color: AppColors.lightGray, fontSize: 14),
+                                Text(
+                                  _role == 'Head'
+                                      ? "No completed tasks by your team"
+                                      : "No completed tasks yet",
+                                  style: const TextStyle(
+                                    color: AppColors.lightGray,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  "Complete your first task to see it here!",
+                                  _role == 'Head'
+                                      ? "Tasks completed by your team members will appear here"
+                                      : "Complete your first task to see it here!",
                                   style: TextStyle(
                                     color: AppColors.lightGray.withOpacity(0.7),
                                     fontSize: 12,
@@ -538,15 +916,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               child: Stack(
                                 children: [
+                                  // ✅ Head always sees expandable view with subtasks
                                   _role == 'Head'
-                                    ? Theme(
-                                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                        child: ExpansionTile(
-                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                      ? Theme(
+                                          data: Theme.of(context).copyWith(
+                                            dividerColor: Colors.transparent,
+                                          ),
+                                          child: ExpansionTile(
+                                            tilePadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 4,
+                                                ),
                                             leading: Container(
                                               padding: const EdgeInsets.all(6),
                                               decoration: BoxDecoration(
-                                                color: AppColors.green.withOpacity(0.1),
+                                                color: AppColors.green
+                                                    .withOpacity(0.1),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: const Icon(
@@ -566,8 +952,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               task['completedAt'] != null
                                                   ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
                                                   : task['deadline'] != null
-                                                      ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
-                                                      : 'Completion date not available',
+                                                  ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
+                                                  : 'Completion date not available',
                                               style: const TextStyle(
                                                 color: AppColors.lightGray,
                                                 fontSize: 12,
@@ -575,97 +961,164 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             ),
                                             children: [
                                               Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                child: Divider(color: Colors.grey.shade300),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                    ),
+                                                child: Divider(
+                                                  color: Colors.grey.shade300,
+                                                ),
                                               ),
-                                              ...subtasks.map((sub) {
-                                                final assignedUsers = (sub['assignedTo'] as List)
-                                                    .map((u) => u['username'])
-                                                    .join(', ');
-                                                return Container(
-                                                  margin: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
-                                                  padding: const EdgeInsets.all(12),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(color: Colors.grey.shade200)
+                                              if (subtasks.isEmpty)
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    16.0,
                                                   ),
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: Text(
-                                                              sub['title'],
-                                                              style: const TextStyle(
-                                                                fontWeight: FontWeight.w600,
-                                                                color: AppColors.darkGray,
-                                                                fontSize: 14,
+                                                  child: Text(
+                                                    "No subtasks for this task",
+                                                    style: TextStyle(
+                                                      color: AppColors.lightGray
+                                                          .withOpacity(0.7),
+                                                      fontSize: 12,
+                                                      fontStyle:
+                                                          FontStyle.italic,
+                                                    ),
+                                                  ),
+                                                )
+                                              else
+                                                ...subtasks.map((sub) {
+                                                  final assignedUsers =
+                                                      (sub['assignedTo']
+                                                              as List)
+                                                          .map(
+                                                            (u) =>
+                                                                u['username'],
+                                                          )
+                                                          .join(', ');
+                                                  return Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                          bottom: 8,
+                                                          left: 16,
+                                                          right: 16,
+                                                        ),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: Colors
+                                                            .grey
+                                                            .shade200,
+                                                      ),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text(
+                                                                sub['title'],
+                                                                style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: AppColors
+                                                                      .darkGray,
+                                                                  fontSize: 14,
+                                                                ),
                                                               ),
                                                             ),
+                                                          ],
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          sub['description'] ??
+                                                              'No completion note.',
+                                                          style: TextStyle(
+                                                            color: AppColors
+                                                                .darkGray
+                                                                .withOpacity(
+                                                                  0.8,
+                                                                ),
+                                                            fontSize: 12,
                                                           ),
-                                                        ],
-                                                      ),
-                                                      const SizedBox(height: 4),
-                                                      Text(
-                                                        sub['description'] ?? 'No completion note.',
-                                                        style: TextStyle(
-                                                          color: AppColors.darkGray.withOpacity(0.8),
-                                                          fontSize: 12,
                                                         ),
-                                                      ),
-                                                      const SizedBox(height: 6),
-                                                      Text(
-                                                        "Completed by: $assignedUsers",
-                                                        style: const TextStyle(
-                                                          fontStyle: FontStyle.italic,
-                                                          color: AppColors.lightGray,
-                                                          fontSize: 11,
+                                                        const SizedBox(
+                                                          height: 6,
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              }).toList(),
+                                                        Text(
+                                                          "Completed by: $assignedUsers",
+                                                          style:
+                                                              const TextStyle(
+                                                                fontStyle:
+                                                                    FontStyle
+                                                                        .italic,
+                                                                color: AppColors
+                                                                    .lightGray,
+                                                                fontSize: 11,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
                                               const SizedBox(height: 8),
                                             ],
                                           ),
-                                      )
-                                    : ListTile(
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                        leading: Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.green.withOpacity(0.1),
-                                            shape: BoxShape.circle,
+                                        )
+                                      // ✅ Member sees simple list view
+                                      : ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 4,
+                                              ),
+                                          leading: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.green
+                                                  .withOpacity(0.1),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.check_circle_rounded,
+                                              color: AppColors.green,
+                                              size: 20,
+                                            ),
                                           ),
-                                          child: const Icon(
-                                            Icons.check_circle_rounded,
-                                            color: AppColors.green,
-                                            size: 20,
+                                          title: Text(
+                                            task['title'],
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColors.darkGray,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            task['completedAt'] != null
+                                                ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
+                                                : task['deadline'] != null
+                                                ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
+                                                : 'Completion date not available',
+                                            style: const TextStyle(
+                                              color: AppColors.lightGray,
+                                              fontSize: 12,
+                                            ),
                                           ),
                                         ),
-                                        title: Text(
-                                          task['title'],
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.darkGray,
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                          task['completedAt'] != null
-                                              ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-                                              : task['deadline'] != null
-                                                  ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
-                                                  : 'Completion date not available',
-                                          style: const TextStyle(
-                                            color: AppColors.lightGray,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                  
+
+                                  // Color indicator on the left
                                   Positioned(
                                     left: 0,
                                     top: 0,
@@ -727,7 +1180,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             size: 20,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -758,7 +1214,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.photo_library_rounded, color: AppColors.green, size: 20),
+              const Icon(
+                Icons.photo_library_rounded,
+                color: AppColors.green,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               const Text(
                 "Choose Your Avatar",
@@ -841,7 +1301,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppColors.darkOrange, width: 2),
+                    side: const BorderSide(
+                      color: AppColors.darkOrange,
+                      width: 2,
+                    ),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -852,7 +1315,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(width: 8),
                     Text(
                       "Remove Avatar",
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
