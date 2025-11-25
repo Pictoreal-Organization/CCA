@@ -70,43 +70,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ✅ Toggle Logic
-  // Future<void> _toggleNotifications(bool value) async {
-  //   setState(() => _notificationsEnabled = value);
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.setBool('notifications_enabled', value);
-
-  //   if (value) {
-  //     // Turn ON: Re-initialize to get token
-  //     await NotificationHandler().initialize();
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           content: Text("Notifications Enabled ✅"),
-  //           duration: Duration(seconds: 1),
-  //         ),
-  //       );
-  //     }
-  //   } else {
-  //     // Turn OFF: Delete token so FCM stops sending to this device
-  //     await FirebaseMessaging.instance.deleteToken();
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           content: Text("Notifications Disabled 🔕"),
-  //           duration: Duration(seconds: 1),
-  //         ),
-  //       );
-  //     }
-  //   }
-  // }
-
-  // ✅ UPDATED: Use the new disable/enable methods
   Future<void> _toggleNotifications(bool value) async {
     setState(() => _notificationsEnabled = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
 
     if (value) {
-      // Turn ON: Use the new enableNotifications method
-      await NotificationHandler().enableNotifications();
+      // Turn ON: Re-initialize to get token
+      await NotificationHandler().initialize();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -116,8 +87,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } else {
-      // Turn OFF: Use the new disableNotifications method
-      await NotificationHandler().disableNotifications();
+      // Turn OFF: Delete token so FCM stops sending to this device
+      await FirebaseMessaging.instance.deleteToken();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -128,6 +99,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
   }
+
+  // // ✅ UPDATED: Use the new disable/enable methods
+  // Future<void> _toggleNotifications(bool value) async {
+  //   setState(() => _notificationsEnabled = value);
+
+  //   if (value) {
+  //     // Turn ON: Use the new enableNotifications method
+  //     await NotificationHandler().enableNotifications();
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text("Notifications Enabled ✅"),
+  //           duration: Duration(seconds: 1),
+  //         ),
+  //       );
+  //     }
+  //   } else {
+  //     // Turn OFF: Use the new disableNotifications method
+  //     await NotificationHandler().disableNotifications();
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text("Notifications Disabled 🔕"),
+  //           duration: Duration(seconds: 1),
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
 
   Future<void> _saveAvatar(String avatarPath) async {
     setState(() {

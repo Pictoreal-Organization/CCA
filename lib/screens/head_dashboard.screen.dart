@@ -44,11 +44,23 @@ class _HeadDashboardState extends State<HeadDashboard> {
     super.initState();
     NotificationHandler().initialize();
     fetchAllData();
+
+    // // ✅ Register the callback to control toggle from notifications
+    // NotificationHandler.setDashboardToggle = (bool showMeetings) {
+    //   if (mounted) {
+    //     setState(() {
+    //       this.showMeetings = showMeetings;
+    //     });
+    //     print('🔄 Dashboard toggle set to: ${showMeetings ? "MEETINGS" : "TASKS"}');
+    //   }
+    // };
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    // // ✅ Clean up the callback
+    // NotificationHandler.setDashboardToggle = null;
     super.dispose();
   }
 

@@ -23,7 +23,7 @@ class AuthService {
       )
     : GoogleSignIn(
         serverClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],   // ✔ Backend verification
-        clientId: dotenv.env['GOOGLE_ANDROID_CLIENT_ID'],     // ✔ Android OAuth Client ID
+        // clientId: dotenv.env['GOOGLE_ANDROID_CLIENT_ID'],     // ✔ Android OAuth Client ID
         scopes: ['email'],
       );
 
@@ -58,6 +58,10 @@ class AuthService {
   // ✅ NEW: Login With Google
   Future<Map<String, dynamic>> loginWithGoogle() async {
     try {
+      print("🔵 Starting Google Sign In...");
+      
+      // ✅ Sign out first to ensure clean state
+      await _googleSignIn.signOut();
       // 1. Start Google Sign In Flow
       // This opens the dialog on the phone
       final GoogleSignInAccount? googleUser = await _googleSignIn
