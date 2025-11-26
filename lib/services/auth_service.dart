@@ -2,11 +2,22 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/google_sign_in.dart'; // ✅ Import
 import 'package:flutter/foundation.dart';
+import '../config.dart';
+
 
 class AuthService {
-  final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
+  // final String baseUrl = "http://10.0.2.2:5001/api/auth";
+  // final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
+  final String baseUrl = "${AppConfig.baseUrl}/api/auth";
+
+  // ✅ Google Sign In Instance
+  // Make sure to use the WEB Client ID from Google Cloud Console here if needed
+  // final GoogleSignIn _googleSignIn = GoogleSignIn(
+  //   clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+  //   scopes: ['email'],
+  // );
 
   final GoogleSignIn _googleSignIn = kIsWeb
     ? GoogleSignIn(
@@ -120,6 +131,47 @@ class AuthService {
           "message": body["msg"] ?? "Google Login failed",
         };
       }
+
+      // // Check if we have the token
+      // if (googleAuth.idToken == null) {
+      //   return {"success": false, "message": "Could not retrieve ID token"};
+      // }
+
+      // // 3. Send ID Token to Backend
+      // // Your backend verifies this token with Google
+      // final response = await http.post(
+      //   Uri.parse('$baseUrl/google'),
+      //   headers: {"Content-Type": "application/json"},
+      //   body: jsonEncode({
+      //     "token": googleAuth.idToken, // Verification token
+      //   }),
+      // );
+
+      // final Map<String, dynamic> body = jsonDecode(response.body);
+
+      // if (response.statusCode == 200) {
+      //   // Standard Login Success Logic (Save JWTs)
+      //   final accessToken = body["accessToken"];
+      //   final payload = accessToken.split('.')[1];
+      //   final normalized = base64Url.normalize(payload);
+      //   final decoded = jsonDecode(utf8.decode(base64Url.decode(normalized)));
+      //   final userId = decoded['id'];
+
+      //   final prefs = await SharedPreferences.getInstance();
+      //   await prefs.setString("accessToken", accessToken);
+      //   await prefs.setString("refreshToken", body["refreshToken"]);
+      //   await prefs.setString("role", body["role"]);
+      //   await prefs.setString("userId", userId);
+
+      //   return {"success": true};
+      // } else {
+      //   // Ensure we sign out from Google if backend rejects us (e.g. user not in DB)
+      //   await _googleSignIn.signOut();
+      //   return {
+      //     "success": false,
+      //     "message": body["msg"] ?? "Google Login failed",
+      //   };
+      // }
     } catch (e) {
       return {"success": false, "message": "Error: $e"};
     }
