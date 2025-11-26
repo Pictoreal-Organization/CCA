@@ -320,23 +320,21 @@ class NotificationHandler {
   // --- E. Redirection Logic ---
   void _handleRedirect(Map<String, dynamic> data) {
     final String? type = data['type'];
-    final String? id = data['meetingId'] ?? data['taskId']; // ID based on type
-
+    
     if (type == null) return;
 
-    // Use the Global Navigator Key to push screens
     if (type == 'MEETING_CREATED' || type == 'MEETING_UPDATED') {
-      // Redirect to Meetings
-      navigatorKey.currentState?.pushNamed(
-        '/meetings', // Ensure this route is defined in main.dart
-         arguments: id // Pass ID if your screen accepts it
+      // ✅ Use pushNamedAndRemoveUntil to clear the stack
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/meetings', 
+        (route) => false, // This removes ALL previous routes
       );
     } 
     else if (type == 'TASK_CREATED' || type == 'TASK_UPDATED' || type == 'SUBTASK_UPDATED') {
-      // Redirect to Tasks
-      navigatorKey.currentState?.pushNamed(
+      // ✅ Use pushNamedAndRemoveUntil
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
         '/tasks', 
-        arguments: id
+        (route) => false,
       );
     }
   }

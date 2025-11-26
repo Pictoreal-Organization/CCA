@@ -15,7 +15,8 @@ import '../widgets/loading_animation.widget.dart';
 import '../services/notification_handler.dart';
 
 class HeadDashboard extends StatefulWidget {
-  const HeadDashboard({super.key});
+  final bool openTasks;
+  const HeadDashboard({super.key, this.openTasks = false,});
 
   @override
   State<HeadDashboard> createState() => _HeadDashboardState();
@@ -33,8 +34,8 @@ class _HeadDashboardState extends State<HeadDashboard> {
   List attendancePendingMeetings = [];
   List allTasks = [];
   bool isLoading = true;
-
-  bool showMeetings = true;
+  late bool showMeetings = true;
+  // bool showMeetings = true;
 
   // Scroll controller for sticky behavior
   final ScrollController _scrollController = ScrollController();
@@ -42,6 +43,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
   @override
   void initState() {
     super.initState();
+    showMeetings = !widget.openTasks;
     NotificationHandler().initialize();
     fetchAllData();
 

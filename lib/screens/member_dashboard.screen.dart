@@ -13,7 +13,8 @@ import '../widgets/loading_animation.widget.dart';
 import '../services/notification_handler.dart';
 
 class MemberDashboard extends StatefulWidget {
-  const MemberDashboard({super.key});
+  final bool openTasks;
+  const MemberDashboard({super.key, this.openTasks = false,});
   @override
   State<MemberDashboard> createState() => _MemberDashboardState();
 }
@@ -27,13 +28,15 @@ class _MemberDashboardState extends State<MemberDashboard> {
   List upcomingMeetings = [];
   List memberTasks = [];
   bool isLoading = true;
-  bool showMeetings = true;
+  // bool showMeetings = true;
+  late bool showMeetings;
 
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    showMeetings = !widget.openTasks;
     NotificationHandler().initialize();
     fetchAllData();
 
