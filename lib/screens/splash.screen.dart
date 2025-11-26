@@ -68,6 +68,7 @@ import 'signIn.screen.dart';
 import 'member_dashboard.screen.dart';
 import 'head_dashboard.screen.dart';
 import '../widgets/loading_animation.widget.dart';
+import '../services/notification_handler.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -148,9 +149,31 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   // 🚪 Navigation Logic (unchanged)
+  // Future<void> _navigateToNext() async {
+  //   await Future.delayed(const Duration(seconds: 3));
+
+  //   final prefs = await SharedPreferences.getInstance();
+  //   String? token = prefs.getString("accessToken");
+  //   String? role = prefs.getString("role");
+
+  //   Widget nextScreen;
+
+  //   if (token != null && !JwtDecoder.isExpired(token)) {
+  //     nextScreen = role == "Head" ? HeadDashboard() : MemberDashboard();
+  //   } else {
+  //     nextScreen = SignInScreen();
+  //   }
+
+  //   if (!mounted) return;
+
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(builder: (_) => nextScreen),
+  //   );
+  // }
+
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(seconds: 3));
-
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("accessToken");
     String? role = prefs.getString("role");
@@ -158,17 +181,18 @@ class _SplashScreenState extends State<SplashScreen> {
     Widget nextScreen;
 
     if (token != null && !JwtDecoder.isExpired(token)) {
+      
+      // ✅ Initialize Notifications HERE
+      // This will check permissions, ask if needed, and sync token
+      await NotificationHandler().initialize(); 
+      
       nextScreen = role == "Head" ? HeadDashboard() : MemberDashboard();
     } else {
       nextScreen = SignInScreen();
     }
 
     if (!mounted) return;
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => nextScreen),
-    );
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => nextScreen));
   }
 
   @override
