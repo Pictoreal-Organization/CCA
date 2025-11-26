@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../config.dart';
 
 class MeetingService {
   // final String baseUrl = "http://10.0.2.2:5001/api/meetings";
-  final String baseUrl = "${dotenv.env['BASE_URL']}/api/meetings";
+  // final String baseUrl = "${dotenv.env['BASE_URL']}/api/meetings";
+  final String baseUrl = "${AppConfig.baseUrl}/api/meetings";
 
   // Helper to get token
   Future<String?> _getToken() async {

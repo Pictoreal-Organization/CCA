@@ -4,11 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // ✅ Import
 import 'package:flutter/foundation.dart';
+import '../config.dart';
 
 
 class AuthService {
   // final String baseUrl = "http://10.0.2.2:5001/api/auth";
-  final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
+  // final String baseUrl = "${dotenv.env['BASE_URL']}/api/auth";
+  final String baseUrl = "${AppConfig.baseUrl}/api/auth";
 
   // ✅ Google Sign In Instance
   // Make sure to use the WEB Client ID from Google Cloud Console here if needed
