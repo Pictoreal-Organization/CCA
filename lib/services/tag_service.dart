@@ -3,12 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../config.dart';
 
 class TagService {
-  // final String baseUrl = "${dotenv.env['BASE_URL']}/api/tags";
-  final String baseUrl = "${AppConfig.baseUrl}/api/tags";
-
+  final String baseUrl = "${dotenv.env['BASE_URL']}/api/tags";
 
   // Helper to get token
   Future<String?> _getToken() async {

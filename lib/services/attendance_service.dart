@@ -3,12 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../config.dart';
 
 class AttendanceService {
-  // final String baseUrl = "http://10.0.2.2:5001/api/attendance";
-  // final String baseUrl = "${dotenv.env['BASE_URL']}/api/attendance";
-  final String baseUrl = "${AppConfig.baseUrl}/api/attendance";
+  final String baseUrl = "${dotenv.env['BASE_URL']}/api/attendance";
 
   Future<List<dynamic>> getAttendanceForMeeting(String meetingId) async {
     final prefs = await SharedPreferences.getInstance();
