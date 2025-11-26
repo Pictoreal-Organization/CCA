@@ -354,6 +354,16 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
       return;
     }
 
+    if (dateTime != null && dateTime!.isBefore(DateTime.now())) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You cannot schedule a meeting in the past. Please adjust the time.'),
+          backgroundColor: AppColors.darkOrange,
+        ),
+      );
+      return;
+    }
+
     FocusScope.of(context).unfocus();
     setState(() => isSubmitting = true);
 
@@ -734,6 +744,18 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
         DateTimePickerWidget(
           initialDateTime: dateTime,
           onDateTimeChanged: (selectedDateTime) {
+            if (selectedDateTime.isBefore(DateTime.now())) {
+              // If user picks a past time, show a snackbar and reset or don't set
+               ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('You cannot select a time in the past.'),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              // Optionally reset to null or current time, or just ignore the update
+              return;
+            }
             setState(() {
               dateTime = selectedDateTime;
             });

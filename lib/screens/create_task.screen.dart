@@ -507,189 +507,130 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         borderRadius: BorderRadius.circular(14),
                         onTap: () async {
                           final selected = await showDialog<List<String>>(
-                            context: context,
-                            builder: (context) {
-                              List<String> tempSelected = List.from(
-                                subtask["assignedTo"],
-                              );
-                              String searchQuery = "";
+  context: context,
+  builder: (context) {
+    List<String> tempSelected = List.from(subtask["assignedTo"]);
+    String searchQuery = "";
 
-                              return StatefulBuilder(
-                                builder: (context, setDialogState) {
-                                  // ✅ Updated filter: search by name and rollNo
-                                  final filteredUsers = allUsers.where((user) {
-                                    final name = user['name'] ?? '';
-                                    final rollNo = user['rollNo'] ?? '';
-                                    final searchText = "$name $rollNo"
-                                        .toLowerCase();
-                                    return searchText.contains(
-                                      searchQuery.toLowerCase(),
-                                    );
-                                  }).toList();
+    return StatefulBuilder(
+      builder: (context, setDialogState) {
+        final filteredUsers = allUsers.where((user) {
+          final name = user['name'] ?? '';
+          final rollNo = user['rollNo'] ?? '';
+          final combined = "$name $rollNo".toLowerCase();
+          return combined.contains(searchQuery.toLowerCase());
+        }).toList();
 
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    title: Row(
-                                      children: const [
-                                        Icon(
-                                          Icons.people_outline,
-                                          color: AppColors.darkTeal,
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          'Assign to Members',
-                                          style: TextStyle(
-                                            color: AppColors.darkTeal,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    content: isUsersLoading
-                                        ? const Center(
-                                            child: CircularProgressIndicator(
-                                              color: AppColors.darkTeal,
-                                            ),
-                                          )
-                                        : Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              // ✅ Search field with updated hint
-                                              TextField(
-                                                decoration: InputDecoration(
-                                                  hintText:
-                                                      'Search by name or roll no...',
-                                                  hintStyle: const TextStyle(
-                                                    color: AppColors.lightGray,
-                                                  ),
-                                                  prefixIcon: const Icon(
-                                                    Icons.search,
-                                                    color: AppColors.green,
-                                                  ),
-                                                  filled: true,
-                                                  fillColor:
-                                                      Colors.grey.shade50,
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          14,
-                                                        ),
-                                                    borderSide: BorderSide.none,
-                                                  ),
-                                                  enabledBorder:
-                                                      OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              14,
-                                                            ),
-                                                        borderSide: BorderSide(
-                                                          color: Colors
-                                                              .grey
-                                                              .shade300,
-                                                          width: 1,
-                                                        ),
-                                                      ),
-                                                ),
-                                                onChanged: (val) =>
-                                                    setDialogState(
-                                                      () => searchQuery = val,
-                                                    ),
-                                              ),
-                                              const SizedBox(height: 12),
-                                              SizedBox(
-                                                width: double.maxFinite,
-                                                height: 300,
-                                                child: ListView(
-                                                  children: filteredUsers.map((
-                                                    user,
-                                                  ) {
-                                                    final id = user['_id'];
-                                                    final name =
-                                                        user['name'] ??
-                                                        'Unknown';
-                                                    final rollNo =
-                                                        user['rollNo'] ?? '';
-                                                    final isChecked =
-                                                        tempSelected.contains(
-                                                          id,
-                                                        );
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: const [
+              Icon(Icons.people_outline, color: AppColors.darkTeal),
+              SizedBox(width: 10),
+              Text(
+                'Assign to Members',
+                style: TextStyle(color: AppColors.darkTeal),
+              ),
+            ],
+          ),
+          content: isUsersLoading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.darkTeal,
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search by name or roll no...',
+                        hintStyle: const TextStyle(color: AppColors.lightGray),
+                        prefixIcon:
+                            const Icon(Icons.search, color: AppColors.green),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (val) =>
+                          setDialogState(() => searchQuery = val),
+                    ),
+                    const SizedBox(height: 12),
 
-                                                    return CheckboxListTile(
-                                                      // ✅ Display name as title
-                                                      title: Text(
-                                                        name,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: AppColors
-                                                              .darkGray,
-                                                        ),
-                                                      ),
-                                                      // ✅ Display roll number as subtitle
-                                                      subtitle: Text(
-                                                        "Roll No: $rollNo",
-                                                        style: const TextStyle(
-                                                          color: AppColors
-                                                              .lightGray,
-                                                          fontSize: 13,
-                                                        ),
-                                                      ),
-                                                      value: isChecked,
-                                                      activeColor:
-                                                          AppColors.darkTeal,
-                                                      checkColor: Colors.white,
-                                                      onChanged: (checked) {
-                                                        setDialogState(() {
-                                                          if (checked == true) {
-                                                            tempSelected.add(
-                                                              id,
-                                                            );
-                                                          } else {
-                                                            tempSelected.remove(
-                                                              id,
-                                                            );
-                                                          }
-                                                        });
-                                                      },
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text(
-                                          'Cancel',
-                                          style: TextStyle(
-                                            color: AppColors.lightGray,
-                                          ),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.pop(
-                                          context,
-                                          tempSelected,
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.darkTeal,
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Text('Done'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
+                    SizedBox(
+                      width: double.maxFinite,
+                      height: 300,
+                      child: ListView(
+                        children: filteredUsers.map((user) {
+                          final id = user['_id'];
+                          final name = user['name'] ?? '';
+                          final rollNo = user['rollNo'] ?? '';
+                          final isChecked = tempSelected.contains(id);
+
+                          return CheckboxListTile(
+                            title: Text(
+                              name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkGray,
+                              ),
+                            ),
+                            subtitle: Text(
+                              "Roll No: $rollNo",
+                              style: const TextStyle(
+                                color: AppColors.lightGray,
+                                fontSize: 13,
+                              ),
+                            ),
+                            value: isChecked,
+                            activeColor: AppColors.darkTeal,
+                            checkColor: Colors.white,
+                            onChanged: (checked) {
+                              setDialogState(() {
+                                if (checked == true) {
+                                  tempSelected.add(id);
+                                } else {
+                                  tempSelected.remove(id);
+                                }
+                              });
                             },
                           );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.lightGray),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, tempSelected),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.darkTeal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  },
+);
+
 
                           if (selected != null) {
                             setState(() {
