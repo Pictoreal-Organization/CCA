@@ -65,19 +65,18 @@ class _TasksListState extends State<TasksList> {
         await taskService.updateSubtask(
           taskId: task['_id'],
           subtaskId: subtask['_id'],
-          data: {
-            'status': 'Pending',
-            'description': controller.text,
-          },
+          data: {'status': 'Pending', 'description': controller.text},
         );
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Feedback sent to member.')));
+          const SnackBar(content: Text('Feedback sent to member.')),
+        );
         widget.onTaskUpdated();
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error sending feedback: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error sending feedback: $e')));
       }
     }
   }
@@ -88,7 +87,8 @@ class _TasksListState extends State<TasksList> {
       builder: (context) => AlertDialog(
         title: const Text('Complete Main Task?'),
         content: const Text(
-            'All subtasks have been approved. Do you want to mark the entire task as completed?'),
+          'All subtasks have been approved. Do you want to mark the entire task as completed?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -107,12 +107,14 @@ class _TasksListState extends State<TasksList> {
         await taskService.updateTask(task['_id'], {'status': 'Completed'});
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task marked as completed!')));
+          const SnackBar(content: Text('Task marked as completed!')),
+        );
         widget.onTaskUpdated();
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error completing task: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error completing task: $e')));
       }
     }
   }
@@ -141,12 +143,14 @@ class _TasksListState extends State<TasksList> {
         await taskService.deleteTask(taskId);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task deleted successfully')));
+          const SnackBar(content: Text('Task deleted successfully')),
+        );
         widget.onTaskUpdated();
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to delete task: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete task: $e')));
       }
     }
   }
@@ -186,18 +190,24 @@ class _TasksListState extends State<TasksList> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(widget.title,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontFamily: 'Inter')),
-            Text("${widget.tasks.length} Tasks",
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.lightGray,
-                    fontFamily: 'Inter')),
+            Text(
+              widget.title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                fontFamily: 'Inter',
+              ),
+            ),
+            Text(
+              "${widget.tasks.length} Tasks",
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.lightGray,
+                fontFamily: 'Inter',
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -207,15 +217,21 @@ class _TasksListState extends State<TasksList> {
                   padding: const EdgeInsets.all(40),
                   child: Column(
                     children: const [
-                      Icon(Icons.assignment_outlined,
-                          size: 64, color: Color(0xFFBDBDBD)),
+                      Icon(
+                        Icons.assignment_outlined,
+                        size: 64,
+                        color: Color(0xFFBDBDBD),
+                      ),
                       SizedBox(height: 16),
-                      Text("No tasks available",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF757575),
-                              fontFamily: 'Inter')),
+                      Text(
+                        "No tasks available",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF757575),
+                          fontFamily: 'Inter',
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -227,10 +243,12 @@ class _TasksListState extends State<TasksList> {
                 itemBuilder: (context, index) {
                   final task = sortedTasks[index];
                   final subtasks = (task['subtasks'] as List?) ?? [];
-                  final completedSubtasks =
-                      subtasks.where((s) => s['status'] == 'Completed').length;
-                  final needsReview =
-                      subtasks.any((s) => s['status'] == 'Completed');
+                  final completedSubtasks = subtasks
+                      .where((s) => s['status'] == 'Completed')
+                      .length;
+                  final needsReview = subtasks.any(
+                    (s) => s['status'] == 'Completed',
+                  );
 
                   return _buildTaskCard(
                     task,
@@ -252,7 +270,8 @@ class _TasksListState extends State<TasksList> {
   ) {
     final isCompleted = task['status'] == 'Completed';
     final allSubtasksCompleted =
-        subtasks.isNotEmpty && subtasks.every((s) => s['status'] == 'Completed');
+        subtasks.isNotEmpty &&
+        subtasks.every((s) => s['status'] == 'Completed');
     final borderColor = needsReview ? AppColors.orange : AppColors.green;
     final taskId = task['_id'];
     final isExpanded = expandedTasks.contains(taskId);
@@ -356,8 +375,9 @@ class _TasksListState extends State<TasksList> {
                             final title = s['title'];
                             final status = s['status'];
                             final assignedList = s['assignedTo'] ?? [];
-                            final assignedUser =
-                                assignedList.isNotEmpty ? assignedList[0] : null;
+                            final assignedUser = assignedList.isNotEmpty
+                                ? assignedList[0]
+                                : null;
                             final assignedName =
                                 assignedUser?['name'] ?? 'Not Assigned';
 
@@ -366,15 +386,23 @@ class _TasksListState extends State<TasksList> {
                               actionWidget = SizedBox(
                                 height: 34,
                                 child: ElevatedButton.icon(
-                                  onPressed: () => _showSuggestChangesDialog(task, s),
-                                  icon: const Icon(Icons.undo, size: 14, color: Colors.white),
+                                  onPressed: () =>
+                                      _showSuggestChangesDialog(task, s),
+                                  icon: const Icon(
+                                    Icons.undo,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
                                   label: const Text('Changes'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.darkTeal,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(9)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      borderRadius: BorderRadius.circular(9),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                   ),
                                 ),
                               );
@@ -383,20 +411,29 @@ class _TasksListState extends State<TasksList> {
                                 height: 34,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    taskService.updateSubtask(
-                                      taskId: task['_id'],
-                                      subtaskId: s['_id'],
-                                      data: {'status': 'Completed'},
-                                    ).then((_) => widget.onTaskUpdated());
+                                    taskService
+                                        .updateSubtask(
+                                          taskId: task['_id'],
+                                          subtaskId: s['_id'],
+                                          data: {'status': 'Completed'},
+                                        )
+                                        .then((_) => widget.onTaskUpdated());
                                   },
-                                  icon: const Icon(Icons.check, size: 14, color: Colors.white),
+                                  icon: const Icon(
+                                    Icons.check,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
                                   label: const Text('Mark Done'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.green,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(9)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      borderRadius: BorderRadius.circular(9),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
                                   ),
                                 ),
                               );
@@ -406,23 +443,57 @@ class _TasksListState extends State<TasksList> {
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.person,
-                                      size: 16, color: Colors.grey),
+                                  const Icon(
+                                    Icons.person,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(title,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14)),
-                                        Text(assignedName,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey.shade600,
-                                              fontStyle: FontStyle.italic,
-                                            )),
+                                        Text(
+                                          title,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+
+                                        if (s['description'] != null &&
+                                            s['description']
+                                                .toString()
+                                                .trim()
+                                                .isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 4.0,
+                                              bottom: 4,
+                                            ),
+                                            child: Text(
+                                              s['description'],
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                height: 1.3,
+                                                color: Colors.grey.shade700,
+                                                fontFamily: 'Inter',
+                                              ),
+                                              maxLines: 4,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                       
+
+                                        Text(
+                                          assignedName,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -442,14 +513,18 @@ class _TasksListState extends State<TasksList> {
                           child: SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              icon: const Icon(Icons.check_circle_outline,
-                                  color: Colors.white),
+                              icon: const Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.white,
+                              ),
                               label: const Text('Mark Main Task as Completed'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: allSubtasksCompleted
                                     ? AppColors.green
                                     : Colors.grey.shade400,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 foregroundColor: Colors.white,
                               ),
                               onPressed: allSubtasksCompleted
@@ -466,7 +541,9 @@ class _TasksListState extends State<TasksList> {
                           if (needsReview) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 4),
+                                horizontal: 14,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.darkOrange,
                                 borderRadius: BorderRadius.circular(20),
@@ -492,13 +569,18 @@ class _TasksListState extends State<TasksList> {
                                         expandedTasks.add(taskId);
                                       });
                                     },
-                                    icon: const Icon(Icons.rate_review, size: 16, color: Colors.white),
+                                    icon: const Icon(
+                                      Icons.rate_review,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
                                     label: const Text('Review'),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.darkTeal,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(9)),
+                                        borderRadius: BorderRadius.circular(9),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -507,7 +589,9 @@ class _TasksListState extends State<TasksList> {
                           ] else
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 4),
+                                horizontal: 14,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: isCompleted
                                     ? AppColors.green
@@ -535,19 +619,28 @@ class _TasksListState extends State<TasksList> {
               /// BUTTONS (Edit / Delete)
               if (isExpanded || !isCompleted)
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 18),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 18,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => widget.onEditTask(task),
-                          icon: const Icon(Icons.edit, size: 16, color: Colors.white),
+                          icon: const Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                           label: const Text('Edit'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.darkTeal,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(9)),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
                           ),
                         ),
                       ),
@@ -555,13 +648,18 @@ class _TasksListState extends State<TasksList> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _deleteTask(task['_id']),
-                          icon: const Icon(Icons.delete, size: 16, color: Colors.white),
+                          icon: const Icon(
+                            Icons.delete,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                           label: const Text('Delete'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.darkOrange,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(9)),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
                           ),
                         ),
                       ),
