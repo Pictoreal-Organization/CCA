@@ -1,20 +1,25 @@
+//=================================================================================
+
+//========================         FOR APP        =================================
+
+//=================================================================================
+
 // import 'package:flutter/material.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:shared_preferences/shared_preferences.dart'; // ✅ Added
 // import 'firebase_options.dart';
 // import 'services/notification_handler.dart';
 // import 'core/app_colors.dart';
 // import 'screens/splash.screen.dart';
-// // Import your Task and Meeting screens to register routes
-// // import 'screens/task_dashboard.screen.dart';
-// // import 'screens/meeting_dashboard.screen.dart';
+// import 'screens/member_dashboard.screen.dart'; // ✅ Added
+// import 'screens/head_dashboard.screen.dart';   // ✅ Added
 
-// // Background Handler
 // @pragma('vm:entry-point')
 // Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 //   await Firebase.initializeApp();
-//   print("Handling a background message: ${message.messageId}");
+//   print("🔵 Background message received: ${message.messageId}");
 // }
 
 // Future<void> main() async {
@@ -33,9 +38,7 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     return MaterialApp(
-//       // 1. ✅ Attach the Global Key
-//       navigatorKey: navigatorKey, 
-      
+//       navigatorKey: navigatorKey,
 //       title: 'PictoCreds',
 //       debugShowCheckedModeBanner: false,
 //       theme: ThemeData(
@@ -43,29 +46,37 @@
 //         useMaterial3: true,
 //       ),
       
-//       // 2. ✅ Define Routes for Redirection
 //       routes: {
 //         '/': (context) => const SplashScreen(),
-//         // Add these placeholders or your actual screens
-//         '/tasks': (context) => const Scaffold(body: Center(child: Text("Tasks Screen"))), // Replace with MemberDashboard(tab: 0)
-//         '/meetings': (context) => const Scaffold(body: Center(child: Text("Meetings Screen"))), // Replace with MemberDashboard(tab: 1)
+        
+//         // ✅ Fix: Pass 'openTasks: true' for Tasks route
+//         '/tasks': (context) => const DashboardRedirector(openTasks: true),
+        
+//         // ✅ Fix: Pass 'openTasks: false' for Meetings route
+//         '/meetings': (context) => const DashboardRedirector(openTasks: false),
 //       },
 //       initialRoute: '/',
 //     );
 //   }
 // }
 
+//=================================================================================
+
+//========================         FOR WEB        =================================
+
+//=================================================================================
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ Added
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'services/notification_handler.dart';
 import 'core/app_colors.dart';
 import 'screens/splash.screen.dart';
-import 'screens/member_dashboard.screen.dart'; // ✅ Added
-import 'screens/head_dashboard.screen.dart';   // ✅ Added
+import 'screens/member_dashboard.screen.dart';
+import 'screens/head_dashboard.screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -75,7 +86,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  // await dotenv.load(fileName: ".env"); // Keep commented for Vercel
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -88,8 +100,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ SAFE WEB REDIRECT CHECK (Works on Android/iOS too)
+    // Uri.base gets the current URL. On mobile, it's usually just '/'.
+    // On Web, if we redirected to '/?redirect=tasks', this will catch it.
+    String initialRoute = '/';
+    
+    // Check for query parameter "redirect"
+    final String? redirectParam = Uri.base.queryParameters['redirect'];
+    
+    if (redirectParam == 'tasks') {
+      initialRoute = '/tasks';
+    } else if (redirectParam == 'meetings') {
+      initialRoute = '/meetings';
+    }
+
     return MaterialApp(
-      navigatorKey: navigatorKey,
+      navigatorKey: navigatorKey, 
       title: 'PictoCreds',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -97,20 +123,19 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       
+      // ✅ Use the calculated route
+      initialRoute: initialRoute, 
+      
       routes: {
         '/': (context) => const SplashScreen(),
-        
-        // ✅ Fix: Pass 'openTasks: true' for Tasks route
         '/tasks': (context) => const DashboardRedirector(openTasks: true),
-        
-        // ✅ Fix: Pass 'openTasks: false' for Meetings route
         '/meetings': (context) => const DashboardRedirector(openTasks: false),
       },
-      initialRoute: '/',
     );
   }
 }
 
+// ... (Keep your DashboardRedirector class here) ...
 class DashboardRedirector extends StatefulWidget {
   final bool openTasks; // ✅ Changed from int to bool
   const DashboardRedirector({super.key, required this.openTasks});

@@ -195,11 +195,40 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => nextScreen));
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return const Scaffold(
+  //     backgroundColor: Colors.white,
+  //     body: Center(child: LoadingAnimation(size: 220)),
+  //   );
+  // }
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    // DEBUG: Get the current URL the app sees
+    final currentUrl = Uri.base.toString();
+    final redirectParam = Uri.base.queryParameters['redirect'];
+
+    return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(child: LoadingAnimation(size: 220)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const LoadingAnimation(size: 220),
+            const SizedBox(height: 20),
+            
+            // 🔴 DIAGNOSIS TEXT (Remove this later)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                "DEBUG INFO:\nURL: $currentUrl\nRedirect Param: $redirectParam",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
