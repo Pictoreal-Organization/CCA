@@ -83,39 +83,50 @@ class NotificationHandler {
   }
 
   // --- D. Message Handlers ---
-  void _setupMessageHandlers() {
-    // 1. Foreground Message
+ void _setupMessageHandlers() {
+    // 1. Foreground Messages (App is Open)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
+      print('📩 Foreground Message: ${message.messageId}');
 
-      if (notification != null && android != null) {
+      // Try to get content from the standard Notification object
+      String? title = message.notification?.title;
+      String? body = message.notification?.body;
+
+      // If standard notification is empty, check 'data' (For Data-Only strategy)
+      if (title == null && message.data.isNotEmpty) {
+        title = message.data['title'];
+        body = message.data['body'];
+      }
+
+      // If we have a title, show the Local Notification manually
+      if (title != null) {
         _localNotifications.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
+          message.hashCode,
+          title,
+          body,
           NotificationDetails(
             android: AndroidNotificationDetails(
               _androidChannel.id,
               _androidChannel.name,
               channelDescription: _androidChannel.description,
-              icon: '@mipmap/ic_launcher',
+              icon: '@mipmap/ic_launcher', // Ensure this icon exists
               importance: Importance.max,
               priority: Priority.high,
             ),
           ),
-          payload: message.data.toString(), // Pass data to payload
+          // Pass the data payload string so we can handle the click later
+          payload: message.data.toString(), 
         );
       }
     });
 
-    // 2. Background App Open (Notification Tap)
+    // 2. Background Notification Tap (App in Background)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("🔄 App opened from notification");
+      print("🔄 App opened from background notification");
       _handleRedirect(message.data);
     });
 
-    // 3. Terminated App Open
+    // 3. Terminated State (App Closed completely)
     _firebaseMessaging.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {
         print("🚀 App launched from terminated state");

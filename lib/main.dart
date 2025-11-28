@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'services/notification_handler.dart';
@@ -9,11 +8,33 @@ import 'core/app_colors.dart';
 import 'screens/splash.screen.dart';
 import 'screens/member_dashboard.screen.dart';
 import 'screens/head_dashboard.screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("🔵 Background message received: ${message.messageId}");
+
+  // ✅ Manual Display for Mobile Background (Data-Only)
+  if (message.notification == null && message.data.isNotEmpty) {
+    final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+    
+    // Must use the SAME channel ID as defined in NotificationHandler
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'high_importance_channel', 
+      'High Importance Notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    
+    await localNotifications.show(
+      message.hashCode,
+      message.data['title'], // Read from data
+      message.data['body'], 
+      NotificationDetails(android: androidDetails),
+      payload: message.data.toString(), // Pass data for click logic
+    );
+  }
 }
 
 Future<void> main() async {
