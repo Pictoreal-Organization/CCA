@@ -13,10 +13,11 @@ import '../core/app_colors.dart';
 import '../widgets/logout_confirm.dart';
 import '../widgets/loading_animation.widget.dart';
 import '../services/notification_handler.dart';
+import '../services/user_service.dart';
 
 class HeadDashboard extends StatefulWidget {
   final bool openTasks;
-  const HeadDashboard({super.key, this.openTasks = false,});
+  const HeadDashboard({super.key, this.openTasks = false});
 
   @override
   State<HeadDashboard> createState() => _HeadDashboardState();
@@ -27,6 +28,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
   final authService = AuthService();
   final MeetingService meetingService = MeetingService();
   final TaskService taskService = TaskService();
+  final UserService userService = UserService();
 
   // State
   List ongoingMeetings = [];
@@ -52,25 +54,153 @@ class _HeadDashboardState extends State<HeadDashboard> {
     super.dispose();
   }
 
-  // --- DATA FETCHING ---
+  // Future<void> fetchAllData() async {
+  //   if (!mounted) return;
+  //   setState(() => isLoading = true);
+  //   try {
+  //     final user = await userService.getLoggedInUser();
+  //     final teamField = user["team"];
+  //     List<String> teamIds = [];
+
+  //     // ✅ FIX: Handle both populated objects and plain IDs
+  //     if (teamField is List) {
+  //       for (var item in teamField) {
+  //         if (item is String) {
+  //           // If it's already a string ID
+  //           teamIds.add(item);
+  //         } else if (item is Map) {
+  //           // If it's a populated object with _id field
+  //           final id = item['_id'];
+  //           if (id is String) {
+  //             teamIds.add(id);
+  //           } else if (id is Map && id['\$oid'] != null) {
+  //             // Handle ObjectId format
+  //             teamIds.add(id['\$oid'] as String);
+  //           }
+  //         }
+  //       }
+  //     } else if (teamField is String) {
+  //       teamIds = [teamField];
+  //     } else if (teamField is Map) {
+  //       // Handle single populated team object
+  //       final id = teamField['_id'];
+  //       if (id is String) {
+  //         teamIds.add(id);
+  //       } else if (id is Map && id['\$oid'] != null) {
+  //         teamIds.add(id['\$oid'] as String);
+  //       }
+  //     }
+
+  //     print('📋 Extracted Team IDs: $teamIds'); // Debug log
+
+  //     final data = await Future.wait([
+  //       meetingService.getOngoingMeetings(),
+  //       meetingService.getUpcomingMeetings(),
+  //       meetingService.getMeetingsForAttendance(),
+  //     ]);
+
+  //     List<dynamic> allTeamTasks = [];
+
+  //     for (var id in teamIds) {
+  //       try {
+  //         final tasks = await taskService.getTasksByTeam(id);
+  //         allTeamTasks.addAll(tasks);
+  //       } catch (e) {
+  //         print('⚠️ Error fetching tasks for team $id: $e');
+  //       }
+  //     }
+
+  //     if (!mounted) return;
+  //     setState(() {
+  //       ongoingMeetings = data[0] as List;
+  //       upcomingMeetings = data[1] as List;
+  //       attendancePendingMeetings = data[2] as List;
+  //       allTasks = allTeamTasks;
+  //     });
+  //   } catch (e) {
+  //     print('❌ Error in fetchAllData: $e'); // Debug log
+  //     if (!mounted) return;
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Failed to load data: $e')));
+  //   } finally {
+  //     if (mounted) setState(() => isLoading = false);
+  //   }
+  // }
+
+  // Replace your fetchAllData method with this updated version:
+
   Future<void> fetchAllData() async {
     if (!mounted) return;
     setState(() => isLoading = true);
     try {
+      final user = await userService.getLoggedInUser();
+      final teamField = user["team"];
+      List<String> teamIds = [];
+
+      // ✅ Handle both populated objects and plain IDs
+      if (teamField is List) {
+        for (var item in teamField) {
+          if (item is String) {
+            teamIds.add(item);
+          } else if (item is Map) {
+            final id = item['_id'];
+            if (id is String) {
+              teamIds.add(id);
+            } else if (id is Map && id['\$oid'] != null) {
+              teamIds.add(id['\$oid'] as String);
+            }
+          }
+        }
+      } else if (teamField is String) {
+        teamIds = [teamField];
+      } else if (teamField is Map) {
+        final id = teamField['_id'];
+        if (id is String) {
+          teamIds.add(id);
+        } else if (id is Map && id['\$oid'] != null) {
+          teamIds.add(id['\$oid'] as String);
+        }
+      }
+
+      print('📋 Extracted Team IDs: $teamIds');
+
       final data = await Future.wait([
         meetingService.getOngoingMeetings(),
         meetingService.getUpcomingMeetings(),
         meetingService.getMeetingsForAttendance(),
-        taskService.getAllTasks(),
       ]);
+
+      List<dynamic> allTeamTasks = [];
+
+      // Fetch tasks for each team
+      for (var id in teamIds) {
+        try {
+          final tasks = await taskService.getTasksByTeam(id);
+          allTeamTasks.addAll(tasks);
+        } catch (e) {
+          print('⚠️ Error fetching tasks for team $id: $e');
+        }
+      }
+
+      // ✅ NEW: Fetch general tasks (tasks with team = null)
+      try {
+        final generalTasks = await taskService.getGeneralTasks();
+        allTeamTasks.addAll(generalTasks);
+        print('📌 Added ${generalTasks.length} general tasks');
+      } catch (e) {
+        print('⚠️ Error fetching general tasks: $e');
+      }
+
       if (!mounted) return;
       setState(() {
         ongoingMeetings = data[0] as List;
         upcomingMeetings = data[1] as List;
         attendancePendingMeetings = data[2] as List;
-        allTasks = data[3] as List;
+        allTasks = allTeamTasks;
       });
     } catch (e) {
+      print('❌ Error in fetchAllData: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
