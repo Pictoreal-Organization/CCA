@@ -1,9 +1,8 @@
 // import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart'; // ✅ Added
-// import 'package:firebase_messaging/firebase_messaging.dart'; // ✅ Added
+// import 'package:shared_preferences/shared_preferences.dart';
 // import '../services/task_service.dart';
 // import '../services/user_service.dart';
-// import '../services/notification_handler.dart'; // ✅ Added
+// import '../services/notification_handler.dart'; // ✅ Ensure this import exists
 // import '../widgets/loading_animation.widget.dart';
 // import '../widgets/customAppbar.widget.dart';
 // import '../core/app_colors.dart';
@@ -36,17 +35,17 @@
 //   final UserService userService = UserService();
 //   final TaskService taskService = TaskService();
 
-//   // Controllers for text fields
+//   // Controllers
 //   final TextEditingController _nameController = TextEditingController();
 //   final TextEditingController _rollController = TextEditingController();
 //   final TextEditingController _yearController = TextEditingController();
 //   final TextEditingController _divisionController = TextEditingController();
 //   final TextEditingController _phoneController = TextEditingController();
 
-//   // State variables
+//   // State
 //   bool _isLoading = true;
 //   bool _isEditing = false;
-//   bool _notificationsEnabled = true; // ✅ Notification State
+//   bool _notificationsEnabled = true; 
 //   String _email = "";
 //   String _role = "";
 //   String _userId = "";
@@ -58,76 +57,37 @@
 //   void initState() {
 //     super.initState();
 //     loadAllData();
-//     _loadNotificationPreference(); // ✅ Load pref
+//     _loadNotificationPreference();
 //   }
 
-//   // ✅ Load saved preference
 //   Future<void> _loadNotificationPreference() async {
 //     final prefs = await SharedPreferences.getInstance();
-//     setState(() {
-//       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-//     });
-//   }
-
-//   // ✅ Toggle Logic
-//   Future<void> _toggleNotifications(bool value) async {
-//     setState(() => _notificationsEnabled = value);
-//     final prefs = await SharedPreferences.getInstance();
-//     await prefs.setBool('notifications_enabled', value);
-
-//     if (value) {
-//       // Turn ON: Re-initialize to get token
-//       await NotificationHandler().initialize();
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(
-//             content: Text("Notifications Enabled ✅"),
-//             duration: Duration(seconds: 1),
-//           ),
-//         );
-//       }
-//     } else {
-//       // Turn OFF: Delete token so FCM stops sending to this device
-//       await FirebaseMessaging.instance.deleteToken();
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(
-//             content: Text("Notifications Disabled 🔕"),
-//             duration: Duration(seconds: 1),
-//           ),
-//         );
-//       }
+//     if (mounted) {
+//       setState(() {
+//         _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+//       });
 //     }
 //   }
 
-//   // // ✅ UPDATED: Use the new disable/enable methods
-//   // Future<void> _toggleNotifications(bool value) async {
-//   //   setState(() => _notificationsEnabled = value);
+//   // ✅ Notification Toggle Logic
+//   Future<void> _toggleNotifications(bool value) async {
+//     // 1. Update UI immediately
+//     setState(() => _notificationsEnabled = value);
 
-//   //   if (value) {
-//   //     // Turn ON: Use the new enableNotifications method
-//   //     await NotificationHandler().enableNotifications();
-//   //     if (mounted) {
-//   //       ScaffoldMessenger.of(context).showSnackBar(
-//   //         const SnackBar(
-//   //           content: Text("Notifications Enabled ✅"),
-//   //           duration: Duration(seconds: 1),
-//   //         ),
-//   //       );
-//   //     }
-//   //   } else {
-//   //     // Turn OFF: Use the new disableNotifications method
-//   //     await NotificationHandler().disableNotifications();
-//   //     if (mounted) {
-//   //       ScaffoldMessenger.of(context).showSnackBar(
-//   //         const SnackBar(
-//   //           content: Text("Notifications Disabled 🔕"),
-//   //           duration: Duration(seconds: 1),
-//   //         ),
-//   //       );
-//   //     }
-//   //   }
-//   // }
+//     // 2. Call Handler to manage Token & Preference
+//     await NotificationHandler().toggleNotifications(value);
+
+//     // 3. Show Feedback
+//     if (mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text(value ? "Notifications Enabled ✅" : "Notifications Disabled 🔕"),
+//           duration: const Duration(seconds: 1),
+//           behavior: SnackBarBehavior.floating,
+//         ),
+//       );
+//     }
+//   }
 
 //   Future<void> _saveAvatar(String avatarPath) async {
 //     setState(() {
@@ -141,9 +101,7 @@
 //       builder: (BuildContext context) {
 //         return Dialog(
 //           backgroundColor: Colors.white,
-//           shape: RoundedRectangleBorder(
-//             borderRadius: BorderRadius.circular(16),
-//           ),
+//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
 //           insetPadding: const EdgeInsets.all(20),
 //           child: _buildAvatarSelectionContent(),
 //         );
@@ -162,17 +120,13 @@
 //       _email = user['email'] ?? '';
 //       _role = user['role'] ?? '';
 
-//       // ✅ FIXED: Extract team ID correctly
-//       // Check if team is an array or a single value
+//       // Extract team ID safely
 //       if (user['team'] != null) {
 //         if (user['team'] is List && (user['team'] as List).isNotEmpty) {
-//           // If it's an array, get the first team's ID
 //           _userTeam = user['team'][0]['_id'] ?? user['team'][0].toString();
 //         } else if (user['team'] is Map) {
-//           // If it's a populated object with _id
 //           _userTeam = user['team']['_id'] ?? '';
 //         } else {
-//           // If it's already a string ID
 //           _userTeam = user['team'].toString();
 //         }
 //       } else {
@@ -187,13 +141,10 @@
 
 //       _selectedAvatar = user['avatar'] ?? AvatarConfig.defaultAvatar;
 
-//       // ✅ Load completed tasks based on role
+//       // Load completed tasks based on role
 //       if (_role == 'Head') {
 //         if (_userTeam.isNotEmpty) {
-//           print('Loading completed tasks for team: $_userTeam'); // Debug log
-//           _completedTasks = await taskService.getCompletedTasksByTeam(
-//             _userTeam,
-//           );
+//           _completedTasks = await taskService.getCompletedTasksByTeam(_userTeam);
 //         } else {
 //           _completedTasks = await taskService.getAllCompletedTasks();
 //         }
@@ -201,7 +152,7 @@
 //         _completedTasks = await taskService.getCompletedTasksByUser(_userId);
 //       }
 //     } catch (e) {
-//       print('Error loading data: $e'); // Debug log
+//       print('Error loading data: $e');
 //       if (mounted) {
 //         ScaffoldMessenger.of(context).showSnackBar(
 //           SnackBar(content: Text("Failed to load profile data: $e")),
@@ -230,9 +181,9 @@
 
 //       setState(() => _isEditing = false);
 //     } catch (e) {
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text("Failed to update profile: $e")),
+//       );
 //     } finally {
 //       setState(() => _isLoading = false);
 //     }
@@ -255,7 +206,6 @@
 //           }
 //         },
 //       ),
-
 //       body: _isLoading
 //           ? const Center(child: LoadingAnimation(size: 250))
 //           : RefreshIndicator(
@@ -287,31 +237,21 @@
 //                                 ),
 //                               ],
 //                             ),
-//                             child:
-//                                 _selectedAvatar.isEmpty ||
-//                                     _selectedAvatar ==
-//                                         AvatarConfig.defaultAvatar
-//                                 ? const Icon(
+//                             child: ClipOval(
+//                               child: Image.asset(
+//                                 _selectedAvatar,
+//                                 width: 74,
+//                                 height: 74,
+//                                 fit: BoxFit.cover,
+//                                 errorBuilder: (context, error, stackTrace) {
+//                                   return const Icon(
 //                                     Icons.account_circle_rounded,
 //                                     size: 74,
-//                                     color: Colors.white,
-//                                   )
-//                                 : ClipOval(
-//                                     child: Image.asset(
-//                                       _selectedAvatar,
-//                                       width: 74,
-//                                       height: 74,
-//                                       fit: BoxFit.cover,
-//                                       errorBuilder:
-//                                           (context, error, stackTrace) {
-//                                             return const Icon(
-//                                               Icons.account_circle_rounded,
-//                                               size: 74,
-//                                               color: Colors.white,
-//                                             );
-//                                           },
-//                                     ),
-//                                   ),
+//                                     color: Colors.grey,
+//                                   );
+//                                 },
+//                               ),
+//                             ),
 //                           ),
 //                           if (_isEditing)
 //                             Positioned(
@@ -324,10 +264,7 @@
 //                                   decoration: BoxDecoration(
 //                                     color: AppColors.darkTeal,
 //                                     shape: BoxShape.circle,
-//                                     border: Border.all(
-//                                       color: Colors.white,
-//                                       width: 2,
-//                                     ),
+//                                     border: Border.all(color: Colors.white, width: 2),
 //                                   ),
 //                                   child: const Icon(
 //                                     Icons.photo_library_rounded,
@@ -339,7 +276,6 @@
 //                             ),
 //                         ],
 //                       ),
-
 //                       const SizedBox(width: 16),
 //                       Expanded(
 //                         child: Container(
@@ -358,12 +294,9 @@
 //                           ),
 //                           child: Column(
 //                             crossAxisAlignment: CrossAxisAlignment.center,
-//                             mainAxisAlignment: MainAxisAlignment.center,
 //                             children: [
 //                               Text(
-//                                 _nameController.text.isNotEmpty
-//                                     ? _nameController.text
-//                                     : "Your Name",
+//                                 _nameController.text.isNotEmpty ? _nameController.text : "Your Name",
 //                                 style: const TextStyle(
 //                                   color: Colors.white,
 //                                   fontSize: 18,
@@ -380,10 +313,7 @@
 //                               ),
 //                               const SizedBox(height: 8),
 //                               Container(
-//                                 padding: const EdgeInsets.symmetric(
-//                                   horizontal: 10,
-//                                   vertical: 3,
-//                                 ),
+//                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
 //                                 decoration: BoxDecoration(
 //                                   color: Colors.white.withOpacity(0.2),
 //                                   borderRadius: BorderRadius.circular(10),
@@ -405,7 +335,7 @@
 //                   ),
 //                   const SizedBox(height: 24),
 
-//                   // --- Personal Information Section ---
+//                   // --- Personal Information ---
 //                   Container(
 //                     padding: const EdgeInsets.all(20),
 //                     decoration: BoxDecoration(
@@ -425,11 +355,7 @@
 //                       children: [
 //                         Row(
 //                           children: const [
-//                             Icon(
-//                               Icons.person_outline_rounded,
-//                               color: AppColors.green,
-//                               size: 20,
-//                             ),
+//                             Icon(Icons.person_outline_rounded, color: AppColors.green, size: 20),
 //                             SizedBox(width: 8),
 //                             Text(
 //                               "Personal Information",
@@ -441,38 +367,18 @@
 //                             ),
 //                           ],
 //                         ),
-//                         const SizedBox(height: 3.5),
-//                         _buildEditableField(
-//                           "Full Name",
-//                           _nameController,
-//                           Icons.person,
-//                         ),
-//                         const SizedBox(height: 3.5),
-//                         _buildEditableField(
-//                           "Roll No",
-//                           _rollController,
-//                           Icons.badge,
-//                         ),
-//                         const SizedBox(height: 3.5),
-//                         _buildEditableField(
-//                           "Year",
-//                           _yearController,
-//                           Icons.school,
-//                         ),
-//                         const SizedBox(height: 3.5),
-//                         _buildEditableField(
-//                           "Division",
-//                           _divisionController,
-//                           Icons.group,
-//                         ),
-//                         const SizedBox(height: 3.5),
-//                         _buildEditableField(
-//                           "Phone Number",
-//                           _phoneController,
-//                           Icons.phone,
-//                         ),
+//                         const SizedBox(height: 12),
+//                         _buildEditableField("Full Name", _nameController, Icons.person),
+//                         const SizedBox(height: 12),
+//                         _buildEditableField("Roll No", _rollController, Icons.badge),
+//                         const SizedBox(height: 12),
+//                         _buildEditableField("Year", _yearController, Icons.school),
+//                         const SizedBox(height: 12),
+//                         _buildEditableField("Division", _divisionController, Icons.group),
+//                         const SizedBox(height: 12),
+//                         _buildEditableField("Phone Number", _phoneController, Icons.phone),
 
-//                         // ✅ Added Notification Toggle Here
+//                         // ✅ Notification Toggle
 //                         const Divider(height: 24),
 //                         SwitchListTile(
 //                           contentPadding: EdgeInsets.zero,
@@ -486,12 +392,8 @@
 //                             ),
 //                           ),
 //                           secondary: Icon(
-//                             _notificationsEnabled
-//                                 ? Icons.notifications_active
-//                                 : Icons.notifications_off,
-//                             color: _notificationsEnabled
-//                                 ? AppColors.green
-//                                 : AppColors.lightGray,
+//                             _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
+//                             color: _notificationsEnabled ? AppColors.green : AppColors.lightGray,
 //                             size: 20,
 //                           ),
 //                           value: _notificationsEnabled,
@@ -503,304 +405,6 @@
 //                   const SizedBox(height: 24),
 
 //                   // --- Completed Tasks Section ---
-//                   // Container(
-//                   //   padding: const EdgeInsets.all(20),
-//                   //   decoration: BoxDecoration(
-//                   //     color: Colors.white,
-//                   //     borderRadius: BorderRadius.circular(16),
-//                   //     boxShadow: [
-//                   //       BoxShadow(
-//                   //         color: Colors.black.withOpacity(0.2),
-//                   //         blurRadius: 8,
-//                   //         offset: const Offset(0, 2),
-//                   //       ),
-//                   //     ],
-//                   //   ),
-//                   //   child: Column(
-//                   //     crossAxisAlignment: CrossAxisAlignment.start,
-//                   //     children: [
-//                   //       Row(
-//                   //         children: [
-//                   //           const Icon(
-//                   //             Icons.task_alt,
-//                   //             color: AppColors.green,
-//                   //             size: 20,
-//                   //           ),
-//                   //           const SizedBox(width: 8),
-//                   //           const Text(
-//                   //             "Completed Tasks",
-//                   //             style: TextStyle(
-//                   //               fontSize: 16,
-//                   //               fontWeight: FontWeight.w600,
-//                   //               color: AppColors.darkGray,
-//                   //             ),
-//                   //           ),
-//                   //           const Spacer(),
-//                   //           Container(
-//                   //             padding: const EdgeInsets.symmetric(
-//                   //               horizontal: 8,
-//                   //               vertical: 4,
-//                   //             ),
-//                   //             decoration: BoxDecoration(
-//                   //               color: AppColors.green.withOpacity(0.1),
-//                   //               borderRadius: BorderRadius.circular(12),
-//                   //             ),
-//                   //             child: Text(
-//                   //               "${_completedTasks.length}",
-//                   //               style: const TextStyle(
-//                   //                 color: AppColors.green,
-//                   //                 fontSize: 12,
-//                   //                 fontWeight: FontWeight.w600,
-//                   //               ),
-//                   //             ),
-//                   //           ),
-//                   //         ],
-//                   //       ),
-//                   //       const SizedBox(height: 16),
-
-//                   //       if (_completedTasks.isEmpty)
-//                   //         Container(
-//                   //           padding: const EdgeInsets.symmetric(vertical: 40),
-//                   //           width: double.infinity,
-//                   //           child: Column(
-//                   //             mainAxisAlignment: MainAxisAlignment.center,
-//                   //             crossAxisAlignment: CrossAxisAlignment.center,
-//                   //             children: [
-//                   //               Icon(
-//                   //                 Icons.incomplete_circle_rounded,
-//                   //                 color: AppColors.lightGray.withOpacity(0.5),
-//                   //                 size: 64,
-//                   //               ),
-//                   //               const SizedBox(height: 16),
-//                   //               const Text(
-//                   //                 "No completed tasks yet",
-//                   //                 style: TextStyle(
-//                   //                   color: AppColors.lightGray,
-//                   //                   fontSize: 14,
-//                   //                 ),
-//                   //                 textAlign: TextAlign.center,
-//                   //               ),
-//                   //               const SizedBox(height: 8),
-//                   //               Text(
-//                   //                 "Complete your first task to see it here!",
-//                   //                 style: TextStyle(
-//                   //                   color: AppColors.lightGray.withOpacity(0.7),
-//                   //                   fontSize: 12,
-//                   //                 ),
-//                   //                 textAlign: TextAlign.center,
-//                   //               ),
-//                   //             ],
-//                   //           ),
-//                   //         )
-//                   //       else
-//                   //         ..._completedTasks.asMap().entries.map((entry) {
-//                   //           final taskIndex = entry.key;
-//                   //           final task = entry.value;
-//                   //           final subtasks = (task['subtasks'] as List?) ?? [];
-
-//                   //           return Container(
-//                   //             margin: const EdgeInsets.only(bottom: 12),
-//                   //             decoration: BoxDecoration(
-//                   //               color: Colors.grey.shade50,
-//                   //               borderRadius: BorderRadius.circular(12),
-//                   //               border: Border.all(color: Colors.grey.shade200),
-//                   //             ),
-//                   //             child: Stack(
-//                   //               children: [
-//                   //                 _role == 'Head'
-//                   //                     ? Theme(
-//                   //                         data: Theme.of(context).copyWith(
-//                   //                           dividerColor: Colors.transparent,
-//                   //                         ),
-//                   //                         child: ExpansionTile(
-//                   //                           tilePadding:
-//                   //                               const EdgeInsets.symmetric(
-//                   //                                 horizontal: 16,
-//                   //                                 vertical: 4,
-//                   //                               ),
-//                   //                           leading: Container(
-//                   //                             padding: const EdgeInsets.all(6),
-//                   //                             decoration: BoxDecoration(
-//                   //                               color: AppColors.green
-//                   //                                   .withOpacity(0.1),
-//                   //                               shape: BoxShape.circle,
-//                   //                             ),
-//                   //                             child: const Icon(
-//                   //                               Icons.check_circle_rounded,
-//                   //                               color: AppColors.green,
-//                   //                               size: 20,
-//                   //                             ),
-//                   //                           ),
-//                   //                           title: Text(
-//                   //                             task['title'],
-//                   //                             style: const TextStyle(
-//                   //                               fontWeight: FontWeight.w500,
-//                   //                               color: AppColors.darkGray,
-//                   //                             ),
-//                   //                           ),
-//                   //                           subtitle: Text(
-//                   //                             task['completedAt'] != null
-//                   //                                 ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-//                   //                                 : task['deadline'] != null
-//                   //                                 ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
-//                   //                                 : 'Completion date not available',
-//                   //                             style: const TextStyle(
-//                   //                               color: AppColors.lightGray,
-//                   //                               fontSize: 12,
-//                   //                             ),
-//                   //                           ),
-//                   //                           children: [
-//                   //                             Padding(
-//                   //                               padding:
-//                   //                                   const EdgeInsets.symmetric(
-//                   //                                     horizontal: 16,
-//                   //                                   ),
-//                   //                               child: Divider(
-//                   //                                 color: Colors.grey.shade300,
-//                   //                               ),
-//                   //                             ),
-//                   //                             ...subtasks.map((sub) {
-//                   //                               final assignedUsers =
-//                   //                                   (sub['assignedTo'] as List)
-//                   //                                       .map(
-//                   //                                         (u) => u['username'],
-//                   //                                       )
-//                   //                                       .join(', ');
-//                   //                               return Container(
-//                   //                                 margin: const EdgeInsets.only(
-//                   //                                   bottom: 8,
-//                   //                                   left: 16,
-//                   //                                   right: 16,
-//                   //                                 ),
-//                   //                                 padding: const EdgeInsets.all(
-//                   //                                   12,
-//                   //                                 ),
-//                   //                                 decoration: BoxDecoration(
-//                   //                                   color: Colors.white,
-//                   //                                   borderRadius:
-//                   //                                       BorderRadius.circular(
-//                   //                                         8,
-//                   //                                       ),
-//                   //                                   border: Border.all(
-//                   //                                     color:
-//                   //                                         Colors.grey.shade200,
-//                   //                                   ),
-//                   //                                 ),
-//                   //                                 child: Column(
-//                   //                                   crossAxisAlignment:
-//                   //                                       CrossAxisAlignment
-//                   //                                           .start,
-//                   //                                   children: [
-//                   //                                     Row(
-//                   //                                       children: [
-//                   //                                         Expanded(
-//                   //                                           child: Text(
-//                   //                                             sub['title'],
-//                   //                                             style: const TextStyle(
-//                   //                                               fontWeight:
-//                   //                                                   FontWeight
-//                   //                                                       .w600,
-//                   //                                               color: AppColors
-//                   //                                                   .darkGray,
-//                   //                                               fontSize: 14,
-//                   //                                             ),
-//                   //                                           ),
-//                   //                                         ),
-//                   //                                       ],
-//                   //                                     ),
-//                   //                                     const SizedBox(height: 4),
-//                   //                                     Text(
-//                   //                                       sub['description'] ??
-//                   //                                           'No completion note.',
-//                   //                                       style: TextStyle(
-//                   //                                         color: AppColors
-//                   //                                             .darkGray
-//                   //                                             .withOpacity(0.8),
-//                   //                                         fontSize: 12,
-//                   //                                       ),
-//                   //                                     ),
-//                   //                                     const SizedBox(height: 6),
-//                   //                                     Text(
-//                   //                                       "Completed by: $assignedUsers",
-//                   //                                       style: const TextStyle(
-//                   //                                         fontStyle:
-//                   //                                             FontStyle.italic,
-//                   //                                         color: AppColors
-//                   //                                             .lightGray,
-//                   //                                         fontSize: 11,
-//                   //                                       ),
-//                   //                                     ),
-//                   //                                   ],
-//                   //                                 ),
-//                   //                               );
-//                   //                             }).toList(),
-//                   //                             const SizedBox(height: 8),
-//                   //                           ],
-//                   //                         ),
-//                   //                       )
-//                   //                     : ListTile(
-//                   //                         contentPadding:
-//                   //                             const EdgeInsets.symmetric(
-//                   //                               horizontal: 16,
-//                   //                               vertical: 4,
-//                   //                             ),
-//                   //                         leading: Container(
-//                   //                           padding: const EdgeInsets.all(6),
-//                   //                           decoration: BoxDecoration(
-//                   //                             color: AppColors.green
-//                   //                                 .withOpacity(0.1),
-//                   //                             shape: BoxShape.circle,
-//                   //                           ),
-//                   //                           child: const Icon(
-//                   //                             Icons.check_circle_rounded,
-//                   //                             color: AppColors.green,
-//                   //                             size: 20,
-//                   //                           ),
-//                   //                         ),
-//                   //                         title: Text(
-//                   //                           task['title'],
-//                   //                           style: const TextStyle(
-//                   //                             fontWeight: FontWeight.w500,
-//                   //                             color: AppColors.darkGray,
-//                   //                           ),
-//                   //                         ),
-//                   //                         subtitle: Text(
-//                   //                           task['completedAt'] != null
-//                   //                               ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-//                   //                               : task['deadline'] != null
-//                   //                               ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
-//                   //                               : 'Completion date not available',
-//                   //                           style: const TextStyle(
-//                   //                             color: AppColors.lightGray,
-//                   //                             fontSize: 12,
-//                   //                           ),
-//                   //                         ),
-//                   //                       ),
-
-//                   //                 Positioned(
-//                   //                   left: 0,
-//                   //                   top: 0,
-//                   //                   bottom: 0,
-//                   //                   child: Container(
-//                   //                     width: 8,
-//                   //                     decoration: BoxDecoration(
-//                   //                       color: taskIndex.isEven
-//                   //                           ? AppColors.orange
-//                   //                           : AppColors.darkTeal,
-//                   //                       borderRadius: const BorderRadius.only(
-//                   //                         topLeft: Radius.circular(12),
-//                   //                         bottomLeft: Radius.circular(12),
-//                   //                       ),
-//                   //                     ),
-//                   //                   ),
-//                   //                 ),
-//                   //               ],
-//                   //             ),
-//                   //           );
-//                   //         }).toList(),
-//                   //     ],
-//                   //   ),
-//                   // ),
 //                   Container(
 //                     padding: const EdgeInsets.all(20),
 //                     decoration: BoxDecoration(
@@ -819,17 +423,11 @@
 //                       children: [
 //                         Row(
 //                           children: [
-//                             const Icon(
-//                               Icons.task_alt,
-//                               color: AppColors.green,
-//                               size: 20,
-//                             ),
+//                             const Icon(Icons.task_alt, color: AppColors.green, size: 20),
 //                             const SizedBox(width: 8),
 //                             Expanded(
 //                               child: Text(
-//                                 _role == 'Head'
-//                                     ? "Team Completed Tasks"
-//                                     : "My Completed Tasks",
+//                                 _role == 'Head' ? "Team Completed Tasks" : "My Completed Tasks",
 //                                 style: const TextStyle(
 //                                   fontSize: 16,
 //                                   fontWeight: FontWeight.w600,
@@ -838,10 +436,7 @@
 //                               ),
 //                             ),
 //                             Container(
-//                               padding: const EdgeInsets.symmetric(
-//                                 horizontal: 8,
-//                                 vertical: 4,
-//                               ),
+//                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
 //                               decoration: BoxDecoration(
 //                                 color: AppColors.green.withOpacity(0.1),
 //                                 borderRadius: BorderRadius.circular(12),
@@ -859,33 +454,25 @@
 //                         ),
 //                         const SizedBox(height: 16),
 
-//                         // ✅ Different empty states for Head vs Member
 //                         if (_completedTasks.isEmpty)
 //                           Container(
 //                             padding: const EdgeInsets.symmetric(vertical: 40),
 //                             width: double.infinity,
 //                             child: Column(
-//                               mainAxisAlignment: MainAxisAlignment.center,
-//                               crossAxisAlignment: CrossAxisAlignment.center,
 //                               children: [
 //                                 Icon(
-//                                   _role == 'Head'
-//                                       ? Icons.groups_outlined
-//                                       : Icons.incomplete_circle_rounded,
+//                                   _role == 'Head' ? Icons.groups_outlined : Icons.incomplete_circle_rounded,
 //                                   color: AppColors.lightGray.withOpacity(0.5),
 //                                   size: 64,
 //                                 ),
 //                                 const SizedBox(height: 16),
 //                                 Text(
-//                                   _role == 'Head'
-//                                       ? "No completed tasks by your team"
-//                                       : "No completed tasks yet",
+//                                   _role == 'Head' ? "No completed tasks by your team" : "No completed tasks yet",
 //                                   style: const TextStyle(
 //                                     color: AppColors.lightGray,
 //                                     fontSize: 14,
 //                                     fontWeight: FontWeight.w500,
 //                                   ),
-//                                   textAlign: TextAlign.center,
 //                                 ),
 //                                 const SizedBox(height: 8),
 //                                 Text(
@@ -916,160 +503,76 @@
 //                               ),
 //                               child: Stack(
 //                                 children: [
-//                                   // ✅ Head always sees expandable view with subtasks
+//                                   // Color indicator
+//                                   Positioned(
+//                                     left: 0,
+//                                     top: 0,
+//                                     bottom: 0,
+//                                     child: Container(
+//                                       width: 8,
+//                                       decoration: BoxDecoration(
+//                                         color: taskIndex.isEven ? AppColors.orange : AppColors.darkTeal,
+//                                         borderRadius: const BorderRadius.only(
+//                                           topLeft: Radius.circular(12),
+//                                           bottomLeft: Radius.circular(12),
+//                                         ),
+//                                       ),
+//                                     ),
+//                                   ),
+                                  
+//                                   // Content
 //                                   _role == 'Head'
 //                                       ? Theme(
-//                                           data: Theme.of(context).copyWith(
-//                                             dividerColor: Colors.transparent,
-//                                           ),
+//                                           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
 //                                           child: ExpansionTile(
-//                                             tilePadding:
-//                                                 const EdgeInsets.symmetric(
-//                                                   horizontal: 16,
-//                                                   vertical: 4,
-//                                                 ),
+//                                             tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
 //                                             leading: Container(
 //                                               padding: const EdgeInsets.all(6),
 //                                               decoration: BoxDecoration(
-//                                                 color: AppColors.green
-//                                                     .withOpacity(0.1),
+//                                                 color: AppColors.green.withOpacity(0.1),
 //                                                 shape: BoxShape.circle,
 //                                               ),
-//                                               child: const Icon(
-//                                                 Icons.check_circle_rounded,
-//                                                 color: AppColors.green,
-//                                                 size: 20,
-//                                               ),
+//                                               child: const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
 //                                             ),
 //                                             title: Text(
 //                                               task['title'],
-//                                               style: const TextStyle(
-//                                                 fontWeight: FontWeight.w500,
-//                                                 color: AppColors.darkGray,
-//                                               ),
+//                                               style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.darkGray),
 //                                             ),
 //                                             subtitle: Text(
 //                                               task['completedAt'] != null
 //                                                   ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-//                                                   : task['deadline'] != null
-//                                                   ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
-//                                                   : 'Completion date not available',
-//                                               style: const TextStyle(
-//                                                 color: AppColors.lightGray,
-//                                                 fontSize: 12,
-//                                               ),
+//                                                   : "Date N/A",
+//                                               style: const TextStyle(color: AppColors.lightGray, fontSize: 12),
 //                                             ),
 //                                             children: [
 //                                               Padding(
-//                                                 padding:
-//                                                     const EdgeInsets.symmetric(
-//                                                       horizontal: 16,
-//                                                     ),
-//                                                 child: Divider(
-//                                                   color: Colors.grey.shade300,
-//                                                 ),
+//                                                 padding: const EdgeInsets.symmetric(horizontal: 16),
+//                                                 child: Divider(color: Colors.grey.shade300),
 //                                               ),
 //                                               if (subtasks.isEmpty)
 //                                                 Padding(
-//                                                   padding: const EdgeInsets.all(
-//                                                     16.0,
-//                                                   ),
-//                                                   child: Text(
-//                                                     "No subtasks for this task",
-//                                                     style: TextStyle(
-//                                                       color: AppColors.lightGray
-//                                                           .withOpacity(0.7),
-//                                                       fontSize: 12,
-//                                                       fontStyle:
-//                                                           FontStyle.italic,
-//                                                     ),
-//                                                   ),
+//                                                   padding: const EdgeInsets.all(16.0),
+//                                                   child: Text("No subtasks", style: TextStyle(color: AppColors.lightGray.withOpacity(0.7), fontSize: 12, fontStyle: FontStyle.italic)),
 //                                                 )
 //                                               else
 //                                                 ...subtasks.map((sub) {
-//                                                   final assignedUsers =
-//                                                       (sub['assignedTo']
-//                                                               as List)
-//                                                           .map(
-//                                                             (u) =>
-//                                                                 u['username'],
-//                                                           )
-//                                                           .join(', ');
+//                                                   final assignedUsers = (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
 //                                                   return Container(
-//                                                     margin:
-//                                                         const EdgeInsets.only(
-//                                                           bottom: 8,
-//                                                           left: 16,
-//                                                           right: 16,
-//                                                         ),
-//                                                     padding:
-//                                                         const EdgeInsets.all(
-//                                                           12,
-//                                                         ),
+//                                                     margin: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
+//                                                     padding: const EdgeInsets.all(12),
 //                                                     decoration: BoxDecoration(
 //                                                       color: Colors.white,
-//                                                       borderRadius:
-//                                                           BorderRadius.circular(
-//                                                             8,
-//                                                           ),
-//                                                       border: Border.all(
-//                                                         color: Colors
-//                                                             .grey
-//                                                             .shade200,
-//                                                       ),
+//                                                       borderRadius: BorderRadius.circular(8),
+//                                                       border: Border.all(color: Colors.grey.shade200),
 //                                                     ),
 //                                                     child: Column(
-//                                                       crossAxisAlignment:
-//                                                           CrossAxisAlignment
-//                                                               .start,
+//                                                       crossAxisAlignment: CrossAxisAlignment.start,
 //                                                       children: [
-//                                                         Row(
-//                                                           children: [
-//                                                             Expanded(
-//                                                               child: Text(
-//                                                                 sub['title'],
-//                                                                 style: const TextStyle(
-//                                                                   fontWeight:
-//                                                                       FontWeight
-//                                                                           .w600,
-//                                                                   color: AppColors
-//                                                                       .darkGray,
-//                                                                   fontSize: 14,
-//                                                                 ),
-//                                                               ),
-//                                                             ),
-//                                                           ],
-//                                                         ),
-//                                                         const SizedBox(
-//                                                           height: 4,
-//                                                         ),
-//                                                         Text(
-//                                                           sub['description'] ??
-//                                                               'No completion note.',
-//                                                           style: TextStyle(
-//                                                             color: AppColors
-//                                                                 .darkGray
-//                                                                 .withOpacity(
-//                                                                   0.8,
-//                                                                 ),
-//                                                             fontSize: 12,
-//                                                           ),
-//                                                         ),
-//                                                         const SizedBox(
-//                                                           height: 6,
-//                                                         ),
-//                                                         Text(
-//                                                           "Completed by: $assignedUsers",
-//                                                           style:
-//                                                               const TextStyle(
-//                                                                 fontStyle:
-//                                                                     FontStyle
-//                                                                         .italic,
-//                                                                 color: AppColors
-//                                                                     .lightGray,
-//                                                                 fontSize: 11,
-//                                                               ),
-//                                                         ),
+//                                                         Text(sub['title'], style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.darkGray, fontSize: 14)),
+//                                                         const SizedBox(height: 4),
+//                                                         Text(sub['description'] ?? 'No note.', style: TextStyle(color: AppColors.darkGray.withOpacity(0.8), fontSize: 12)),
+//                                                         const SizedBox(height: 6),
+//                                                         Text("Completed by: $assignedUsers", style: const TextStyle(fontStyle: FontStyle.italic, color: AppColors.lightGray, fontSize: 11)),
 //                                                       ],
 //                                                     ),
 //                                                   );
@@ -1078,64 +581,24 @@
 //                                             ],
 //                                           ),
 //                                         )
-//                                       // ✅ Member sees simple list view
 //                                       : ListTile(
-//                                           contentPadding:
-//                                               const EdgeInsets.symmetric(
-//                                                 horizontal: 16,
-//                                                 vertical: 4,
-//                                               ),
+//                                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
 //                                           leading: Container(
 //                                             padding: const EdgeInsets.all(6),
 //                                             decoration: BoxDecoration(
-//                                               color: AppColors.green
-//                                                   .withOpacity(0.1),
+//                                               color: AppColors.green.withOpacity(0.1),
 //                                               shape: BoxShape.circle,
 //                                             ),
-//                                             child: const Icon(
-//                                               Icons.check_circle_rounded,
-//                                               color: AppColors.green,
-//                                               size: 20,
-//                                             ),
+//                                             child: const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
 //                                           ),
-//                                           title: Text(
-//                                             task['title'],
-//                                             style: const TextStyle(
-//                                               fontWeight: FontWeight.w500,
-//                                               color: AppColors.darkGray,
-//                                             ),
-//                                           ),
+//                                           title: Text(task['title'], style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.darkGray)),
 //                                           subtitle: Text(
 //                                             task['completedAt'] != null
 //                                                 ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-//                                                 : task['deadline'] != null
-//                                                 ? "Deadline was: ${_formatDate(DateTime.parse(task['deadline']))}"
-//                                                 : 'Completion date not available',
-//                                             style: const TextStyle(
-//                                               color: AppColors.lightGray,
-//                                               fontSize: 12,
-//                                             ),
+//                                                 : "Date N/A",
+//                                             style: const TextStyle(color: AppColors.lightGray, fontSize: 12),
 //                                           ),
 //                                         ),
-
-//                                   // Color indicator on the left
-//                                   Positioned(
-//                                     left: 0,
-//                                     top: 0,
-//                                     bottom: 0,
-//                                     child: Container(
-//                                       width: 8,
-//                                       decoration: BoxDecoration(
-//                                         color: taskIndex.isEven
-//                                             ? AppColors.orange
-//                                             : AppColors.darkTeal,
-//                                         borderRadius: const BorderRadius.only(
-//                                           topLeft: Radius.circular(12),
-//                                           bottomLeft: Radius.circular(12),
-//                                         ),
-//                                       ),
-//                                     ),
-//                                   ),
 //                                 ],
 //                               ),
 //                             );
@@ -1150,102 +613,52 @@
 //     );
 //   }
 
-//   Widget _buildEditableField(
-//     String label,
-//     TextEditingController controller,
-//     IconData icon,
-//   ) {
+//   Widget _buildEditableField(String label, TextEditingController controller, IconData icon) {
 //     return Container(
 //       decoration: BoxDecoration(
 //         color: _isEditing ? Colors.grey.shade50 : Colors.transparent,
 //         borderRadius: BorderRadius.circular(12),
-//         border: _isEditing
-//             ? Border.all(color: AppColors.green.withOpacity(0.3), width: 1.5)
-//             : null,
+//         border: _isEditing ? Border.all(color: AppColors.green.withOpacity(0.3), width: 1.5) : null,
 //       ),
 //       child: TextField(
 //         controller: controller,
 //         enabled: _isEditing,
-//         style: const TextStyle(
-//           color: AppColors.darkGray,
-//           fontSize: 14,
-//           fontWeight: FontWeight.w500,
-//         ),
+//         style: const TextStyle(color: AppColors.darkGray, fontSize: 14, fontWeight: FontWeight.w500),
 //         decoration: InputDecoration(
 //           labelText: label,
 //           labelStyle: const TextStyle(color: AppColors.lightGray, fontSize: 13),
-//           prefixIcon: Icon(
-//             icon,
-//             color: _isEditing ? AppColors.green : AppColors.lightGray,
-//             size: 20,
-//           ),
+//           prefixIcon: Icon(icon, color: _isEditing ? AppColors.green : AppColors.lightGray, size: 20),
 //           border: InputBorder.none,
-//           contentPadding: const EdgeInsets.symmetric(
-//             horizontal: 16,
-//             vertical: 16,
-//           ),
+//           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
 //         ),
 //       ),
 //     );
 //   }
 
 //   Widget _buildAvatarSelectionContent() {
-//     final selectableAvatars = AvatarConfig.avatarPaths
-//         .where((path) => path != AvatarConfig.defaultAvatar)
-//         .toList();
+//     final selectableAvatars = AvatarConfig.avatarPaths.where((path) => path != AvatarConfig.defaultAvatar).toList();
 
 //     return Container(
 //       padding: const EdgeInsets.all(20),
 //       constraints: const BoxConstraints(maxWidth: 300),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(16),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(0.2),
-//             blurRadius: 8,
-//             offset: const Offset(0, 2),
-//           ),
-//         ],
-//       ),
 //       child: Column(
 //         mainAxisSize: MainAxisSize.min,
 //         crossAxisAlignment: CrossAxisAlignment.start,
 //         children: [
 //           Row(
 //             children: [
-//               const Icon(
-//                 Icons.photo_library_rounded,
-//                 color: AppColors.green,
-//                 size: 20,
-//               ),
+//               const Icon(Icons.photo_library_rounded, color: AppColors.green, size: 20),
 //               const SizedBox(width: 8),
-//               const Text(
-//                 "Choose Your Avatar",
-//                 style: TextStyle(
-//                   fontSize: 16,
-//                   fontWeight: FontWeight.w600,
-//                   color: AppColors.darkGray,
-//                 ),
-//               ),
+//               const Text("Choose Your Avatar", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.darkGray)),
 //               const Spacer(),
-//               IconButton(
-//                 icon: const Icon(Icons.close, size: 20),
-//                 onPressed: () => Navigator.of(context).pop(),
-//               ),
+//               IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.of(context).pop()),
 //             ],
 //           ),
 //           const SizedBox(height: 16),
-
 //           GridView.builder(
 //             shrinkWrap: true,
 //             physics: const NeverScrollableScrollPhysics(),
-//             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-//               crossAxisCount: 3,
-//               crossAxisSpacing: 12,
-//               mainAxisSpacing: 12,
-//               childAspectRatio: 1.0,
-//             ),
+//             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.0),
 //             itemCount: selectableAvatars.length,
 //             itemBuilder: (context, index) {
 //               final avatarPath = selectableAvatars[index];
@@ -1257,37 +670,17 @@
 //                 child: Container(
 //                   decoration: BoxDecoration(
 //                     shape: BoxShape.circle,
-//                     border: Border.all(
-//                       color: _selectedAvatar == avatarPath
-//                           ? AppColors.green
-//                           : Colors.grey.shade300,
-//                       width: _selectedAvatar == avatarPath ? 3 : 2,
-//                     ),
+//                     border: Border.all(color: _selectedAvatar == avatarPath ? AppColors.green : Colors.grey.shade300, width: _selectedAvatar == avatarPath ? 3 : 2),
 //                   ),
 //                   child: ClipOval(
-//                     child: Image.asset(
-//                       avatarPath,
-//                       width: 65,
-//                       height: 65,
-//                       fit: BoxFit.cover,
-//                       errorBuilder: (context, error, stackTrace) {
-//                         return Container(
-//                           color: Colors.grey.shade200,
-//                           child: Icon(
-//                             Icons.person,
-//                             color: Colors.grey.shade400,
-//                           ),
-//                         );
-//                       },
-//                     ),
+//                     child: Image.asset(avatarPath, width: 65, height: 65, fit: BoxFit.cover),
 //                   ),
 //                 ),
 //               );
 //             },
 //           ),
-//           const SizedBox(height: 20),
-
-//           if (_selectedAvatar != AvatarConfig.defaultAvatar)
+//           if (_selectedAvatar != AvatarConfig.defaultAvatar) ...[
+//             const SizedBox(height: 20),
 //             SizedBox(
 //               width: double.infinity,
 //               child: ElevatedButton(
@@ -1295,35 +688,11 @@
 //                   _saveAvatar(AvatarConfig.defaultAvatar);
 //                   Navigator.of(context).pop();
 //                 },
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: AppColors.orange.withOpacity(0.85),
-//                   foregroundColor: Colors.white,
-//                   elevation: 0,
-//                   shape: RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.circular(12),
-//                     side: const BorderSide(
-//                       color: AppColors.darkOrange,
-//                       width: 2,
-//                     ),
-//                   ),
-//                   padding: const EdgeInsets.symmetric(vertical: 12),
-//                 ),
-//                 child: Row(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: const [
-//                     Icon(Icons.cancel, size: 18),
-//                     SizedBox(width: 8),
-//                     Text(
-//                       "Remove Avatar",
-//                       style: TextStyle(
-//                         fontSize: 14,
-//                         fontWeight: FontWeight.w500,
-//                       ),
-//                     ),
-//                   ],
-//                 ),
+//                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.orange.withOpacity(0.85), foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+//                 child: const Text("Remove Avatar"),
 //               ),
 //             ),
+//           ]
 //         ],
 //       ),
 //     );
@@ -1338,7 +707,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
-import '../services/notification_handler.dart'; // ✅ Ensure this import exists
+import '../services/notification_handler.dart'; 
 import '../widgets/loading_animation.widget.dart';
 import '../widgets/customAppbar.widget.dart';
 import '../core/app_colors.dart';
@@ -1367,18 +736,16 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Services
   final UserService userService = UserService();
   final TaskService taskService = TaskService();
 
-  // Controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _rollController = TextEditingController();
-  final TextEditingController _yearController = TextEditingController();
-  final TextEditingController _divisionController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  
+  String? _selectedYear;
+  String? _selectedDept;
 
-  // State
   bool _isLoading = true;
   bool _isEditing = false;
   bool _notificationsEnabled = true; 
@@ -1389,11 +756,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List _completedTasks = [];
   String _selectedAvatar = AvatarConfig.defaultAvatar;
 
+  final List<String> yearOptions = ['FY', 'SY', 'TE', 'BE'];
+  final List<String> deptOptions = ['CE', 'IT', 'ENTC', 'AIDS', 'ECE'];
+
   @override
   void initState() {
     super.initState();
     loadAllData();
     _loadNotificationPreference();
+  }
+
+  void _showStatusDialog({
+    required String title,
+    required String message,
+    bool isError = false,
+    VoidCallback? onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: !isError, 
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                isError ? Icons.error_outline : Icons.check_circle_outline,
+                color: isError ? Colors.red : AppColors.darkTeal,
+                size: 28,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isError ? Colors.red : AppColors.darkTeal,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(fontSize: 16, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                if (onConfirm != null) {
+                  onConfirm();
+                }
+              },
+              child: const Text(
+                "OK",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppColors.darkTeal,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _loadNotificationPreference() async {
@@ -1405,22 +835,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // ✅ Notification Toggle Logic
   Future<void> _toggleNotifications(bool value) async {
-    // 1. Update UI immediately
     setState(() => _notificationsEnabled = value);
-
-    // 2. Call Handler to manage Token & Preference
     await NotificationHandler().toggleNotifications(value);
-
-    // 3. Show Feedback
+    
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(value ? "Notifications Enabled ✅" : "Notifications Disabled 🔕"),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showStatusDialog(
+        title: value ? "Notifications On" : "Notifications Off", 
+        message: value ? "You will now receive updates." : "You have unsubscribed from notifications.",
+        isError: false
       );
     }
   }
@@ -1456,7 +879,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _email = user['email'] ?? '';
       _role = user['role'] ?? '';
 
-      // Extract team ID safely
       if (user['team'] != null) {
         if (user['team'] is List && (user['team'] as List).isNotEmpty) {
           _userTeam = user['team'][0]['_id'] ?? user['team'][0].toString();
@@ -1471,13 +893,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       _nameController.text = user['name'] ?? '';
       _rollController.text = user['rollNo'] ?? '';
-      _yearController.text = user['year'] ?? '';
-      _divisionController.text = user['division'] ?? '';
       _phoneController.text = user['phone'] ?? '';
+      
+      String fetchedYear = user['year'] ?? '';
+      _selectedYear = yearOptions.contains(fetchedYear) ? fetchedYear : null;
+
+      String fetchedDept = user['division'] ?? '';
+      _selectedDept = deptOptions.contains(fetchedDept) ? fetchedDept : null;
 
       _selectedAvatar = user['avatar'] ?? AvatarConfig.defaultAvatar;
 
-      // Load completed tasks based on role
       if (_role == 'Head') {
         if (_userTeam.isNotEmpty) {
           _completedTasks = await taskService.getCompletedTasksByTeam(_userTeam);
@@ -1488,10 +913,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _completedTasks = await taskService.getCompletedTasksByUser(_userId);
       }
     } catch (e) {
-      print('Error loading data: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to load profile data: $e")),
+        _showStatusDialog(
+          title: "Error",
+          message: "Failed to load profile data: $e",
+          isError: true,
         );
       }
     } finally {
@@ -1500,25 +926,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> saveProfile() async {
+    if (_nameController.text.trim().isEmpty) {
+      _showStatusDialog(title: "Invalid Input", message: "Name cannot be empty.", isError: true);
+      return;
+    }
+    
+    if (!RegExp(r'^\d{5}$').hasMatch(_rollController.text)) {
+      _showStatusDialog(title: "Invalid Roll No", message: "Roll number must be exactly 5 digits.", isError: true);
+      return;
+    }
+
+    if (!RegExp(r'^\d{10}$').hasMatch(_phoneController.text)) {
+      _showStatusDialog(title: "Invalid Phone", message: "Phone number must be exactly 10 digits.", isError: true);
+      return;
+    }
+
+    if (_selectedYear == null) {
+      _showStatusDialog(title: "Missing Info", message: "Please select your Year.", isError: true);
+      return;
+    }
+
+    if (_selectedDept == null) {
+      _showStatusDialog(title: "Missing Info", message: "Please select your Department.", isError: true);
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       await userService.updateUserProfile(
         name: _nameController.text,
         rollNo: _rollController.text,
-        year: _yearController.text,
-        division: _divisionController.text,
+        year: _selectedYear!, 
+        division: _selectedDept!,
         phone: _phoneController.text,
         avatar: _selectedAvatar,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile updated successfully")),
+      _showStatusDialog(
+        title: "Success",
+        message: "Profile updated successfully!",
+        isError: false,
       );
 
       setState(() => _isEditing = false);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to update profile: $e")),
+      _showStatusDialog(
+        title: "Update Failed",
+        message: "Could not update profile: $e",
+        isError: true,
       );
     } finally {
       setState(() => _isLoading = false);
@@ -1532,15 +987,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: customAppBar(
         title: "Profile",
         context: context,
-        showEdit: true,
-        isEditing: _isEditing,
-        onEditToggle: () {
-          if (_isEditing) {
-            saveProfile();
-          } else {
-            setState(() => _isEditing = true);
-          }
-        },
       ),
       body: _isLoading
           ? const Center(child: LoadingAnimation(size: 250))
@@ -1612,6 +1058,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                         ],
                       ),
+
                       const SizedBox(width: 16),
                       Expanded(
                         child: Container(
@@ -1630,6 +1077,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 _nameController.text.isNotEmpty ? _nameController.text : "Your Name",
@@ -1671,7 +1119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // --- Personal Information ---
+                  // --- Personal Information Card ---
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -1689,32 +1137,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Header
                         Row(
-                          children: const [
-                            Icon(Icons.person_outline_rounded, color: AppColors.green, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              "Personal Information",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.darkGray,
-                              ),
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.person_outline_rounded, color: AppColors.green, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  "Personal Information",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkGray,
+                                  ),
+                                ),
+                              ],
                             ),
+                            // ✅ Only show Edit button if NOT editing. 
+                            // If editing, it disappears (no cross).
+                            if (!_isEditing)
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isEditing = true;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: AppColors.darkTeal,
+                                  ),
+                                ),
+                              )
                           ],
                         ),
                         const SizedBox(height: 12),
+                        
                         _buildEditableField("Full Name", _nameController, Icons.person),
                         const SizedBox(height: 12),
-                        _buildEditableField("Roll No", _rollController, Icons.badge),
+                        
+                        _buildEditableField("Roll No", _rollController, Icons.badge, isNumber: true),
                         const SizedBox(height: 12),
-                        _buildEditableField("Year", _yearController, Icons.school),
+                        
+                        _buildDropdownField(
+                          label: "Year", 
+                          value: _selectedYear, 
+                          options: yearOptions, 
+                          icon: Icons.school,
+                          onChanged: (val) => setState(() => _selectedYear = val),
+                        ),
                         const SizedBox(height: 12),
-                        _buildEditableField("Division", _divisionController, Icons.group),
+                        
+                        _buildDropdownField(
+                          label: "Department", 
+                          value: _selectedDept, 
+                          options: deptOptions, 
+                          icon: Icons.business,
+                          onChanged: (val) => setState(() => _selectedDept = val),
+                        ),
                         const SizedBox(height: 12),
-                        _buildEditableField("Phone Number", _phoneController, Icons.phone),
+                        
+                        _buildEditableField("Phone Number", _phoneController, Icons.phone, isNumber: true),
 
-                        // ✅ Notification Toggle
                         const Divider(height: 24),
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
@@ -1735,6 +1227,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           value: _notificationsEnabled,
                           onChanged: _toggleNotifications,
                         ),
+
+                        // ✅ SAVE BUTTON (Inside the card, at the bottom)
+                        if (_isEditing) ...[
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: saveProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.darkTeal,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                "Save Changes",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -1809,16 +1328,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _role == 'Head'
-                                      ? "Tasks completed by your team members will appear here"
-                                      : "Complete your first task to see it here!",
-                                  style: TextStyle(
-                                    color: AppColors.lightGray.withOpacity(0.7),
-                                    fontSize: 12,
-                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ],
@@ -1828,8 +1337,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ..._completedTasks.asMap().entries.map((entry) {
                             final taskIndex = entry.key;
                             final task = entry.value;
-                            final subtasks = (task['subtasks'] as List?) ?? [];
-
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
@@ -1841,9 +1348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   // Color indicator
                                   Positioned(
-                                    left: 0,
-                                    top: 0,
-                                    bottom: 0,
+                                    left: 0, top: 0, bottom: 0,
                                     child: Container(
                                       width: 8,
                                       decoration: BoxDecoration(
@@ -1855,86 +1360,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                   ),
-                                  
                                   // Content
-                                  _role == 'Head'
-                                      ? Theme(
-                                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                                          child: ExpansionTile(
-                                            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                            leading: Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.green.withOpacity(0.1),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
-                                            ),
-                                            title: Text(
-                                              task['title'],
-                                              style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.darkGray),
-                                            ),
-                                            subtitle: Text(
-                                              task['completedAt'] != null
-                                                  ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-                                                  : "Date N/A",
-                                              style: const TextStyle(color: AppColors.lightGray, fontSize: 12),
-                                            ),
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                child: Divider(color: Colors.grey.shade300),
-                                              ),
-                                              if (subtasks.isEmpty)
-                                                Padding(
-                                                  padding: const EdgeInsets.all(16.0),
-                                                  child: Text("No subtasks", style: TextStyle(color: AppColors.lightGray.withOpacity(0.7), fontSize: 12, fontStyle: FontStyle.italic)),
-                                                )
-                                              else
-                                                ...subtasks.map((sub) {
-                                                  final assignedUsers = (sub['assignedTo'] as List).map((u) => u['username']).join(', ');
-                                                  return Container(
-                                                    margin: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
-                                                    padding: const EdgeInsets.all(12),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      border: Border.all(color: Colors.grey.shade200),
-                                                    ),
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(sub['title'], style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.darkGray, fontSize: 14)),
-                                                        const SizedBox(height: 4),
-                                                        Text(sub['description'] ?? 'No note.', style: TextStyle(color: AppColors.darkGray.withOpacity(0.8), fontSize: 12)),
-                                                        const SizedBox(height: 6),
-                                                        Text("Completed by: $assignedUsers", style: const TextStyle(fontStyle: FontStyle.italic, color: AppColors.lightGray, fontSize: 11)),
-                                                      ],
-                                                    ),
-                                                  );
-                                                }).toList(),
-                                              const SizedBox(height: 8),
-                                            ],
-                                          ),
-                                        )
-                                      : ListTile(
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                          leading: Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.green.withOpacity(0.1),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
-                                          ),
-                                          title: Text(task['title'], style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.darkGray)),
-                                          subtitle: Text(
-                                            task['completedAt'] != null
-                                                ? "Completed: ${_formatDate(DateTime.parse(task['completedAt']))}"
-                                                : "Date N/A",
-                                            style: const TextStyle(color: AppColors.lightGray, fontSize: 12),
-                                          ),
-                                        ),
+                                  ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                    leading: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.green.withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.check_circle_rounded, color: AppColors.green, size: 20),
+                                    ),
+                                    title: Text(
+                                      task['title'],
+                                      style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.darkGray),
+                                    ),
+                                    subtitle: Text(
+                                      "Completed",
+                                      style: const TextStyle(color: AppColors.lightGray, fontSize: 12),
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -1942,14 +1387,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildEditableField(String label, TextEditingController controller, IconData icon) {
+  Widget _buildEditableField(String label, TextEditingController controller, IconData icon, {bool isNumber = false}) {
     return Container(
       decoration: BoxDecoration(
         color: _isEditing ? Colors.grey.shade50 : Colors.transparent,
@@ -1959,6 +1404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: TextField(
         controller: controller,
         enabled: _isEditing,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         style: const TextStyle(color: AppColors.darkGray, fontSize: 14, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           labelText: label,
@@ -1966,6 +1412,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
           prefixIcon: Icon(icon, color: _isEditing ? AppColors.green : AppColors.lightGray, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> options,
+    required IconData icon,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _isEditing ? Colors.grey.shade50 : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: _isEditing ? Border.all(color: AppColors.green.withOpacity(0.3), width: 1.5) : null,
+      ),
+      child: ButtonTheme(
+        alignedDropdown: true,
+        child: DropdownButtonFormField<String>(
+          value: value,
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: AppColors.lightGray, fontSize: 13),
+            prefixIcon: Icon(icon, color: _isEditing ? AppColors.green : AppColors.lightGray, size: 20),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          style: const TextStyle(color: AppColors.darkGray, fontSize: 14, fontWeight: FontWeight.w500),
+          icon: Icon(Icons.arrow_drop_down, color: _isEditing ? AppColors.green : Colors.transparent),
+          items: options.map((String val) {
+            return DropdownMenuItem(
+              value: val,
+              child: Text(val),
+            );
+          }).toList(),
+          onChanged: _isEditing ? onChanged : null,
         ),
       ),
     );
@@ -1979,7 +1463,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       constraints: const BoxConstraints(maxWidth: 300),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -2032,9 +1515,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
   }
 }
