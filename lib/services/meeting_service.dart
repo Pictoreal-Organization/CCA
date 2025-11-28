@@ -87,7 +87,7 @@ class MeetingService {
     required String title,
     required String description,
     required DateTime dateTime,
-    required String location,
+    String? location,
     String? agenda,
     int? duration,
     String? priority,

@@ -365,7 +365,7 @@ class MeetingsList extends StatelessWidget {
               final isOngoing = title.contains("Ongoing");
               final isUpcoming = title.contains("Upcoming");
               final isPending = title.contains("Pending");
-              final isOnline = meet['location'] == null;
+              final isOnline = meet['location'] == "";
               
               // Show edit/delete only for upcoming and ongoing, not for pending
               final showEditDelete = role == 'head' && (isUpcoming || isOngoing);
