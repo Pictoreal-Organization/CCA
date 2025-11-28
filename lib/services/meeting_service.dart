@@ -15,6 +15,26 @@ class MeetingService {
     return prefs.getString("accessToken");
   }
 
+  Future<bool> getHasControl(String meetingId) async {
+    final token = await _getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/$meetingId/has-control'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data["canControl"] ?? false;
+    } else {
+      return false; // if any error, assume no control
+    }
+  }
+
+
   Future<List<dynamic>> getOngoingMeetings() async {
     final token = await _getToken();
     final response = await http.get(

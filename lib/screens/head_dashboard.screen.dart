@@ -35,9 +35,7 @@ class _HeadDashboardState extends State<HeadDashboard> {
   List allTasks = [];
   bool isLoading = true;
   late bool showMeetings = true;
-  // bool showMeetings = true;
 
-  // Scroll controller for sticky behavior
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -46,23 +44,11 @@ class _HeadDashboardState extends State<HeadDashboard> {
     showMeetings = !widget.openTasks;
     NotificationHandler().initialize();
     fetchAllData();
-
-    // // ✅ Register the callback to control toggle from notifications
-    // NotificationHandler.setDashboardToggle = (bool showMeetings) {
-    //   if (mounted) {
-    //     setState(() {
-    //       this.showMeetings = showMeetings;
-    //     });
-    //     print('🔄 Dashboard toggle set to: ${showMeetings ? "MEETINGS" : "TASKS"}');
-    //   }
-    // };
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    // // ✅ Clean up the callback
-    // NotificationHandler.setDashboardToggle = null;
     super.dispose();
   }
 

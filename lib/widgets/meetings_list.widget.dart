@@ -4,7 +4,7 @@
 // import '../core/app_colors.dart';
 // import 'package:intl/intl.dart';
 // import '../services/meeting_service.dart';
-// import '../screens/create_meeting.screen.dart'; // Import this!
+// import '../screens/create_meeting.screen.dart';
 
 // class MeetingsList extends StatelessWidget {
 //   final String title;
@@ -17,7 +17,7 @@
 //     required this.title,
 //     required this.meetings,
 //     required this.role,
-//     this.onListUpdated,
+//     this.onListUpdated
 //   });
 
 //   Color _getCardBorderColor() {
@@ -59,14 +59,12 @@
 //     }
 //   }
 
-//   // ✅ Updated Edit Logic: Opens Screen
 //   void _editMeeting(BuildContext context, Map meeting) {
 //     Navigator.push(
 //       context,
 //       MaterialPageRoute(
 //         builder: (_) => CreateMeetingScreen(
 //           onMeetingCreated: () {
-//             // We use the existing callback to refresh the list when coming back
 //             onListUpdated?.call();
 //           },
 //           meetingToEdit: Map<String, dynamic>.from(meeting),
@@ -109,7 +107,11 @@
 //               final meet = meetings[index];
 //               final isOngoing = title.contains("Ongoing");
 //               final isUpcoming = title.contains("Upcoming");
-//               final isOnline = meet['location'] == null;
+//               final isPending = title.contains("Pending");
+//               final isOnline = meet['location'] == "";
+              
+//               // Show edit/delete only for upcoming and ongoing, not for pending
+//               final showEditDelete = role == 'head' && (isUpcoming || isOngoing);
 
 //               return Container(
 //                 margin: const EdgeInsets.only(bottom: 12),
@@ -130,6 +132,7 @@
 //                       children: [
 //                         Row(
 //                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           crossAxisAlignment: CrossAxisAlignment.start,
 //                           children: [
 //                             Expanded(
 //                               child: Text(
@@ -139,28 +142,77 @@
 //                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
 //                               ),
 //                             ),
-//                             if (isOngoing && isOnline)
-//                               ElevatedButton(
-//                                 style: ElevatedButton.styleFrom(
-//                                   backgroundColor: AppColors.orange,
-//                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-//                                   minimumSize: const Size(70, 31),
-//                                   padding: const EdgeInsets.symmetric(horizontal: 14),
-//                                 ),
-//                                 onPressed: () async {
-//                                   final raw = meet['onlineLink'];
-//                                   final link = raw.startsWith("http") ? raw : "https://$raw";
-//                                   if (link != null && link.isNotEmpty) {
-//                                     final uri = Uri.parse(link);
-//                                     if (await canLaunchUrl(uri)) {
-//                                       await launchUrl(uri, mode: LaunchMode.externalApplication);
-//                                     } else {
-//                                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Could not open link")));
-//                                     }
-//                                   }
-//                                 },
-//                                 child: const Text("Join", style: TextStyle(color: Colors.white)),
-//                               ),
+//                             const SizedBox(width: 8),
+                            
+//                             // Action buttons in top right corner
+//                             Row(
+//                               mainAxisSize: MainAxisSize.min,
+//                               children: [
+//                                 if (isOngoing && isOnline)
+//                                   ElevatedButton(
+//                                     style: ElevatedButton.styleFrom(
+//                                       backgroundColor: AppColors.orange,
+//                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//                                       minimumSize: const Size(70, 31),
+//                                       padding: const EdgeInsets.symmetric(horizontal: 14),
+//                                     ),
+//                                     onPressed: () async {
+//                                       final raw = meet['onlineLink'];
+//                                       final link = raw.startsWith("http") ? raw : "https://$raw";
+//                                       if (link != null && link.isNotEmpty) {
+//                                         final uri = Uri.parse(link);
+//                                         if (await canLaunchUrl(uri)) {
+//                                           await launchUrl(uri, mode: LaunchMode.externalApplication);
+//                                         } else {
+//                                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Could not open link")));
+//                                         }
+//                                       }
+//                                     },
+//                                     child: const Text("Join", style: TextStyle(color: Colors.white)),
+//                                   ),
+                                
+//                                 if (showEditDelete) ...[
+//                                   if (isOngoing && isOnline) const SizedBox(width: 8),
+                                  
+//                                   // Edit icon button
+//                                   InkWell(
+//                                     onTap: () => _editMeeting(context, meet),
+//                                     borderRadius: BorderRadius.circular(20),
+//                                     child: Container(
+//                                       padding: const EdgeInsets.all(6),
+//                                       decoration: BoxDecoration(
+//                                         color: AppColors.darkGray.withOpacity(0.1),
+//                                         borderRadius: BorderRadius.circular(20),
+//                                       ),
+//                                       child: const Icon(
+//                                         Icons.edit_outlined,
+//                                         size: 18,
+//                                         color: AppColors.darkGray,
+//                                       ),
+//                                     ),
+//                                   ),
+//                                   const SizedBox(width: 6),
+                                  
+//                                   // Delete icon button
+//                                   InkWell(
+//                                     onTap: () => _deleteMeeting(context, meet['_id']),
+//                                     borderRadius: BorderRadius.circular(20),
+//                                     child: Container(
+//                                       padding: const EdgeInsets.all(6),
+//                                       decoration: BoxDecoration(
+//                                         color: Colors.red.withOpacity(0.1),
+//                                         borderRadius: BorderRadius.circular(20),
+//                                       ),
+//                                       child: const Icon(
+//                                         Icons.close,
+//                                         size: 18,
+//                                         color: Colors.red,
+//                                       ),
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ],
+//                             ),
 //                           ],
 //                         ),
 //                         const SizedBox(height: 8),
@@ -195,36 +247,11 @@
 //                             ),
 //                           ],
 //                         ),
-//                         const SizedBox(height: 10),
 
-//                         if (role == 'head') ...[
-//                           const Divider(),
-//                           Row(
-//                             children: [
-//                               Expanded(
-//                                 child: OutlinedButton.icon(
-//                                   icon: const Icon(Icons.edit, size: 18),
-//                                   label: const Text("Edit"),
-//                                   style: OutlinedButton.styleFrom(foregroundColor: AppColors.darkGray),
-//                                   onPressed: () => _editMeeting(context, meet), // Call new function
-//                                 ),
-//                               ),
-//                               const SizedBox(width: 8),
-//                               Expanded(
-//                                 child: OutlinedButton.icon(
-//                                   icon: const Icon(Icons.delete, size: 18),
-//                                   label: const Text("Cancel"),
-//                                   style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
-//                                   onPressed: () => _deleteMeeting(context, meet['_id']),
-//                                 ),
-//                               ),
-//                             ],
-//                           ),
-//                         ],
-
+//                         // Mark Attendance button (for non-upcoming meetings when user is head)
 //                         if (!isUpcoming && role == 'head')
 //                           Padding(
-//                             padding: const EdgeInsets.only(top: 8.0),
+//                             padding: const EdgeInsets.only(top: 12.0),
 //                             child: ElevatedButton(
 //                               style: ElevatedButton.styleFrom(
 //                                 backgroundColor: _getCardBorderColor(),
@@ -255,6 +282,7 @@
 
 
 
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screens/attendance.screen.dart';
@@ -263,7 +291,7 @@ import 'package:intl/intl.dart';
 import '../services/meeting_service.dart';
 import '../screens/create_meeting.screen.dart';
 
-class MeetingsList extends StatelessWidget {
+class MeetingsList extends StatefulWidget {
   final String title;
   final List meetings;
   final String role;
@@ -277,10 +305,60 @@ class MeetingsList extends StatelessWidget {
     this.onListUpdated,
   });
 
+  @override
+  State<MeetingsList> createState() => _MeetingsListState();
+}
+
+class _MeetingsListState extends State<MeetingsList> {
+  final Map<String, bool> _hasControlMap = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchControlStatus();
+  }
+
+  @override
+  void didUpdateWidget(MeetingsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.meetings != widget.meetings) {
+      _fetchControlStatus();
+    }
+  }
+
+  Future<void> _fetchControlStatus() async {
+    setState(() => _isLoading = true);
+    
+    print("🔍 Fetching control status for ${widget.meetings.length} meetings");
+    
+    for (var meeting in widget.meetings) {
+      final meetingId = meeting['_id'];
+      print("📋 Meeting: ${meeting['title']}, ID: $meetingId");
+      
+      if (meetingId != null) {
+        try {
+          final hasControl = await MeetingService().getHasControl(meetingId);
+          _hasControlMap[meetingId] = hasControl;
+          print("✅ Control status for $meetingId: $hasControl");
+        } catch (e) {
+          _hasControlMap[meetingId] = false;
+          print("❌ Error fetching control for $meetingId: $e");
+        }
+      }
+    }
+    
+    print("📊 Final control map: $_hasControlMap");
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
   Color _getCardBorderColor() {
-    if (title.contains("Ongoing")) return AppColors.darkTeal;
-    if (title.contains("Upcoming")) return AppColors.green;
-    if (title.contains("Pending")) return AppColors.darkOrange;
+    if (widget.title.contains("Ongoing")) return AppColors.darkTeal;
+    if (widget.title.contains("Upcoming")) return AppColors.green;
+    if (widget.title.contains("Pending")) return AppColors.darkOrange;
     return AppColors.lightGray;
   }
 
@@ -306,7 +384,7 @@ class MeetingsList extends StatelessWidget {
         await MeetingService().deleteMeeting(meetingId);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Meeting cancelled")));
-          onListUpdated?.call();
+          widget.onListUpdated?.call();
         }
       } catch (e) {
         if (context.mounted) {
@@ -322,7 +400,7 @@ class MeetingsList extends StatelessWidget {
       MaterialPageRoute(
         builder: (_) => CreateMeetingScreen(
           onMeetingCreated: () {
-            onListUpdated?.call();
+            widget.onListUpdated?.call();
           },
           meetingToEdit: Map<String, dynamic>.from(meeting),
         ),
@@ -339,36 +417,58 @@ class MeetingsList extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title.replaceAll("Meetings", "").trim(),
+              widget.title.replaceAll("Meetings", "").trim(),
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
             ),
             Text(
-              "${meetings.length} meetings",
+              "${widget.meetings.length} meetings",
               style: const TextStyle(fontSize: 14, color: AppColors.lightGray, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         const SizedBox(height: 10),
 
-        if (meetings.isEmpty)
+        if (widget.meetings.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text("No meetings available", style: TextStyle(color: AppColors.lightGray)),
+          )
+        else if (_isLoading)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(),
+            ),
           )
         else
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: meetings.length,
+            itemCount: widget.meetings.length,
             itemBuilder: (context, index) {
-              final meet = meetings[index];
-              final isOngoing = title.contains("Ongoing");
-              final isUpcoming = title.contains("Upcoming");
-              final isPending = title.contains("Pending");
+              final meet = widget.meetings[index];
+              final meetingId = meet['_id'];
+              final isOngoing = widget.title.contains("Ongoing");
+              final isUpcoming = widget.title.contains("Upcoming");
+              final isPending = widget.title.contains("Pending");
               final isOnline = meet['location'] == "";
               
-              // Show edit/delete only for upcoming and ongoing, not for pending
-              final showEditDelete = role == 'head' && (isUpcoming || isOngoing);
+              // Get hasControl from the fetched map
+              final hasControl = _hasControlMap[meetingId] ?? false;
+              
+              print("🎯 Meeting: ${meet['title']}");
+              print("   ID: $meetingId");
+              print("   hasControl: $hasControl");
+              print("   isOngoing: $isOngoing, isUpcoming: $isUpcoming, isPending: $isPending");
+              
+              // Show edit/delete only for upcoming and ongoing (not pending)
+              final showEditDelete = hasControl && (isUpcoming || isOngoing);
+              
+              // Show mark attendance for ongoing and pending (not upcoming)
+              final showMarkAttendance = hasControl && (isOngoing || isPending);
+              
+              print("   showEditDelete: $showEditDelete");
+              print("   showMarkAttendance: $showMarkAttendance");
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -505,8 +605,8 @@ class MeetingsList extends StatelessWidget {
                           ],
                         ),
 
-                        // Mark Attendance button (for non-upcoming meetings when user is head)
-                        if (!isUpcoming && role == 'head')
+                        // Mark Attendance button (for ongoing and pending meetings when hasControl is true)
+                        if (showMarkAttendance)
                           Padding(
                             padding: const EdgeInsets.only(top: 12.0),
                             child: ElevatedButton(
