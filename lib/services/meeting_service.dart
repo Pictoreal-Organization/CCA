@@ -83,6 +83,45 @@ class MeetingService {
     }
   }
 
+  // ✅ ADD: Get Quick Select Options
+  Future<List<dynamic>> getQuickSelectOptions() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/quick-select/options'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token"
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 403) {
+      // User doesn't have permission - return empty list instead of throwing
+      return [];
+    } else {
+      throw Exception('Failed to load quick select options (Status: ${response.statusCode}). ${response.body}');
+    }
+  }
+
+  // ✅ ADD: Get Members for Selected Option
+  Future<List<dynamic>> getQuickSelectMembers(String option) async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/quick-select/$option/members'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token"
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load members for option: $option');
+    }
+  }
+
   Future<Map<String, dynamic>> createMeeting({
     required String title,
     required String description,
