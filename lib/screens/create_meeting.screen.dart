@@ -132,11 +132,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
   final TextEditingController locationController = TextEditingController();
   final TextEditingController onlineLinkController = TextEditingController();
   final TextEditingController agendaController = TextEditingController();
-  final TextEditingController durationController = TextEditingController();
 
   // State Variables
   String? priority = 'Medium';
-  DateTime? dateTime;
+  DateTime? dateTime; // ADD THIS VARIABLE
+  DateTime? endDateTime;
 
   List<String> selectedTags = [];
   List<String> allTags = [];
@@ -165,6 +165,21 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
 
   List<Map<String, dynamic>> quickSelectOptions = [];
   String? selectedQuickOption; // Track which quick select was used
+
+  String get _durationDisplayString {
+    if (dateTime == null || endDateTime == null) return "Select times";
+
+    final diff = endDateTime!.difference(dateTime!);
+    if (diff.isNegative) return "Invalid Time";
+
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes % 60;
+
+    if (hours > 0) {
+      return "$hours hr $minutes min";
+    }
+    return "$minutes min";
+  }
 
   @override
   void initState() {
@@ -293,11 +308,18 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
     titleController.text = meeting['title'] ?? '';
     descriptionController.text = meeting['description'] ?? '';
     agendaController.text = meeting['agenda'] ?? '';
-    durationController.text = (meeting['duration'] ?? 60).toString();
     priority = meeting['priority'] ?? 'Medium';
 
     if (meeting['dateTime'] != null) {
       dateTime = DateTime.parse(meeting['dateTime']).toLocal();
+    }
+
+    // NEW: Handle End Time
+    if (meeting['endTime'] != null) {
+      endDateTime = DateTime.parse(meeting['endTime']).toLocal();
+    } else if (dateTime != null && meeting['duration'] != null) {
+      // Fallback: If editing an old meeting that only has 'duration' saved
+      endDateTime = dateTime!.add(Duration(minutes: meeting['duration']));
     }
 
     if (meeting['onlineLink'] != null &&
@@ -340,7 +362,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
     locationController.dispose();
     onlineLinkController.dispose();
     agendaController.dispose();
-    durationController.dispose();
     _animationController.dispose();
     selectedScopeNotifier.dispose();
     super.dispose();
@@ -456,55 +477,59 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
   }
 
   void submit() async {
-    // 1. Form Validation
-    if (!_formKey.currentState!.validate() || dateTime == null) {
-      // ✅ Popup for Validation
+    // 1. Basic Validation
+    if (!_formKey.currentState!.validate()) {
       _showStatusDialog(
-        title: "Missing Information",
-        message:
-            "Please fill in all required fields and ensure a Date/Time is selected.",
+        title: "Error",
+        message: "Fill required fields.",
         isError: true,
       );
       return;
     }
 
-    if (meetingScope == 'team-specific' && selectedTeamIds.isEmpty) {
-      // ✅ Popup for Team Validation
+    // 2. Date Validation (NEW)
+    if (dateTime == null || endDateTime == null) {
       _showStatusDialog(
-        title: "No Team Selected",
-        message:
-            "You selected 'Team-Specific' but didn't pick any teams. Please select at least one.",
+        title: "Dates Missing",
+        message: "Select start and end time.",
         isError: true,
       );
       return;
     }
 
-    if (dateTime != null && dateTime!.isBefore(DateTime.now())) {
-      // ✅ Popup for Date Validation
+    if (endDateTime!.isBefore(dateTime!)) {
       _showStatusDialog(
         title: "Invalid Time",
-        message:
-            "You cannot schedule a meeting in the past. Please adjust the time.",
+        message: "End time cannot be before start time.",
         isError: true,
       );
       return;
     }
 
-    FocusScope.of(context).unfocus();
+    // Check if Start Time is in the past (Only for new meetings)
+    if (!isEditMode && dateTime!.isBefore(DateTime.now())) {
+      _showStatusDialog(
+        title: "Invalid Start",
+        message: "Start time cannot be in the past.",
+        isError: true,
+      );
+      return;
+    }
+
     setState(() => isSubmitting = true);
 
     try {
-      // 2. Prepare Data Map
       final data = {
         "title": titleController.text,
         "description": descriptionController.text,
         "dateTime": dateTime!.toUtc().toIso8601String(),
+        "endTime": endDateTime!.toUtc().toIso8601String(), // ✅ SEND END TIME
+        // remove "duration" field here, backend calculates it
         "location": meetingType == 'offline' ? locationController.text : '',
         "onlineLink": meetingType == 'online'
             ? onlineLinkController.text
             : null,
         "agenda": agendaController.text,
-        "duration": int.tryParse(durationController.text) ?? 60,
         "priority": priority,
         "tags": selectedTags,
         "isPrivate": isPrivate,
@@ -534,10 +559,10 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
           title: data['title'] as String,
           description: data['description'] as String,
           dateTime: dateTime!.toUtc(),
+          endTime: endDateTime!.toUtc(),
           location: data['location'] as String,
           onlineLink: data['onlineLink'] as String?,
           agenda: data['agenda'] as String?,
-          duration: data['duration'] as int?,
           priority: data['priority'] as String?,
           tags: data['tags'] as List<String>?,
           isPrivate: data['isPrivate'] as bool?,
@@ -872,23 +897,83 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader("Logistics", Icons.schedule_outlined),
+
+        // --- START TIME ---
+        const Text(
+          "Start Time",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkGray,
+          ),
+        ),
+        const SizedBox(height: 8),
         DateTimePickerWidget(
           initialDateTime: dateTime,
-          onDateTimeChanged: (selectedDateTime) {
-            // ✅ IMMEDIATE POPUP CHECK FOR TIME
-            if (selectedDateTime.isBefore(DateTime.now())) {
-              _showStatusDialog(
-                title: "Invalid Time",
-                message: "You cannot select a time in the past.",
-                isError: true,
-              );
-              return;
-            }
+          onDateTimeChanged: (val) {
             setState(() {
-              dateTime = selectedDateTime;
+              dateTime = val;
+              // UX Improvement: If start time moves past end time, push end time forward
+              if (endDateTime != null && val.isAfter(endDateTime!)) {
+                endDateTime = val.add(const Duration(hours: 1));
+              }
+              // Auto-set end time if empty
+              endDateTime ??= val.add(const Duration(hours: 1));
             });
           },
         ),
+
+        const SizedBox(height: 16),
+
+        // --- END TIME (Replaces Duration Input) ---
+        const Text(
+          "End Time",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkGray,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DateTimePickerWidget(
+          initialDateTime: endDateTime,
+          onDateTimeChanged: (val) {
+            setState(() {
+              endDateTime = val;
+            });
+          },
+        ),
+
+        const SizedBox(height: 16),
+
+        // --- DURATION DISPLAY TEXT ---
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.green.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.timer_outlined, color: AppColors.darkTeal),
+              const SizedBox(width: 10),
+              const Text(
+                "Duration: ",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkTeal,
+                ),
+              ),
+              Text(
+                _durationDisplayString, // ✅ Displays calculated string
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkGray,
+                ),
+              ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 16),
         TextFormField(
           controller: agendaController,
@@ -898,44 +983,22 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
           ),
           maxLines: 2,
         ),
+
         const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: durationController,
-                decoration: _buildInputDecoration(
-                  'Duration (mins)',
-                  Icons.timer_outlined,
-                ),
-                keyboardType: TextInputType.number,
-                validator: (val) {
-                  if (val == null || val.isEmpty) return null;
-                  if (int.tryParse(val) == null) return 'Must be a number';
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Flexible(
-              child: DropdownButtonFormField<String>(
-                isDense: true,
-                value: priority,
-                items: ['Low', 'Medium', 'High', 'Urgent']
-                    .map<DropdownMenuItem<String>>(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
-                    .toList(),
-                onChanged: (val) => setState(() => priority = val),
-                decoration: _buildInputDecoration(
-                  'Priority',
-                  Icons.flag_outlined,
-                ),
-              ),
-            ),
-          ],
+
+        DropdownButtonFormField<String>(
+          isDense: true,
+          value: priority,
+          items: [
+            'Low',
+            'Medium',
+            'High',
+            'Urgent',
+          ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          onChanged: (val) => setState(() => priority = val),
+          decoration: _buildInputDecoration('Priority', Icons.flag_outlined),
         ),
+
         const SizedBox(height: 20),
         const Text(
           'Tags',
