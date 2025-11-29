@@ -912,6 +912,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          backgroundColor: Colors.grey.shade50, 
           child: Container(
             constraints: const BoxConstraints(maxHeight: 600, maxWidth: 500),
             child: Column(
@@ -1062,10 +1063,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(10),
-                                // border: Border.all(
-                                //   color: AppColors.green.withOpacity(0.3),
-                                //   width: 1.5,
-                                // ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1202,6 +1199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
+          backgroundColor: Colors.grey.shade50, 
           child: Container(
             constraints: const BoxConstraints(maxHeight: 600, maxWidth: 500),
             child: Column(
@@ -1337,10 +1335,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: AppColors.green.withOpacity(0.3),
-                                  width: 1.5,
-                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
