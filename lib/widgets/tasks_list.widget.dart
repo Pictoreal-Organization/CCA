@@ -1839,6 +1839,412 @@ class _TasksListState extends State<TasksList> {
     );
   }
 
+  // Widget _buildTaskCard(
+  //   dynamic task,
+  //   List subtasks,
+  //   int completedSubtasks,
+  //   bool needsReview, // This is now true if ANY subtask is completed
+  // ) {
+  //   final isCompleted = task['status'] == 'Completed';
+    
+  //   // This is strict check for the "Mark Main Task Completed" button
+  //   final allSubtasksCompleted =
+  //       subtasks.isNotEmpty &&
+  //       subtasks.every((s) => s['status'] == 'Completed');
+
+  //   final borderColor = needsReview ? AppColors.orange : AppColors.green;
+  //   final taskId = task['_id'];
+  //   final isExpanded = expandedTasks.contains(taskId);
+  //   final date = DateTime.parse(task['deadline']).toLocal();
+  //   final formattedDeadline = DateFormat('d MMM').format(date);
+
+  //   return Material(
+  //     color: Colors.transparent,
+  //     child: InkWell(
+  //       onTap: () {
+  //         setState(() {
+  //           if (isExpanded) {
+  //             expandedTasks.remove(taskId);
+  //           } else {
+  //             expandedTasks.add(taskId);
+  //           }
+  //         });
+  //       },
+  //       borderRadius: BorderRadius.circular(14),
+  //       child: Container(
+  //         margin: const EdgeInsets.only(bottom: 12),
+  //         decoration: BoxDecoration(
+  //           color: Colors.white,
+  //           borderRadius: BorderRadius.circular(14),
+  //           border: Border(left: BorderSide(color: borderColor, width: 7)),
+  //           boxShadow: [
+  //             BoxShadow(
+  //               color: Colors.black.withOpacity(0.06),
+  //               blurRadius: 4,
+  //               offset: const Offset(0, 2),
+  //             ),
+  //           ],
+  //         ),
+  //         child: Column(
+  //           children: [
+  //             Padding(
+  //               padding: const EdgeInsets.all(16),
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   /// TITLE + DEADLINE + ARROW
+  //                   Row(
+  //                     crossAxisAlignment: CrossAxisAlignment.start,
+  //                     children: [
+  //                       Expanded(
+  //                         child: Text(
+  //                           task['title'],
+  //                           style: const TextStyle(
+  //                             fontSize: 18,
+  //                             fontWeight: FontWeight.bold,
+  //                             color: Colors.black,
+  //                             fontFamily: 'Inter',
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       Column(
+  //                         crossAxisAlignment: CrossAxisAlignment.end,
+  //                         children: [
+  //                           Row(
+  //                             children: [
+  //                               Text(
+  //                                 "🗓 $formattedDeadline",
+  //                                 style: const TextStyle(
+  //                                   fontSize: 12,
+  //                                   color: Color(0xFF757575),
+  //                                   fontFamily: 'Inter',
+  //                                 ),
+  //                               ),
+  //                               const SizedBox(width: 8),
+  //                               Text(
+  //                                 "📌 $completedSubtasks/${subtasks.length}",
+  //                                 style: const TextStyle(
+  //                                   fontSize: 12,
+  //                                   color: Color(0xFF757575),
+  //                                   fontFamily: 'Inter',
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                           Icon(
+  //                             isExpanded
+  //                                 ? Icons.keyboard_arrow_up
+  //                                 : Icons.keyboard_arrow_down,
+  //                             color: AppColors.lightGray,
+  //                             size: 20,
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ],
+  //                   ),
+
+  //                   const SizedBox(height: 12),
+
+  //                   /// SUBTASKS WHEN EXPANDED
+  //                   if (isExpanded) ...[
+  //                     Padding(
+  //                       padding: const EdgeInsets.only(left: 4, bottom: 8),
+  //                       child: Column(
+  //                         crossAxisAlignment: CrossAxisAlignment.start,
+  //                         children: subtasks.map<Widget>((s) {
+  //                           final title = s['title'];
+  //                           final status = s['status'];
+  //                           final assignedList = s['assignedTo'] ?? [];
+  //                           final assignedUser = assignedList.isNotEmpty
+  //                               ? assignedList[0]
+  //                               : null;
+  //                           final assignedName =
+  //                               assignedUser?['name'] ?? 'Not Assigned';
+
+  //                           Widget actionWidget;
+  //                           if (status == 'Completed') {
+  //                             // Button for Changes
+  //                             actionWidget = SizedBox(
+  //                               height: 34,
+  //                               child: ElevatedButton.icon(
+  //                                 onPressed: () =>
+  //                                     _showSuggestChangesDialog(task, s),
+  //                                 icon: const Icon(
+  //                                   Icons.undo,
+  //                                   size: 14,
+  //                                   color: Colors.white,
+  //                                 ),
+  //                                 label: const Text('Changes'),
+  //                                 style: ElevatedButton.styleFrom(
+  //                                   backgroundColor: AppColors.darkTeal,
+  //                                   foregroundColor: Colors.white,
+  //                                   shape: RoundedRectangleBorder(
+  //                                     borderRadius: BorderRadius.circular(9),
+  //                                   ),
+  //                                   padding: const EdgeInsets.symmetric(
+  //                                     horizontal: 12,
+  //                                   ),
+  //                                 ),
+  //                               ),
+  //                             );
+  //                           } else {
+  //                             // Button for Mark Done
+  //                             actionWidget = SizedBox(
+  //                               height: 34,
+  //                               child: ElevatedButton.icon(
+  //                                 onPressed: () => _markSubtaskDone(task, s),
+  //                                 icon: const Icon(
+  //                                   Icons.check,
+  //                                   size: 14,
+  //                                   color: Colors.white,
+  //                                 ),
+  //                                 label: const Text('Mark Done'),
+  //                                 style: ElevatedButton.styleFrom(
+  //                                   backgroundColor: AppColors.green,
+  //                                   foregroundColor: Colors.white,
+  //                                   shape: RoundedRectangleBorder(
+  //                                     borderRadius: BorderRadius.circular(9),
+  //                                   ),
+  //                                   padding: const EdgeInsets.symmetric(
+  //                                     horizontal: 12,
+  //                                   ),
+  //                                 ),
+  //                               ),
+  //                             );
+  //                           }
+
+  //                           return Padding(
+  //                             padding: const EdgeInsets.symmetric(vertical: 8),
+  //                             child: Row(
+  //                               children: [
+  //                                 const Icon(
+  //                                   Icons.person,
+  //                                   size: 16,
+  //                                   color: Colors.grey,
+  //                                 ),
+  //                                 const SizedBox(width: 10),
+  //                                 Expanded(
+  //                                   child: Column(
+  //                                     crossAxisAlignment:
+  //                                         CrossAxisAlignment.start,
+  //                                     children: [
+  //                                       Text(
+  //                                         title,
+  //                                         style: const TextStyle(
+  //                                           fontWeight: FontWeight.w600,
+  //                                           fontSize: 14,
+  //                                         ),
+  //                                       ),
+
+  //                                       if (s['description'] != null &&
+  //                                           s['description']
+  //                                               .toString()
+  //                                               .trim()
+  //                                               .isNotEmpty)
+  //                                         Padding(
+  //                                           padding: const EdgeInsets.only(
+  //                                             top: 4.0,
+  //                                             bottom: 4,
+  //                                           ),
+  //                                           child: Text(
+  //                                             s['description'],
+  //                                             style: TextStyle(
+  //                                               fontSize: 12,
+  //                                               height: 1.3,
+  //                                               color: Colors.grey.shade700,
+  //                                               fontFamily: 'Inter',
+  //                                             ),
+  //                                             maxLines: 4,
+  //                                             overflow: TextOverflow.ellipsis,
+  //                                           ),
+  //                                         ),
+                                        
+  //                                       Text(
+  //                                         assignedName,
+  //                                         style: TextStyle(
+  //                                           fontSize: 12,
+  //                                           color: Colors.black,
+  //                                           fontStyle: FontStyle.italic,
+  //                                         ),
+  //                                       ),
+  //                                     ],
+  //                                   ),
+  //                                 ),
+  //                                 const SizedBox(width: 8),
+  //                                 actionWidget,
+  //                               ],
+  //                             ),
+  //                           );
+  //                         }).toList(),
+  //                       ),
+  //                     ),
+
+  //                     // Mark Main Task Completed Button
+  //                     if (task['status'] != 'Completed')
+  //                       Padding(
+  //                         padding: const EdgeInsets.symmetric(vertical: 12),
+  //                         child: SizedBox(
+  //                           width: double.infinity,
+  //                           child: ElevatedButton.icon(
+  //                             icon: const Icon(
+  //                               Icons.check_circle_outline,
+  //                               color: Colors.white,
+  //                             ),
+  //                             label: const Text('Mark Main Task as Completed'),
+  //                             style: ElevatedButton.styleFrom(
+  //                               backgroundColor: allSubtasksCompleted
+  //                                   ? AppColors.green
+  //                                   : Colors.grey.shade400,
+  //                               padding: const EdgeInsets.symmetric(
+  //                                 vertical: 12,
+  //                               ),
+  //                               foregroundColor: Colors.white,
+  //                             ),
+  //                             onPressed: allSubtasksCompleted
+  //                                 ? () => _completeMainTask(task)
+  //                                 : null,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                   ] else
+  //                     /// COLLAPSED VIEW: STATUS BADGES AND REVIEW BUTTON
+  //                     Row(
+  //                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                       children: [
+  //                         if (needsReview) ...[
+  //                           Container(
+  //                             padding: const EdgeInsets.symmetric(
+  //                               horizontal: 14,
+  //                               vertical: 4,
+  //                             ),
+  //                             decoration: BoxDecoration(
+  //                               color: AppColors.darkOrange,
+  //                               borderRadius: BorderRadius.circular(20),
+  //                             ),
+  //                             child: const Text(
+  //                               'Needs Review',
+  //                               style: TextStyle(
+  //                                 color: Colors.white,
+  //                                 fontWeight: FontWeight.w600,
+  //                                 fontSize: 11,
+  //                                 fontFamily: 'Inter',
+  //                               ),
+  //                             ),
+  //                           ),
+  //                           Expanded(
+  //                             child: Align(
+  //                               alignment: Alignment.centerRight,
+  //                               child: SizedBox(
+  //                                 height: 38,
+  //                                 child: ElevatedButton.icon(
+  //                                   onPressed: () {
+  //                                     setState(() {
+  //                                       expandedTasks.add(taskId);
+  //                                     });
+  //                                   },
+  //                                   icon: const Icon(
+  //                                     Icons.rate_review,
+  //                                     size: 16,
+  //                                     color: Colors.white,
+  //                                   ),
+  //                                   label: const Text('Review'),
+  //                                   style: ElevatedButton.styleFrom(
+  //                                     backgroundColor: AppColors.darkTeal,
+  //                                     foregroundColor: Colors.white,
+  //                                     shape: RoundedRectangleBorder(
+  //                                       borderRadius: BorderRadius.circular(9),
+  //                                     ),
+  //                                   ),
+  //                                 ),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ] else
+  //                           Container(
+  //                             padding: const EdgeInsets.symmetric(
+  //                               horizontal: 14,
+  //                               vertical: 4,
+  //                             ),
+  //                             decoration: BoxDecoration(
+  //                               color: isCompleted
+  //                                   ? AppColors.green
+  //                                   : const Color.fromARGB(255, 103, 186, 254),
+  //                               borderRadius: BorderRadius.circular(20),
+  //                             ),
+  //                             child: Text(
+  //                               task['status'],
+  //                               style: TextStyle(
+  //                                 color: isCompleted
+  //                                     ? Colors.white
+  //                                     : const Color.fromARGB(255, 5, 38, 94),
+  //                                 fontWeight: FontWeight.bold,
+  //                                 fontSize: 11,
+  //                                 fontFamily: 'Inter',
+  //                               ),
+  //                             ),
+  //                           ),
+  //                       ],
+  //                     ),
+  //                 ],
+  //               ),
+  //             ),
+
+  //             /// BUTTONS (Edit / Delete)
+  //             /// Shows always unless expanded (content pushes it down)
+  //             Padding(
+  //               padding: const EdgeInsets.only(
+  //                 left: 16,
+  //                 right: 16,
+  //                 bottom: 18,
+  //               ),
+  //               child: Row(
+  //                 children: [
+  //                   Expanded(
+  //                     child: ElevatedButton.icon(
+  //                       onPressed: () => widget.onEditTask(task),
+  //                       icon: const Icon(
+  //                         Icons.edit,
+  //                         size: 16,
+  //                         color: Colors.white,
+  //                       ),
+  //                       label: const Text('Edit'),
+  //                       style: ElevatedButton.styleFrom(
+  //                         backgroundColor: AppColors.darkTeal,
+  //                         foregroundColor: Colors.white,
+  //                         shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(9),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 12),
+  //                   Expanded(
+  //                     child: ElevatedButton.icon(
+  //                       onPressed: () => _deleteTask(task['_id']),
+  //                       icon: const Icon(
+  //                         Icons.delete,
+  //                         size: 16,
+  //                         color: Colors.white,
+  //                       ),
+  //                       label: const Text('Delete'),
+  //                       style: ElevatedButton.styleFrom(
+  //                         backgroundColor: AppColors.darkOrange,
+  //                         foregroundColor: Colors.white,
+  //                         shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(9),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
   Widget _buildTaskCard(
     dynamic task,
     List subtasks,
@@ -1857,6 +2263,14 @@ class _TasksListState extends State<TasksList> {
     final isExpanded = expandedTasks.contains(taskId);
     final date = DateTime.parse(task['deadline']).toLocal();
     final formattedDeadline = DateFormat('d MMM').format(date);
+
+    // 🆕 GET TEAM NAME
+    String teamName = 'General';
+    if (task['team'] != null) {
+      if (task['team'] is Map) {
+        teamName = task['team']['name'] ?? 'General';
+      }
+    }
 
     return Material(
       color: Colors.transparent,
@@ -1897,14 +2311,40 @@ class _TasksListState extends State<TasksList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Text(
-                            task['title'],
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                              fontFamily: 'Inter',
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task['title'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              // 🆕 TEAM BADGE
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.orange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Text(
+                                  teamName,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkOrange,
+                                    fontFamily: 'Inter',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Column(
