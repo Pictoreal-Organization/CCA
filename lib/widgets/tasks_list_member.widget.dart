@@ -1,6 +1,7 @@
 import 'package:cca/core/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../services/task_service.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Add this import
 
 class TasksListMember extends StatefulWidget {
   final String title;
@@ -20,6 +21,23 @@ class TasksListMember extends StatefulWidget {
 
 class _TasksListMemberState extends State<TasksListMember> {
   
+  // ✅ NEW: Store current user ID
+  String? currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUserId();
+  }
+
+  // ✅ NEW: Load current user ID from SharedPreferences
+  Future<void> _loadCurrentUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      currentUserId = prefs.getString('userId');
+    });
+  }
+
   // ---------------------------------------------------------
   // ✅ REUSABLE POPUP DIALOG FUNCTION
   // ---------------------------------------------------------
@@ -210,6 +228,13 @@ class _TasksListMemberState extends State<TasksListMember> {
                             // List Subtasks
                             ...subtasks.map((sub) {
                               final currentStatus = sub['status'];
+                              
+                              // ✅ NEW: Get other assigned members
+                              final assignedList = sub['assignedTo'] ?? [];
+                              final otherMembers = assignedList
+                                  .where((user) => user['_id'] != currentUserId)
+                                  .map((user) => user['name'] ?? 'Unknown')
+                                  .toList();
 
                               return Padding(
                                 padding: const EdgeInsets.only(top: 12.0),
@@ -233,6 +258,21 @@ class _TasksListMemberState extends State<TasksListMember> {
                                         fontFamily: 'Inter',
                                       ),
                                     ),
+                                    
+                                    // ✅ NEW: Show other assigned members
+                                    if (otherMembers.isNotEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Assigned along with: ${otherMembers.join(', ')}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade700,
+                                          fontStyle: FontStyle.italic,
+                                          fontFamily: 'Inter',
+                                        ),
+                                      ),
+                                    ],
+                                    
                                     const SizedBox(height: 12),
 
                                     // Status UI
