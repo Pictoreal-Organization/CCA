@@ -156,6 +156,10 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
   List<Map<String, dynamic>> allTeams = [];
   List<String> selectedTeamIds = [];
 
+  bool isBECoreMember = false;
+  bool isLoadingCoreStatus = true;
+  String? selectedCoreOption;
+
   late AnimationController _animationController;
   late List<Animation<double>> _animations;
 
@@ -185,7 +189,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
   void initState() {
     super.initState();
 
-    // Animation setup
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -205,13 +208,11 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
     );
     _animationController.forward();
 
-    // Load initial data
     fetchAllUsers();
     fetchVisibleTeams();
     fetchAllTags();
-    fetchQuickSelectOptions();
+    fetchCoreStatus(); // ADD THIS
 
-    // Check if we are editing an existing meeting
     if (widget.meetingToEdit != null) {
       isEditMode = true;
       _prefillData(widget.meetingToEdit!);
@@ -280,6 +281,31 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
         );
       },
     );
+  }
+
+  void fetchCoreStatus() async {
+    try {
+      final isBeCore = await userService.checkIsBeCore();
+
+      if (mounted) {
+        setState(() {
+          isBECoreMember = isBeCore;
+          isLoadingCoreStatus = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoadingCoreStatus = false;
+          isBECoreMember = false; // Default to false on error
+        });
+        _showStatusDialog(
+          title: "Error",
+          message: "Could not check BE Core status: $e",
+          isError: true,
+        );
+      }
+    }
   }
 
   void fetchAllTags() async {
@@ -386,6 +412,45 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
     }
   }
 
+  void _handleCoreSelection(String coreType) async {
+    setState(() {
+      selectedCoreOption = coreType;
+      invitedUserIds.clear(); // Clear existing selections
+    });
+
+    try {
+      List<dynamic> coreMembers = [];
+
+      switch (coreType) {
+        case 'entire':
+          coreMembers = await meetingService.getEntireCore();
+          break;
+        case 'be':
+          coreMembers = await meetingService.getBECore();
+          break;
+        case 'te':
+          coreMembers = await meetingService.getTECore();
+          break;
+      }
+
+      if (mounted) {
+        setState(() {
+          invitedUserIds = coreMembers
+              .map<String>((member) => member['_id'].toString())
+              .toList();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showStatusDialog(
+          title: "Error Loading Core Members",
+          message: e.toString(),
+          isError: true,
+        );
+      }
+    }
+  }
+
   void fetchVisibleTeams() async {
     try {
       final teams = await teamService.getVisibleTeams();
@@ -408,68 +473,6 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
         _showStatusDialog(
           title: "Error Loading Teams",
           message: e.toString(),
-          isError: true,
-        );
-      }
-    }
-  }
-
-  void fetchQuickSelectOptions() async {
-    try {
-      final options = await meetingService.getQuickSelectOptions();
-      if (mounted) {
-        setState(() {
-          quickSelectOptions = List<Map<String, dynamic>>.from(options);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        _showStatusDialog(
-          title: "Error Loading Quick Options",
-          message: e.toString(),
-          isError: true,
-        );
-      }
-    }
-  }
-
-  // void handleQuickSelect(String optionId) async {
-  //   try {
-  //     final members = await meetingService.getQuickSelectMembers(optionId);
-  //     if (mounted) {
-  //       setState(() {
-  //         invitedUserIds = members
-  //             .map<String>((m) => m['_id'].toString())
-  //             .toList();
-  //       });
-  //     }
-  //   } catch (e) {
-  //     if (mounted) {
-  //       _showStatusDialog(
-  //         title: "Error",
-  //         message: "Failed to load members: $e",
-  //         isError: true,
-  //       );
-  //     }
-  //   }
-  // }
-
-  void handleQuickSelect(String optionId) async {
-    try {
-      final members = await meetingService.getQuickSelectMembers(optionId);
-      if (mounted) {
-        setState(() {
-          invitedUserIds = members
-              .map<String>((m) => m['_id'].toString())
-              .toList();
-          selectedQuickOption = optionId; // Mark this option as selected
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        _showStatusDialog(
-          title: "Error",
-          message: "Failed to load members: $e",
           isError: true,
         );
       }
@@ -711,6 +714,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader("Meeting Scope", Icons.group_work_outlined),
+
+        // THREE-WAY TOGGLE: General, Team-Specific, Core
         ValueListenableBuilder<String>(
           valueListenable: selectedScopeNotifier,
           builder: (context, selectedScope, child) {
@@ -731,8 +736,13 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
                     ),
                     _ToggleOption(
                       value: 'team-specific',
-                      label: 'Team-Specific',
+                      label: 'Team',
                       icon: Icons.group,
+                    ),
+                    _ToggleOption(
+                      value: 'core',
+                      label: 'Core',
+                      icon: Icons.workspace_premium,
                     ),
                   ],
                   selected: meetingScope,
@@ -740,17 +750,25 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
                     setState(() {
                       meetingScope = selected;
                       selectedScopeNotifier.value = selected;
+
+                      // Auto-set Private when Core is selected
+                      if (selected == 'core') {
+                        isPrivate = true;
+                      }
                     });
                   },
                   perOptionSelectedColors: const {
                     0: AppColors.darkTeal,
                     1: AppColors.orange,
+                    2: AppColors.green,
                   },
                 ),
               ),
             );
           },
         ),
+
+        // TEAM-SPECIFIC SECTION
         if (meetingScope == 'team-specific') ...[
           const SizedBox(height: 16),
           const Text(
@@ -834,7 +852,130 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
             ),
           ),
         ],
+
+        // CORE SECTION
+        if (meetingScope == 'core') ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Select Core',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkGray,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          isLoadingCoreStatus
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: CircularProgressIndicator(color: AppColors.darkTeal),
+                  ),
+                )
+              : Row(
+                  children: [
+                    // Entire Core Button
+                    Expanded(
+                      child: _buildCoreOptionButton(
+                        label: 'Entire Core',
+                        icon: Icons.groups,
+                        value: 'entire',
+                        isSelected: selectedCoreOption == 'entire',
+                        onTap: () => _handleCoreSelection('entire'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // BE Core / TE Core Button (based on user status)
+                    Expanded(
+                      child: _buildCoreOptionButton(
+                        label: isBECoreMember ? 'BE Core' : 'TE Core',
+                        icon: isBECoreMember
+                            ? Icons.business_center
+                            : Icons.engineering,
+                        value: isBECoreMember ? 'be' : 'te',
+                        isSelected:
+                            selectedCoreOption ==
+                            (isBECoreMember ? 'be' : 'te'),
+                        onTap: () =>
+                            _handleCoreSelection(isBECoreMember ? 'be' : 'te'),
+                      ),
+                    ),
+                  ],
+                ),
+
+          if (selectedCoreOption != null && invitedUserIds.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.green.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.green,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${invitedUserIds.length} Core members auto-added',
+                    style: const TextStyle(
+                      color: AppColors.darkTeal,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ],
+    );
+  }
+
+  // Add this new method for Core option buttons:
+  Widget _buildCoreOptionButton({
+    required String label,
+    required IconData icon,
+    required String value,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected ? AppColors.darkOrange : Colors.grey.shade300,
+            width: isSelected ? 2 : 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.darkOrange : AppColors.lightGray,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? AppColors.darkOrange : AppColors.lightGray,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1072,485 +1213,56 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen>
     );
   }
 
-  //   // Widget _buildVisibility() {
-  //   //   return Column(
-  //   //     crossAxisAlignment: CrossAxisAlignment.start,
-  //   //     children: [
-  //   //       _buildSectionHeader("Visibility & Access", Icons.visibility_outlined),
-  //   //       SizedBox(
-  //   //         width: double.infinity,
-  //   //         child: CustomToggleSelector<bool>(
-  //   //           options: const [
-  //   //             _ToggleOption(value: false, label: 'Public', icon: Icons.public),
-  //   //             _ToggleOption(
-  //   //               value: true,
-  //   //               label: 'Private',
-  //   //               icon: Icons.lock_outline,
-  //   //             ),
-  //   //           ],
-  //   //           selected: isPrivate,
-  //   //           onSelectionChanged: (selected) =>
-  //   //               setState(() => isPrivate = selected),
-  //   //           perOptionSelectedColors: const {
-  //   //             0: AppColors.darkTeal,
-  //   //             1: AppColors.orange,
-  //   //           },
-  //   //         ),
-  //   //       ),
-  //   //       if (isPrivate) ...[const SizedBox(height: 20), _buildMemberSelector()],
-  //   //     ],
-  //   //   );
-  //   // }
-
-  //   Widget _buildVisibility() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       _buildSectionHeader("Visibility & Access", Icons.visibility_outlined),
-
-  //       // Public/Private Toggle
-  //       SizedBox(
-  //         width: double.infinity,
-  //         child: CustomToggleSelector<bool>(
-  //           options: const [
-  //             _ToggleOption(value: false, label: 'Public', icon: Icons.public),
-  //             _ToggleOption(
-  //               value: true,
-  //               label: 'Private',
-  //               icon: Icons.lock_outline,
-  //             ),
-  //           ],
-  //           selected: isPrivate,
-  //           onSelectionChanged: (selected) =>
-  //               setState(() => isPrivate = selected),
-  //           perOptionSelectedColors: const {
-  //             0: AppColors.darkTeal,
-  //             1: AppColors.orange,
-  //           },
-  //         ),
-  //       ),
-
-  //       // Private Meeting Options
-  //       if (isPrivate) ...[
-  //         const SizedBox(height: 20),
-
-  //         // ✅ Compact Quick Select Section
-  //         if (quickSelectOptions.isNotEmpty) ...[
-  //           const Text(
-  //             'Quick Select',
-  //             style: TextStyle(
-  //               fontWeight: FontWeight.bold,
-  //               color: AppColors.darkGray,
-  //               fontSize: 14,
-  //             ),
-  //           ),
-  //           const SizedBox(height: 10),
-
-  //           // Compact Quick Select Chips
-  //           Wrap(
-  //             spacing: 8,
-  //             runSpacing: 8,
-  //             children: quickSelectOptions.map<Widget>((option) {
-  //               return InkWell(
-  //                 onTap: () => handleQuickSelect(option['id']),
-  //                 borderRadius: BorderRadius.circular(20),
-  //                 child: Container(
-  //                   padding: const EdgeInsets.symmetric(
-  //                     horizontal: 14,
-  //                     vertical: 7,
-  //                   ),
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.white,
-  //                     borderRadius: BorderRadius.circular(20),
-  //                     border: Border.all(color: AppColors.orange, width: 1.5),
-  //                   ),
-  //                   child: Row(
-  //                     mainAxisSize: MainAxisSize.min,
-  //                     children: [
-  //                       Icon(
-  //                         _getQuickSelectIcon(option['id']),
-  //                         size: 16,
-  //                         color: AppColors.orange,
-  //                       ),
-  //                       const SizedBox(width: 6),
-  //                       Text(
-  //                         option['label'],
-  //                         style: const TextStyle(
-  //                           color: AppColors.darkTeal,
-  //                           fontWeight: FontWeight.w600,
-  //                           fontSize: 13,
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               );
-  //             }).toList(),
-  //           ),
-
-  //           const SizedBox(height: 16),
-  //           const Divider(height: 1, thickness: 1, color: AppColors.lightGray),
-  //           const SizedBox(height: 16),
-  //         ],
-
-  //         // Manual Member Selection
-  //         _buildMemberSelector(),
-  //       ],
-  //     ],
-  //   );
-  // }
-
-  // // ✅ Helper method to get appropriate icon
-  // IconData _getQuickSelectIcon(String optionId) {
-  //   switch (optionId) {
-  //     case 'core':
-  //       return Icons.workspace_premium;
-  //     case 'te-core':
-  //       return Icons.engineering;
-  //     case 'be-core':
-  //       return Icons.business_center;
-  //     default:
-  //       return Icons.group;
-  //   }
-  // }
-
-  // // ✅ Compact Member Selector
-  // Widget _buildMemberSelector() {
-  //   TextEditingController? memberController;
-
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const Text(
-  //         'Invite Specific Members',
-  //         style: TextStyle(
-  //           fontWeight: FontWeight.bold,
-  //           color: AppColors.darkGray,
-  //           fontSize: 14,
-  //         ),
-  //       ),
-  //       const SizedBox(height: 10),
-
-  //       // Search Field
-  //       Autocomplete<Map<String, dynamic>>(
-  //         optionsBuilder: (TextEditingValue textEditingValue) {
-  //           if (textEditingValue.text.isEmpty) {
-  //             return const Iterable<Map<String, dynamic>>.empty();
-  //           }
-  //           return allUsers.where((user) {
-  //             final name = user['name'] ?? '';
-  //             final rollNo = user['rollNo'] ?? '';
-  //             final text = "$name $rollNo".toLowerCase();
-  //             return text.contains(textEditingValue.text.toLowerCase());
-  //           });
-  //         },
-  //         displayStringForOption: (user) =>
-  //             "${user['name']} - ${user['rollNo']}",
-  //         fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-  //           memberController = controller;
-  //           return TextField(
-  //             controller: controller,
-  //             focusNode: focusNode,
-  //             decoration: _buildInputDecoration(
-  //               'Search by name or roll number',
-  //               Icons.person_search_outlined,
-  //             ),
-  //           );
-  //         },
-  //         optionsViewBuilder: (context, onSelected, options) {
-  //           return Align(
-  //             alignment: Alignment.topLeft,
-  //             child: Material(
-  //               elevation: 4,
-  //               color: Colors.white,
-  //               borderRadius: BorderRadius.circular(12),
-  //               child: ConstrainedBox(
-  //                 constraints: const BoxConstraints(maxHeight: 250),
-  //                 child: ListView.builder(
-  //                   padding: const EdgeInsets.symmetric(vertical: 4),
-  //                   itemCount: options.length,
-  //                   itemBuilder: (context, index) {
-  //                     final user = options.elementAt(index);
-  //                     final selected = invitedUserIds.contains(user['_id']);
-
-  //                     return ListTile(
-  //                       dense: true,
-  //                       leading: CircleAvatar(
-  //                         radius: 16,
-  //                         backgroundColor: selected
-  //                             ? AppColors.darkTeal
-  //                             : AppColors.lightGray,
-  //                         child: Icon(
-  //                           selected ? Icons.check : Icons.person,
-  //                           color: Colors.white,
-  //                           size: 16,
-  //                         ),
-  //                       ),
-  //                       title: Text(
-  //                         user['name'] ?? 'Unknown',
-  //                         style: TextStyle(
-  //                           color: AppColors.darkGray,
-  //                           fontWeight: selected ? FontWeight.bold : FontWeight.w600,
-  //                           fontSize: 14,
-  //                         ),
-  //                       ),
-  //                       subtitle: Text(
-  //                         "Roll: ${user['rollNo']}",
-  //                         style: const TextStyle(
-  //                           color: AppColors.lightGray,
-  //                           fontSize: 12,
-  //                         ),
-  //                       ),
-  //                       onTap: () {
-  //                         setState(() {
-  //                           if (selected) {
-  //                             invitedUserIds.remove(user['_id']);
-  //                           } else {
-  //                             invitedUserIds.add(user['_id']);
-  //                           }
-  //                         });
-
-  //                         memberController?.clear();
-  //                         FocusScope.of(context).unfocus();
-  //                         onSelected(user);
-  //                       },
-  //                     );
-  //                   },
-  //                 ),
-  //               ),
-  //             ),
-  //           );
-  //         },
-  //         onSelected: (user) {
-  //           memberController?.clear();
-  //           FocusScope.of(context).unfocus();
-  //         },
-  //       ),
-
-  //       // ✅ Compact Selected Members Display
-  //       if (invitedUserIds.isNotEmpty) ...[
-  //         const SizedBox(height: 12),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             Text(
-  //               'Selected (${invitedUserIds.length})',
-  //               style: const TextStyle(
-  //                 fontWeight: FontWeight.w600,
-  //                 color: AppColors.darkGray,
-  //                 fontSize: 12,
-  //               ),
-  //             ),
-  //             TextButton(
-  //               onPressed: () {
-  //                 setState(() {
-  //                   invitedUserIds.clear();
-  //                 });
-  //               },
-  //               style: TextButton.styleFrom(
-  //                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-  //                 minimumSize: Size.zero,
-  //                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-  //               ),
-  //               child: const Text(
-  //                 'Clear All',
-  //                 style: TextStyle(
-  //                   color: AppColors.darkOrange,
-  //                   fontSize: 12,
-  //                   fontWeight: FontWeight.w600,
-  //                 ),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //         const SizedBox(height: 8),
-  //         Wrap(
-  //           spacing: 8,
-  //           runSpacing: 8,
-  //           children: invitedUserIds.map<Widget>((id) {
-  //             final user = allUsers.firstWhere(
-  //               (u) => u['_id'] == id,
-  //               orElse: () => {'name': 'Unknown', 'rollNo': ''},
-  //             );
-  //             return Chip(
-  //               avatar: CircleAvatar(
-  //                 backgroundColor: AppColors.darkTeal,
-  //                 child: Text(
-  //                   (user['name'] ?? '?')[0].toUpperCase(),
-  //                   style: const TextStyle(
-  //                     color: Colors.white,
-  //                     fontSize: 10,
-  //                     fontWeight: FontWeight.bold,
-  //                   ),
-  //                 ),
-  //               ),
-  //               label: Text(
-  //                 "${user['name']} (${user['rollNo']})",
-  //                 style: const TextStyle(
-  //                   fontSize: 12,
-  //                 ),
-  //               ),
-  //               deleteIcon: const Icon(Icons.close, size: 16),
-  //               onDeleted: () {
-  //                 setState(() {
-  //                   invitedUserIds.remove(id);
-  //                 });
-  //               },
-  //               backgroundColor: Colors.white,
-  //               side: const BorderSide(color: AppColors.green),
-  //               labelStyle: const TextStyle(
-  //                 color: AppColors.darkTeal,
-  //                 fontWeight: FontWeight.w500,
-  //               ),
-  //               deleteIconColor: AppColors.darkOrange,
-  //             );
-  //           }).toList(),
-  //         ),
-  //       ],
-  //     ],
-  //   );
-  // }
-
   Widget _buildVisibility() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader("Visibility & Access", Icons.visibility_outlined),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _buildSectionHeader("Visibility & Access", Icons.visibility_outlined),
 
-        // Public/Private Toggle
-        SizedBox(
-          width: double.infinity,
-          child: CustomToggleSelector<bool>(
-            options: const [
-              _ToggleOption(value: false, label: 'Public', icon: Icons.public),
-              _ToggleOption(
-                value: true,
-                label: 'Private',
-                icon: Icons.lock_outline,
-              ),
-            ],
-            selected: isPrivate,
-            onSelectionChanged: (selected) {
-              setState(() {
-                isPrivate = selected;
-                if (!selected) {
-                  // Clear selections when switching to public
-                  selectedQuickOption = null;
-                  invitedUserIds.clear();
-                }
-              });
-            },
-            perOptionSelectedColors: const {
-              0: AppColors.darkTeal,
-              1: AppColors.orange,
-            },
-          ),
-        ),
-
-        // Private Meeting Options
-        if (isPrivate) ...[
-          const SizedBox(height: 20),
-
-          // ✅ Enhanced Quick Select Section with Highlighting
-          if (quickSelectOptions.isNotEmpty) ...[
-            const Text(
-              'Quick Select',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkGray,
-                fontSize: 14,
-              ),
+      // Public/Private Toggle
+      SizedBox(
+        width: double.infinity,
+        child: CustomToggleSelector<bool>(
+          options: const [
+            _ToggleOption(value: false, label: 'Public', icon: Icons.public),
+            _ToggleOption(
+              value: true,
+              label: 'Private',
+              icon: Icons.lock_outline,
             ),
-            const SizedBox(height: 10),
-
-            // Quick Select Chips with Active State
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: quickSelectOptions.map<Widget>((option) {
-                final isActive = selectedQuickOption == option['id'];
-
-                return InkWell(
-                  onTap: () => handleQuickSelect(option['id']),
-                  borderRadius: BorderRadius.circular(20),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.green.withOpacity(0.15)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isActive ? AppColors.green : AppColors.orange,
-                        width: isActive ? 2 : 1.5,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isActive
-                              ? Icons.check_circle
-                              : _getQuickSelectIcon(option['id']),
-                          size: 16,
-                          color: isActive ? AppColors.green : AppColors.orange,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          option['label'],
-                          style: TextStyle(
-                            color: isActive
-                                ? AppColors.darkTeal
-                                : AppColors.darkTeal,
-                            fontWeight: isActive
-                                ? FontWeight.bold
-                                : FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                        if (isActive) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.green,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${invitedUserIds.length}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 16),
-            const Divider(height: 1, thickness: 1, color: AppColors.lightGray),
-            const SizedBox(height: 16),
           ],
+          selected: isPrivate,
+          onSelectionChanged: (selected) {
+            setState(() {
+              isPrivate = selected;
+              if (!selected) {
+                // ✅ Clear invited members
+                invitedUserIds.clear();
+                
+                // ✅ Reset Core scope back to General when switching to Public
+                if (meetingScope == 'core') {
+                  meetingScope = 'general';
+                  selectedScopeNotifier.value = 'general';
+                  selectedCoreOption = null;
+                }
+              }
+            });
+          },
+          perOptionSelectedColors: const {
+            0: AppColors.darkTeal,
+            1: AppColors.orange,
+          },
+        ),
+      ),
 
-          // Manual Member Selection
-          _buildMemberSelector(),
-        ],
+      // Private Meeting Options
+      if (isPrivate) ...[
+        const SizedBox(height: 20), 
+        _buildMemberSelector()
       ],
-    );
-  }
+    ],
+  );
+}
 
   // Helper method to get appropriate icon
   IconData _getQuickSelectIcon(String optionId) {

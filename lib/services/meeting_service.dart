@@ -34,6 +34,61 @@ class MeetingService {
     }
   }
 
+  // ✅ NEW: Get All Heads (Entire Core)
+  Future<List<dynamic>> getEntireCore() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/core/entire'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load entire core members');
+    }
+  }
+
+  // ✅ NEW: Get BE Core Heads Only
+  Future<List<dynamic>> getBECore() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/core/be'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 404) {
+      throw Exception('BE Core team not found');
+    } else {
+      throw Exception('Failed to load BE Core members');
+    }
+  }
+
+  // ✅ NEW: Get TE Core Heads (All teams except BE Core)
+  Future<List<dynamic>> getTECore() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/core/te'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load TE Core members');
+    }
+  }
 
   Future<List<dynamic>> getOngoingMeetings() async {
     final token = await _getToken();
@@ -100,45 +155,6 @@ class MeetingService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to load meetings for attendance');
-    }
-  }
-
-  // ✅ ADD: Get Quick Select Options
-  Future<List<dynamic>> getQuickSelectOptions() async {
-    final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/quick-select/options'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token"
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else if (response.statusCode == 403) {
-      // User doesn't have permission - return empty list instead of throwing
-      return [];
-    } else {
-      throw Exception('Failed to load quick select options (Status: ${response.statusCode}). ${response.body}');
-    }
-  }
-
-  // ✅ ADD: Get Members for Selected Option
-  Future<List<dynamic>> getQuickSelectMembers(String option) async {
-    final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/quick-select/$option/members'),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token"
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load members for option: $option');
     }
   }
 

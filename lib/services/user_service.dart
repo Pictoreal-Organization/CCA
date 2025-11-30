@@ -8,7 +8,6 @@ class UserService {
   // final String baseUrl = "${dotenv.env['BASE_URL']}/api/user";
   final String baseUrl = "${AppConfig.baseUrl}/api/user";
 
-
   Future<List<Map<String, dynamic>>> getAllUsers() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("accessToken");
@@ -23,7 +22,9 @@ class UserService {
 
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
-      return data.map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u)).toList();
+      return data
+          .map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u))
+          .toList();
     } else {
       throw Exception('Failed to fetch users: ${response.body}');
     }
@@ -35,7 +36,7 @@ class UserService {
     required String year,
     required String division,
     required String phone,
-    required String avatar
+    required String avatar,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("accessToken");
@@ -52,7 +53,7 @@ class UserService {
         "year": year,
         "division": division,
         "phone": phone,
-        "avatar": avatar
+        "avatar": avatar,
       }),
     );
 
@@ -83,4 +84,23 @@ class UserService {
     }
   }
 
+  Future<bool> checkIsBeCore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("accessToken");
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/is-becore'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['result'] ?? false;
+    } else {
+      throw Exception('Failed to check BeCore status: ${response.body}');
+    }
+  }
 }
