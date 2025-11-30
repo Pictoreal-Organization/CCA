@@ -13,6 +13,26 @@ class TaskService {
     return prefs.getString("accessToken");
   }
 
+  Future<bool> checkTaskControl(String taskId) async {
+    final token = await _getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/$taskId/has-control'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['hasControl'] ?? false;
+    } else {
+      throw Exception('Failed to check task control: ${response.body}');
+    }
+  }
+
+
   Future<List<dynamic>> getAllTasks() async {
     final token = await _getToken();
     final response = await http.get(
